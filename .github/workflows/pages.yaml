@@ -52,7 +52,7 @@ jobs:
       - name: Setup Sass embedded
         run: |
           curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
-          npm install -g sass
+          brew install sass/sass/sass
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules
