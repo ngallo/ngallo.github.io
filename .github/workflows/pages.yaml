@@ -51,8 +51,7 @@ jobs:
           && sudo dpkg -i ${{ runner.temp }}/hugo.deb
       - name: Setup Sass embedded
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
-          && brew install sass/sass/sass
+          npm install -g sass
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules
