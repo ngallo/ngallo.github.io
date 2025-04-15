@@ -10,8 +10,8 @@ I’m co-founder of [Nitro Agility](https://www.nitroagility.com). This is my pe
 
 You can find me on GitHub:
 
-- [ngallo](https://github.com/ngallo)
-- [ztauth*](https://github.com/ztauthstar/ztauthstar)
-- [permguard](https://github.com/permguard/permguard)
+- <a href="https://github.com/ngallo" target="_blank">ngallo</a>
+- <a href="https://github.com/ztauthstar/ztauthstar" target="_blank">ztauth*</a>
+- <a href="https://github.com/permguard/permguard" target="_blank">permguard</a>
 
-Feel free to get in touch: nicola.gallo@nitroagility.com.
+Feel free to get in touch: [nicola.gallo@nitroagility.com.](mailto:nicola.gallo@nitroagility.com.)
