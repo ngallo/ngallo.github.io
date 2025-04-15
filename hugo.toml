@@ -1,0 +1,63 @@
+baseURL = 'https://www.ngallo.it/'
+languageCode = 'en-uk'
+
+[[module.imports]]
+  path = 'github.com/LordMathis/hugo-theme-nightfall'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[module]
+  [hugoVersion]
+    extended = true
+    min =  "0.134.0"
+
+[menu]
+  [[menu.header]]
+    name = "blog"
+    weight = 0
+    url = "blog"
+  [[menu.header]]
+    name = "about"
+    weight = 1
+    url = "about"
+
+[params]
+user = "nicola.gallo"
+hostname = "nitroagility.com"
+  [params.author]
+    name = "Nicola Gallo"  # Website and RSS feed author
+    email = "nicola.gallo@nitroagility.com"  # RSS feed email address
+  math = true
+
+readingTime = true  # Show reading time on post page
+published = true  # Show published data on post page
+
+[[params.social]]
+key = 0
+name = "github"
+url = "https://github.com/ngallo/"
+target = "_blank"
+aria = "GitHub Profile"
+
+[[params.social]]
+key = 1
+name = "twitter"
+url = "https://x.com/ngallo83"
+target = "_blank"
+aria = "Twitter Profile"
+
+[[params.social]]
+key = 2
+name = "linkedin"
+url = "https://www.linkedin.com/in/nicolagallo83/"
+target = "_blank"
+aria = "LinkedIn Profile"
+
+[[params.social]]
+key = 3
+name = "email"
+url = "mailto:nicola.gallo@nitroagility.com"
+aria = "My e-Mail Address"
