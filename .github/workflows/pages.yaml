@@ -46,10 +46,16 @@ jobs:
         id: pages
         uses: actions/configure-pages@v4
       - name: Setup Hugo
-        uses: peaceiris/actions-hugo@v2
-        with:
-          hugo-version: '0.145.0'
-          extended: true
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+      - name: Setup Node
+        run: |
+          sudo apt update
+          sudo apt install -y curl gnupg2
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt install -y nodejs
+          sudo npm install -g sass
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules
