@@ -30,7 +30,6 @@ hostname = "nitroagility.com"
   [params.author]
     name = "Nicola Gallo"  # Website and RSS feed author
     email = "nicola.gallo@nitroagility.com"  # RSS feed email address
-  math = true
 
 readingTime = true  # Show reading time on post page
 published = true  # Show published data on post page
