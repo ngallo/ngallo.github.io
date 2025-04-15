@@ -51,7 +51,9 @@ jobs:
           && sudo dpkg -i ${{ runner.temp }}/hugo.deb
       - name: Setup Sass embedded
         run: |
-          npm install -g sass
+          sudo apt update \
+          && sudo apt install snapd \
+          && sudo snap install dart-sass
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules
