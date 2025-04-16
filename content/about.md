@@ -1,7 +1,7 @@
 +++
 title = "About"
 description = "A tech entrepreneur and software srchitect specialized in enterprise-grade applications, distributed systems, devops, and cloud-native solutions. Creator of ZTAuth* and PermGuard."
-date = "2019-02-28"
+date = "2025-04-15"
 aliases = ["about-us"]
 author = "Hugo Authors"
 +++
