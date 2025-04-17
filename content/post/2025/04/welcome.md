@@ -5,7 +5,8 @@ date = "2025-04-15"
 description = "Working on Permguard"
 tags = [
     "myself",
-    "work",
+    "ztauth*",
+    "permguard",
 ]
 +++
 
