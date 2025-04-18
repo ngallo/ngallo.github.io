@@ -9,6 +9,11 @@ tags = [
     "ztauth*",
 ]
 +++
-xx
+
+Authorization (also known as `AuthZ`) is gaining attention as a critical component of modern systems. However, the ecosystem still lacks the same level of standardization that Authentication (`AuthN`) has already achieved.
+
+While it may seem reasonable to rely on `tokens` to manage authorization, this approach must be carefully considered. Authorization is inherently a distributed fact.
 
 <!--more-->
+
+When talking about distributed systems, the CAP theorem becomes highly relevant. Any approach to authorization must take into account the trade-offs between consistency, availability, and partition tolerance. Understanding these limits is essential for building secure and reliable systems.
