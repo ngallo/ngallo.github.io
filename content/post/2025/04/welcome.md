@@ -2,16 +2,13 @@
 author = "Nicola Gallo"
 title = "Working on Permguard"
 date = "2025-04-15"
-description = "Working on Permguard"
+description = "Introducing PermGuard, our Zero-Trust access platform"
 tags = [
     "myself",
     "ztauth*",
     "permguard",
 ]
 +++
-
-Welcome to my first post. 
-
 Kicking things off with something I’ve been building: PermGuard — an open source project under the Apache 2.0 license.
 <!--more-->
 
