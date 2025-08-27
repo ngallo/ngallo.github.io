@@ -6,8 +6,6 @@ aliases = ["about", "about-us"]
 author = "Nicola Gallo"
 +++
 
-# About
-
 > From scaling secure enterprise platforms to building zero-trust products, my mission is to shape technology into tools for a more open and equitable world.
 
 <p style="margin:.4rem 0 0; opacity:.9; font-size:.95rem;">
