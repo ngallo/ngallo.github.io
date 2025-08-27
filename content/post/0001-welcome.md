@@ -3,7 +3,7 @@ author = "Nicola Gallo"
 title = "Working on Permguard"
 date = "2025-04-15"
 description = "Working on Permguard"
-tags = ["permguard", "work"]
+tags = ["permguard", "beta"]
 +++
 
 <p>Kicking things off with something I’ve been building: <strong>Permguard</strong> - an open source project under the Apache 2.0 license.  </p>
