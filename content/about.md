@@ -6,12 +6,16 @@ aliases = ["about-us"]
 author = "Hugo Authors"
 +++
 
-I’m co-founder of [Nitro Agility](https://www.nitroagility.com). This is my personal space for sharing ideas and open source work.
+I’m co-founder of [Nitro Agility](https://www.nitroagility.com).  
+This is my personal space for sharing ideas and open-source work.
 
 You can find me on GitHub:
 
-- <a href="https://github.com/ngallo" target="_blank">ngallo</a>
-- <a href="https://github.com/ztauthstar/ztauthstar" target="_blank">ztauth*</a>
-- <a href="https://github.com/permguard/permguard" target="_blank">permguard</a>
+- <a href="https://github.com/ngallo" target="_blank" rel="noopener noreferrer">ngallo</a>
 
-Feel free to get in touch: [nicola.gallo@nitroagility.com.](mailto:nicola.gallo@nitroagility.com.)
+You can also see what I’m working on in relation to my role at **Nitro Agility** here:  
+
+- <a href="https://spec.ztauthstar.com/" target="_blank" rel="noopener noreferrer">ZTAuth* Open Spec</a>  
+- <a href="https://www.permguard.com" target="_blank" rel="noopener noreferrer">Permguard</a>
+
+Feel free to get in touch: [nicola.gallo@nitroagility.com](mailto:nicola.gallo@nitroagility.com)
