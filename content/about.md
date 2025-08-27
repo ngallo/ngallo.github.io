@@ -1,6 +1,6 @@
 +++
 title = "About"
-description = "Software Architect specialized in enterprise-grade applications, distributed systems, devops, and cloud-native solutions. Creator of ZTAuth* and Permguard."
+description = "Software architect for enterprise systems & distributed architectures. Focused on identities and authorization (authZ), including decentralized models. Creator of ZTAuth* and Permguard."
 date = "2025-04-15"
 aliases = ["about", "about-us"]
 author = "Nicola Gallo"
