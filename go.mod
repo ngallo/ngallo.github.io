@@ -1,5 +1,5 @@
 module github.com/ngallo/ngallo.github.io
 
-go 1.23.6
+go 1.24.6
 
-require github.com/LordMathis/hugo-theme-nightfall v0.8.0 // indirect
+require github.com/lordmathis/hugo-theme-nightfall v0.9.1 // indirect

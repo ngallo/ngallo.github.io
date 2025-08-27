@@ -2,7 +2,7 @@ baseURL = 'https://www.ngallo.it/'
 languageCode = 'en-uk'
 
 [[module.imports]]
-  path = 'github.com/LordMathis/hugo-theme-nightfall'
+  path = 'github.com/lordmathis/hugo-theme-nightfall'
 
 [markup]
   [markup.goldmark]
@@ -23,6 +23,10 @@ languageCode = 'en-uk'
     name = "about"
     weight = 1
     url = "about"
+  [[menu.header]]
+    name = "disclaimer"
+    weight = 1
+    url = "disclaimer"
 
 [params]
 user = "root"
