@@ -1,7 +1,7 @@
 +++
 title = "Disclaimer"
 description = "Legal disclaimer and licensing notice for ngallo.it personal blog."
-date = "2025-08-28"
+date = "2025-04-15"
 aliases = ["disclaimer", "legal-disclaimer"]
 author = "Nicola Gallo"
 +++

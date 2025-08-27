@@ -1,7 +1,7 @@
 +++
 title = "About"
 description = "Software Architect specialized in enterprise-grade applications, distributed systems, devops, and cloud-native solutions. Creator of ZTAuth* and Permguard."
-date = "2025-08-28"
+date = "2025-04-15"
 aliases = ["about", "about-us"]
 author = "Nicola Gallo"
 +++
