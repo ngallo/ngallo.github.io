@@ -10,10 +10,6 @@ tags = ["permguard", "open-source"]
 
 <!--more-->
 
-<!-- <figure class="post-banner">
-  <img src="/images/0001-welcome/banner.png" alt="Permguard — beta release" loading="lazy" decoding="async">
-</figure> -->
-
 <div class="post-hero">
   <p>We just dropped the <strong>first beta release</strong> 🎉. It’s still early days, but it’s already starting to gain some traction.  </p>
 </div>
