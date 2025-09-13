@@ -21,6 +21,9 @@ tasks:
     desc: git push for documentation
     cmd: 'git add -A && git commit -m "docs: {{.CLI_ARGS}}" && git push || echo DONE'
   docs:
+    env:
+      PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:{{.PATH}}"
+      HUGO_SASS_BIN: "/opt/homebrew/bin/sass"
     cmds:
       - hugo mod tidy 
       - hugo server --logLevel debug --disableFastRender -p 1315
