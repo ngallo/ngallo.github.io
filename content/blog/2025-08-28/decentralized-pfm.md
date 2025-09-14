@@ -3,7 +3,7 @@ author = "Nicola Gallo"
 title = "Decentralized Models for Programmable Fiduciary Money"
 date = "2025-08-28"
 description = "Exploring how decentralized trust and authorization models can enable secure, privacy-preserving, and programmable fiduciary money."
-tags = ["security", "authz", "decentralization", "programmable-money"]
+tags = ["security", "authz", "decentralization", "fiduciary-money"]
 +++
 
 AI agents bring new security challenges, but also an opportunity to rethink traditional models.  
