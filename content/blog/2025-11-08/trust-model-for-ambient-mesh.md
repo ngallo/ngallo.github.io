@@ -141,6 +141,10 @@ xxxxx
 
 xxxxx
 
+## Bridging SPIFFEID to DIDs
+
+xxxxx
+
 ## Conclusion — Toward Composable, Verifiable Trust
 
 xxxxx
