@@ -101,6 +101,10 @@ It’s about making **trust dynamic, composable, and verifiable** — across wor
 Before diving into specific use cases, it’s important to clarify the foundational concepts behind **ZTAuth***.  
 As illustrated in the model below, the architecture defines how **trust** is **evaluated**, **elevated**, and **propagated** across autonomous components in distributed systems.
 
+<figure class="post-banner">
+  <img src="/images/2025-11-08/trust-model-for-ambient-mesh/ztauth.png" alt="ZTAuth*" loading="lazy">
+</figure>
+
 - **Trusted Input**  
 Represents the initial *trust material* — a **cryptographically verifiable** credential or token **issued by an identifiable authority** and **bound to a subject** (human, service, or workload). It defines *who* is acting and *what* is being requested within a trust domain.  
 Examples include **JWTs**, **OAuth 2.1 access tokens**, **ZCAPs**, **UCANs**, **W3C Verifiable Credentials**, or **digitally signed attestations**.  
