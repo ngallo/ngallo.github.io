@@ -27,7 +27,7 @@ IMHO, this direction marks a **meaningful evolution in Cloud Native security**, 
 However, there’s one point where I respectfully disagree.  
 The documentation states that *“an application might benefit from knowing the peer identity.”*  
 
-> In my view, this is more than a “nice to have” — it represents a **fundamental shift** in how we think about service identity. When **peer identity** becomes part of the **communication protocol itself**, it transforms the entire trust model. I believe this capability should be **mandatory** for **Zero Trust architectures**.  
+> In my view, this is more than a “**nice to have**” — it represents a **fundamental shift** in how we think about service identity. When **peer identity** becomes part of the **communication protocol itself**, it transforms the entire trust model. I believe this capability should be **mandatory** for **Zero Trust architectures**.  
 
 IMHO, the **peer identity** remains **underestimated** in its potential impact on **Zero Trust architectures**.  
 
@@ -44,7 +44,7 @@ This **`peerIdentity`** represents the **verified identity of the calling worklo
 
 That said, in my opinion, two core components are still missing to fully realize this vision: **Trust Elevation** and **Trust Levels**.
 
-In the next sections, we’ll explore how these ideas can extend the model into what I call **ZTAuth\***, using real-world examples based on **micro-segmentation** and **asynchronous flows**.
+In the next sections, we’ll explore how these ideas can extend the model with **ZTAuth\***, using real-world examples based on **micro-segmentation** and **asynchronous flows**.
 
 ## One Step Back to Leap Ahead: Rethinking Trust Models for Zero Trust
 
