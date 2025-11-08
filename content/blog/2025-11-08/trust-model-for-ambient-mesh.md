@@ -10,7 +10,7 @@ tags = ["security", "authz", "ambient mesh", "cloud native"]
 
 <!--more-->
 
-## Ambient Mesh is Redefining Zero Trust in the Cloud Native Service Mesh
+## Ambient Mesh is redefining Zero Trust in the Cloud Native Service Mesh
 
 Last month I had the pleasure of discussing **Ambient Mesh** with some of the leading minds in the **Cloud Native** space.  
 
@@ -46,7 +46,7 @@ That said, in my opinion, two core components are still missing to fully realize
 
 In the next sections, we’ll explore how these ideas can extend the model with **ZTAuth\***, using real-world examples based on **micro-segmentation** and **asynchronous flows**.
 
-## One Step Back to Leap Ahead: Rethinking Trust Models for Zero Trust
+## One step back to leap ahead: Rethinking Trust Models for Zero Trust
 
 Current **authentication** and **authorization** models are built around the concept of a **static identity** and **static policies**. The best you can typically do is **revoke a token**.
 
@@ -69,14 +69,16 @@ That’s where **microservices**, **event-driven systems**, and **asynchronous p
 And yet, we still rely on the same **stateless token paradigm**, designed for **user-centric web access**, not for **dynamic, distributed workloads**.  
 
 Inside the internal network, we don’t need a new transport protocol — **HTTP works perfectly**.  
-The problem is that we now have **two different layers of security**:
+The real issue is that we’ve ended up with **two parallel security layers**, and that should be a **warning sign, not a strength**.
 
-- one **external**, enforced through web gateways, OAuth servers, and identity providers;  
-- and one **internal**, often implicit or implemented ad hoc between services.  
+- One layer is **external**, managed through standardized components such as **identity providers**, **OAuth servers**, and **API gateways** — it’s well-defined, observable, and policy-driven.  
+- The other is **internal**, often **implicit**, **ad hoc**, or entirely **absent** — relying on **network boundaries**, **local tokens**, or **assumed trust**.
 
-The former is robust and standardized, while the latter is **fragmented, inconsistent, and often invisible** to the global trust model.
+This duality exists because our systems evolved without a **unified trust substrate**. When security has to be enforced twice — once at the perimeter and once (inconsistently) inside — it’s a clear indication that **the trust model doesn’t extend end-to-end**.
 
-This separation becomes even more problematic as systems move toward **asynchronous architectures** and **distributed transactions**.  
+We don’t have *defense in depth*; we have **trust fragmentation**.
+
+This separation becomes even more problematic as systems move toward **asynchronous architectures** and **distributed transactions**.
 
 For instance, in event-driven workflows or message-based orchestration, **tokens cannot safely travel** with each message. Each hop may involve retries, batching, or fan-out, making token forwarding both insecure and impractical.  
 
@@ -90,7 +92,7 @@ Static tokens and global impersonation don’t scale in this model; they break b
 
 This is why we need a **new trust model**, one that embeds **workload identity** and **trust context** directly into the interaction protocols themselves.  
 
-This is the foundation of what I started to define as **ZTAuth**, a conceptual and protocol-level model designed to extend **Zero Trust principles** beyond synchronous APIs into **microsegmented** and **asynchronous architectures**.  
+This is the foundation of what I started to define as **ZTAuth\***, a conceptual and protocol-level model designed to extend **Zero Trust principles** beyond synchronous APIs into **microsegmented** and **asynchronous architectures**.  
 
 It’s about making **trust dynamic, composable, and verifiable** — across workloads, not just users.
 
