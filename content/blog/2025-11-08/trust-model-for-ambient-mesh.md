@@ -1,12 +1,12 @@
 +++
 author = "Nicola Gallo"
-title = "A Trust Model for Ambient Mesh, micro-segmentation, and async flows"
+title = "A Trust Model for Ambient Mesh, microsegmentation, and async flows"
 date = "2025-11-08"
 description = "As Ambient Mesh redefines Cloud Native networking, ZTAuth* completes the model."
 tags = ["security", "authz", "ambient mesh", "cloud native"]
 +++
 
-**Ambient Mesh** is redefining the Cloud Native service mesh for Zero Trust, whilst [**ZTAuth\***](https://spec.ztauthstar.com/openprotocolspec/2025-04-05/) completes it with **Trust Chains** built on **Trust Elevation**, **Trust Levels**, and **cryptographic signatures**. This article explores how these concepts apply to micro-segmented and asynchronous workloads.
+**Ambient Mesh** is redefining the Cloud Native service mesh for Zero Trust, whilst [**ZTAuth\***](https://spec.ztauthstar.com/openprotocolspec/2025-04-05/) completes it with **Trust Chains** built on **Trust Elevation**, **Trust Levels**, and **cryptographic signatures**. This article explores how these concepts apply to microsegmented and asynchronous workloads.
 
 <!--more-->
 
@@ -44,7 +44,7 @@ This **`peerIdentity`** represents the **verified identity of the calling worklo
 
 That said, in my opinion, two core components are still missing to fully realize this vision: **Trust Elevations** and **Trust Levels**.
 
-In the next sections, we’ll explore how these ideas can extend the model with **ZTAuth\***, using real-world examples based on **micro-segmentation** and **asynchronous flows**.
+In the next sections, we’ll explore how these ideas can extend the model with **ZTAuth\***, using real-world examples based on **microsegmentation** and **asynchronous flows**.
 
 ## One step back to leap ahead: Rethinking Trust Models for Zero Trust
 
@@ -84,7 +84,7 @@ For instance, in event-driven workflows or message-based orchestration, **tokens
 
 Yet, these messages still represent authenticated actions that must be **trusted, traced, and authorized**. Without a unified trust context that extends beyond HTTP calls, **internal security remains weakly coupled**, and **Zero Trust stops at the edge**.  
 
-This mismatch becomes critical in modern environments, especially as **AI-driven orchestration** and **Zero Trust Application Networks (ZtAN)** emerge.  
+This mismatch becomes critical in modern environments, especially as **AI-driven orchestration** and **Zero Trust Network Access (ZTNA)** emerge.  
 
 These systems operate through **asynchronous flows** — events, queues, streams, and workflows — that extend far beyond simple API calls.  
 
@@ -96,7 +96,40 @@ This is the foundation of what I started to define as **ZTAuth\***, a conceptual
 
 It’s about making **trust dynamic, composable, and verifiable** — across workloads, not just users.
 
-## The Micro-Segmentation challenge
+## The ZTAuth* Approach: Trust Elevations, Trust Levels, and Trust Chains
+
+Before diving into specific use cases, it’s important to clarify the foundational concepts behind **ZTAuth***.  
+As illustrated in the model below, the architecture defines how **trust** is **evaluated**, **elevated**, and **propagated** across autonomous components in distributed systems.
+
+- **Trusted Input**  
+Represents the initial *trust material* — a **cryptographically verifiable** credential or token **issued by an identifiable authority** and **bound to a subject** (human, service, or workload). It defines *who* is acting and *what* is being requested within a trust domain.  
+Examples include **JWTs**, **OAuth 2.1 access tokens**, **ZCAPs**, **UCANs**, **W3C Verifiable Credentials**, or **digitally signed attestations**.  
+Each credential must ensure **integrity** and **issuer authenticity**, and should support **freshness** (timestamps or short lifetimes) and **status verification** when applicable.  
+The format is **abstract**, but **proof of provenance** and **verifiable binding** between issuer, subject, and claims are required.  
+Depending on the domain, assurance may rely on **token lifetime**, **attestation evidence**, or **scoped validation** instead of global revocation.
+
+- **Trusted Channel**  
+Defines the secure communication substrate through which requests and attestations flow. It can be **HTTPS**, **mTLS**, a **message bus**, or any authenticated protocol ensuring **confidentiality**, **integrity**, and **endpoint authenticity**.  
+The channel itself doesn’t establish trust — it ensures that **trust artifacts** are exchanged securely and remain untampered.
+
+- **Autonomous Component**  
+The **workload** or **execution entity** performing an action. It must have a **workload identity** (e.g., SPIFFE ID, workload certificate, or attested key) and act as a **Policy Enforcement Point (PEP)** — enforcing trust decisions locally and ensuring that only authorized operations are executed.
+
+- **Policy Decision Point (PDP)**  
+The component responsible for **evaluating the trust context** and producing an **authorization decision**.  
+A PDP may be **centralized** or **distributed**, but it always relies on two mechanisms:  
+**Trust Elevation** — determines whether a workload can *elevate its trust context* from its own identity to that of a delegated or higher-privilege identity, under explicit policy and proof of entitlement.  
+**Trust Levels** — define the *scope and granularity* of such elevation, constraining transitions based on **risk posture**, **policy**, **attestation evidence**, or **environmental context** (e.g., device, enclave, or network trust state).
+
+- **Trust Governance**  
+Defines how **policies, trust relationships, and attestations** are authored, distributed, and evaluated. It includes **Business Policies** (organizational or regulatory intent), **Trust Policies** (technical and contextual enforcement rules), and **Trust Statements** (verifiable declarations of provenance, authorization, or delegation).  
+This layer ensures that trust remains **auditable**, **revocable**, and **consistent** across domains.
+
+Each of these layers forms a single **Trust Ring**. When multiple rings interact — for example, when a workload includes in its **Trusted Input** a **verifiable proof** that a previous peer’s identity and action were authorized under a valid trust context — they interconnect to form a **Trust Chain**.  
+
+A **Trust Chain** provides **cryptographically verifiable continuity of trust** across workloads, asynchronous boundaries, and administrative domains. It enables **distributed authorization** that is **context-aware**, **revocable**, and **Zero Trust–compliant by design**.
+
+## The Microsegmentation challenge
 
 xxxxx
 
