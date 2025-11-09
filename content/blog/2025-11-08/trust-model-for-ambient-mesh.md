@@ -157,9 +157,47 @@ A trust exchange may start in a **centralized system**, for example using an **O
 Likewise, decentralized identities can be **mapped or bound** to internal trust primitives such as **SPIFFE IDs** or **workload certificates** within private or enterprise domains.  
 This approach keeps trust **consistent and verifiable** across boundaries, ensuring that policy enforcement and assurance do not break when shifting between **federated** and **distributed** systems.
 
-## The Microsegmentation challenge
+## The Microsegmentation Challenge
 
-xxxxx
+**Microsegmentation** is a foundational technique for securing distributed systems.  
+By dividing infrastructure into smaller, isolated **trust segments**, it reduces the attack surface and prevents uncontrolled lateral movement between workloads or regions.
+
+To illustrate the challenge, let’s take a simple example of an **e-commerce application** deployed across multiple **security segments** and **availability zones**:
+
+1. A user places an order through the **Order API**.  
+2. The **Order Service** processes the request and contacts the **Payment Service** to charge the registered card.  
+3. Once payment is confirmed, it triggers the **Shipment Service** to prepare the delivery.
+
+Each service operates in a different **trust segment**:
+
+- `order-api` in the **Retail segment** (public-facing).  
+- `payment-svc` in the **PCI segment** (sensitive, regulated).  
+- `shipment-svc` in the **Logistics segment** (partner or third-party network).
+
+At first glance, this looks like a simple workflow — but in a **microsegmented, multi-segment deployment**, every step crosses a **trust boundary**.
+
+In real-world architectures, each segment may rely on a **different identity and trust model** — for example:  
+**federated enterprise identity** (OIDC or SAML), **workload identity** (SPIFFE/SPIRE), or even **decentralized trust frameworks** (DID or Verifiable Credentials).  
+These can interoperate through **federated trust anchors** or **cryptographic assertions**, but for simplicity, we’ll assume a homogeneous model in this example.
+
+Modern distributed systems are typically **redundant by design**.  
+Each trust segment can have **multiple replicas** deployed across **different nodes, availability zones, or regions** for high availability.  
+If an anomaly or compromise is detected in one replica or subdomain, **only that specific instance or segment should be quarantined for verification**, while all other segments continue operating normally.  
+This containment model avoids cascading failures and prevents disruption of legitimate **distributed transactions** running in unaffected domains.
+
+However, if a single global token (for example, a user JWT or OAuth access token) is propagated across multiple **replicas of the same service** — for instance, across instances of the **Order API** running in different zones of the same segment — or exchanged between **different trust segments**, this selective isolation becomes impossible:
+
+- Revoking the token in one compromised replica or zone invalidates all other instances sharing it.  
+- Cross-segment token propagation (e.g., from the **Retail** to the **PCI** or **Logistics** segment) tightly couples otherwise independent trust domains.  
+- In both cases, revocation or anomaly response in a single area disrupts valid operations and transactions elsewhere.
+
+This demonstrates why **microsegmented systems** cannot rely on **global, stateless tokens** alone.  
+Each segment must enforce its own **localized trust context** — based on workload identity, attestation, and verifiable proofs — while maintaining **cryptographic continuity** through a **Trust Chain**.  
+
+This is where **Zero Trust principles** apply in full:  
+it’s not about continuously validating a token, but about ensuring that **trust is established, propagated, and continuously verified** — across every segment, workload, and interaction — so that each action occurs **within its rightful trust boundary** and no further.  
+
+This diversity of identity models is not a weakness — it’s an expected property of **large-scale Zero Trust ecosystems**.
 
 ## The Async Flows Frontier
 
