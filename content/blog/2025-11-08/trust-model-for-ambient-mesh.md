@@ -106,6 +106,11 @@ It’s about making **trust dynamic, composable, and verifiable** — across wor
 And yes, technologies like **OAuth**, **SAML**, or **OpenID Connect** will continue to play their role — but as **initial trust triggers**, not as the backbone of distributed trust.  
 The model must evolve to accommodate **decentralized**, **context-aware**, and **cryptographically verifiable** trust frameworks that match the distributed nature of modern systems.
 
+> **Important Note:**  
+> Some trust evaluations belong at the **application level**, while others make sense at the **mesh layer**.  
+> The example shown here could also be implemented through **Waypoints** with **External AuthZ**, but it was kept at the workload level to focus on the logical model.  
+> A dedicated article will later explore how the same **ZTAuth\*** approach applies to **Waypoints** once extended **authZ** and **metadata** capabilities are available.
+
 ## The ZTAuth* Approach: Trust Elevations, Trust Levels, and Trust Chains
 
 Before diving into specific use cases, it’s important to clarify the foundational concepts behind **ZTAuth***.  
@@ -203,6 +208,10 @@ The PDP input therefore includes:
 - The **user credential** (`JWT` for John).  
 - The **peer identity** (`spiffe://cluster.local/ns/retail/sa/order-api`).  
 - The **executor identity** (`spiffe://cluster.local/ns/pci/sa/payment-svc`).  
+
+<figure class="post-banner">
+  <img src="/images/2025-11-08/trust-model-for-ambient-mesh/ztauth-and-ambient-mesh.png" alt="ZTAuth* and Ambient Mesh" loading="lazy">
+</figure>
 
 > **Note:**  
 > In this model, what the PDP sees as the **peer identity** (the caller workload) is, from the application’s perspective, the **executor** — the service that actually performs the operation.  
