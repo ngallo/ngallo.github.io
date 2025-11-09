@@ -116,33 +116,34 @@ Before diving into specific use cases, it’s important to clarify the foundatio
 
 As illustrated in the model above, the architecture defines how **trust** is **evaluated**, **elevated**, and **propagated** across autonomous components in distributed systems:
 
-- **Trusted Input**  
+**TRUSTED INPUT**  
 Represents the initial *trust material* — any credential, token, or signed document that can be **cryptographically verified** and **linked to a subject** (user, service, or workload).  
 Examples include **JWTs**, **OAuth access tokens**, **ZCAPs**, **UCANs**, **W3C Verifiable Credentials**, or other **digitally signed artifacts**.  
 The key requirement is that it can be **verified for authenticity and integrity**, regardless of format or trust model — centralized or decentralized.
 
-- **Trusted Channel**  
+**TRUSTED CHANNEL**  
 Represents the **secure communication substrate** over which trust information — such as requests, attestations, or signed data — is transmitted.  
 A trusted channel is any medium that ensures **confidentiality**, **integrity**, **authentic endpoint verification**, and **protection against replay or tampering**.  
 It can operate over **HTTPS**, **mTLS**, **gRPC**, **message buses**, **DDS**, **DIDComm**, or other **centralized or decentralized transports**.  
 The model remains valid even in **hostile or intermittently connected environments** (e.g., IoT, edge, or defense systems), where sessions may be disrupted but trust continuity must persist.  
 In enterprise contexts, the trusted channel underpins **secure, verifiable, and policy-governed trust exchange** across all communication boundaries.
 
-- **Autonomous Component**  
+**AUTONOMOUS COMPONENT**  
 Represents the **workload** or **execution entity** performing an action.  
 It must possess a **verifiable workload identity** — such as a **SPIFFE ID**, **workload certificate**, or **attested cryptographic key** — that uniquely binds the running instance to its provenance and trust domain.  
 Each autonomous component acts as a **Policy Enforcement Point (PEP)**, evaluating and enforcing **trust and authorization decisions locally**, ensuring that only **authenticated and policy-compliant operations** are executed, even in disconnected or distributed environments.
 
-- **Policy Decision Point (PDP)**  
+**POLICY DECISION POINT (PDP)**  
 The component that **evaluates trust context** and produces an **authorization decision** based on policies and attestations.  
 A PDP can be **centralized** or **distributed**, but it always relies on two key concepts:  
-**Trust Elevation** — the process of moving from one **authorization context** to another, for example when a workload needs to act with a different or higher level of privilege.  
+
+- **Trust Elevation** — the process of moving from one **authorization context** to another, for example when a workload needs to act with a different or higher level of privilege.  
 Each context enforces its own policies, and elevation is granted only when the **authorization decision**, evaluated under the **target context’s policies**, explicitly permits it under verified conditions.
-**Trust Levels** — define the **rules and assurance requirements** that make **Trust Elevation** possible.  
+- **Trust Levels** — define the **rules and assurance requirements** that make **Trust Elevation** possible.  
 They describe *when* and *under which guarantees* a context can assume or delegate trust to another.  
 Together, these ensure that every authorization decision is **policy-driven**, **context-aware**, and **verifiably enforced** across workloads.
 
-- **Trust Governance**  
+**TRUST GOVERNANCE**  
 Defines how **policies, trust relationships, and attestations** are authored, distributed, and evaluated.  
 It encompasses **Business Policies** that govern application-level behavior, **Trust Policies** that define trust levels and elevation rules, and **Trust Statements** that express cross-domain or infrastructural trust assertions, such as delegation.  
 This layer ensures that trust remains **auditable**, **revocable**, and **consistent** across domains.
