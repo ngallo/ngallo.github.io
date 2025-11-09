@@ -137,9 +137,9 @@ Each autonomous component acts as a **Policy Enforcement Point (PEP)**, evaluati
 The component that **evaluates trust context** and produces an **authorization decision** based on policies and attestations.  
 A PDP can be **centralized** or **distributed**, but it always relies on two key concepts:  
 
-- **Trust Elevation** — the process of moving from one **authorization context** to another, for example when a workload needs to act with a different or higher level of privilege.  
+- **TRUST ELEVATION**: the process of moving from one **authorization context** to another, for example when a workload needs to act with a different or higher level of privilege.  
 Each context enforces its own policies, and elevation is granted only when the **authorization decision**, evaluated under the **target context’s policies**, explicitly permits it under verified conditions.
-- **Trust Levels** — define the **rules and assurance requirements** that make **Trust Elevation** possible.  
+- **TRUST LEVELS**: define the **rules and assurance requirements** that make **TRUST ELEVATION** possible.  
 They describe *when* and *under which guarantees* a context can assume or delegate trust to another.  
 Together, these ensure that every authorization decision is **policy-driven**, **context-aware**, and **verifiably enforced** across workloads.
 
