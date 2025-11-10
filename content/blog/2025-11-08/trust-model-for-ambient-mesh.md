@@ -116,7 +116,7 @@ The model must evolve to accommodate **decentralized**, **context-aware**, and *
 Before diving into specific use cases, it’s important to clarify the foundational concepts behind **ZTAuth***.  
 
 <figure class="post-banner">
-  <img src="/images/2025-11-08/trust-model-for-ambient-mesh/ztauthstar-architecture.png" alt="ZTAuth*" loading="lazy">
+  <img src="/images/2025-11-08/tmam/ztauthstar-architecture.png" alt="ZTAuth*" loading="lazy">
 </figure>
 
 As illustrated in the model above, the architecture defines how **trust** is **evaluated**, **elevated**, and **propagated** across autonomous components in distributed systems:
@@ -210,7 +210,7 @@ The PDP input therefore includes:
 - The **executor identity** (`spiffe://cluster.local/ns/pci/sa/payment-svc`).  
 
 <figure class="post-banner">
-  <img src="/images/2025-11-08/trust-model-for-ambient-mesh/ztauth-and-ambient-mesh.png" alt="ZTAuth* and Ambient Mesh" loading="lazy">
+  <img src="/images/2025-11-08/tmam/ztauth-and-ambient-mesh.png" alt="ZTAuth* and Ambient Mesh" loading="lazy">
 </figure>
 
 > **Note:**  
