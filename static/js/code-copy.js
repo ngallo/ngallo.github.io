@@ -37,7 +37,7 @@
         var text = code.textContent || code.innerText;
 
         navigator.clipboard.writeText(text).then(function () {
-          copyBtn.innerHTML = CHECK_ICON + '<span>Copied!</span>';
+          copyBtn.innerHTML = CHECK_ICON + '<span>Copy</span>';
           copyBtn.classList.add('copied');
 
           setTimeout(function () {

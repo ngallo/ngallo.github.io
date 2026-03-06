@@ -90,14 +90,14 @@
 /* ── Code block wrapper ──────────────────────────────────────────────────── */
 .highlight {
   position: relative;
-  margin: 1.25rem 0;
+  margin: 1.75rem 0 1.25rem;
 }
 
 .highlight pre {
   background-color: #1e1e1e;
   border: 1px solid #3c3c3c;
   border-radius: 6px;
-  padding: 1rem 1.2rem;
+  padding: 1.5rem 1.2rem 1rem;
   overflow-x: auto;
   font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', 'Menlo', monospace;
   font-size: 0.85rem;
@@ -182,7 +182,7 @@
 .highlight .wrap-btn {
   position: absolute;
   top: 8px;
-  right: 72px;
+  right: 78px;
   background: transparent;
   border: 1px solid #3c3c3c;
   border-radius: 4px;

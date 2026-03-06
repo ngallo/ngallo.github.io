@@ -577,6 +577,18 @@ footer a:hover {
   color: var(--accent-dim) !important;
 }
 
+/* ── Details / Summary (expandable sections) ──────────────────────────────── */
+.postWrapper details summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.postWrapper details summary:hover {
+  color: var(--accent-dim);
+}
+
 /* ── Focus styles for accessibility ───────────────────────────────────────── */
 a:focus-visible {
   outline: 2px solid var(--accent);

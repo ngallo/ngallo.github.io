@@ -8,7 +8,7 @@ showMetadata = false
 +++
 
 > **TL;DR**  
-> Content is provided **“as is”**, with no warranties and no liability.  
+> Content is provided **"as is"**, with no warranties and no liability.  
 > All trademarks and logos belong to their respective owners.  
 > Original content is licensed under **CC BY 4.0**.
 
@@ -23,7 +23,7 @@ All content is provided for informational purposes only and does not represent t
 
 ## No Warranty
 > **Disclaimer of Warranties**  
-> All information on this site is provided **“as is”**, without any warranties of any kind, express or implied.  
+> All information on this site is provided **"as is"**, without any warranties of any kind, express or implied.  
 > This includes but is not limited to guarantees of accuracy, completeness, reliability, suitability, or fitness for a particular purpose.  
 > Use of this content is entirely at your own risk.
 
@@ -46,7 +46,7 @@ Unless explicitly stated otherwise, **ngallo.it** and its author are **not affil
 
 ## License
 All original content on this blog is licensed under the  
-**[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/4.0/)**.
+**[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)**.
 
 <details>
   <summary><strong>Usage rights under CC BY 4.0</strong> (click to expand)</summary>
@@ -56,5 +56,4 @@ All original content on this blog is licensed under the
 
 **Conditions**  
 - **Attribution** — give appropriate credit, provide a link to the license, and indicate if changes were made  
-- **ShareAlike** — if you remix, transform, or build upon the material, you must distribute your contributions under the **same license (BY-SA 4.0)**  
 </details>
