@@ -105,6 +105,13 @@ html {
   font-weight: 600;
 }
 
+/* strong inside links should inherit the link color, not override to white */
+.postWrapper a strong,
+.postWrapper a:link strong,
+.postWrapper a:visited strong {
+  color: inherit;
+}
+
 .postWrapper em {
   color: var(--text-secondary);
   font-style: italic;
