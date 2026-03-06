@@ -23,6 +23,7 @@ showMetadata = false
 - Shipping opinionated patterns that teams actually adopt
 
 ## Building Now
+- <a href="https://www.pic-protocol.org/" target="_blank" rel="noopener noreferrer"><strong>PIC</strong> Open Protocol</a> — Provenance Identity Continuity  
 - <a href="https://spec.ztauthstar.com/" target="_blank" rel="noopener noreferrer"><strong>ZTAuth*</strong> Open Spec</a> — pragmatic zero-trust authN/authZ  
 - <a href="https://www.permguard.com" target="_blank" rel="noopener noreferrer"><strong>Permguard</strong></a> — permissioning & policy that fits CI/CD
 

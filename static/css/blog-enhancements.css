@@ -259,6 +259,7 @@ a:hover {
   float: none !important;
   display: block;
   margin-bottom: 0.25em;
+  color: var(--accent) !important;          /* consistent blue across list & post */
 }
 
 .postDate {
@@ -390,14 +391,18 @@ body::before {
 footer {
   border-top: 1px solid var(--border-subtle);
   margin-top: 2em;
+  opacity: 1 !important;    /* override inline opacity for consistent blue */
 }
 
-footer a {
+footer a,
+footer a:link,
+footer a:visited {
+  color: var(--accent) !important;
   transition: color 0.2s ease;
 }
 
 footer a:hover {
-  color: var(--accent) !important;
+  color: var(--accent-dim) !important;
 }
 
 /* ── Focus styles for accessibility ───────────────────────────────────────── */
@@ -408,7 +413,124 @@ a:focus-visible {
 }
 
 /* ==========================================================================
-   Mobile Responsive Fixes
+   Mobile Menu – Professional slide-down overlay
+   The theme's position:fixed + max-height:100% breaks inside the
+   headerWrapper because backdrop-filter creates a new containing block.
+   We override with position:absolute + explicit max-height in px.
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+
+  /* ── Make header the positioning context for the dropdown ───────────── */
+  .header {
+    position: relative;
+  }
+
+  /* ── Hamburger button ──────────────────────────────────────────────── */
+  .hamb {
+    display: block !important;
+    z-index: 1001;
+    padding: 12px 6px;
+  }
+
+  .hamb-line {
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary) !important;
+  }
+
+  .hamb-line::before,
+  .hamb-line::after {
+    background: var(--text-primary) !important;
+  }
+
+  /* X-close animation (already in theme, reinforce here) */
+  .side-menu:checked ~ .hamb .hamb-line {
+    background: transparent !important;
+  }
+
+  .side-menu:checked ~ .hamb .hamb-line::before,
+  .side-menu:checked ~ .hamb .hamb-line::after {
+    background: var(--text-primary) !important;
+  }
+
+  /* ── Slide-down nav panel ──────────────────────────────────────────── */
+  .headerLinks {
+    position: absolute !important;
+    top: 60px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    background: rgba(28, 29, 31, 0.97) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid transparent;
+    box-shadow: none;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease !important;
+    z-index: 999;
+    display: block !important;
+    padding: 0 !important;
+  }
+
+  .side-menu:checked ~ .headerLinks {
+    max-height: 400px !important;
+    border-bottom-color: var(--border-subtle) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  /* ── Menu list layout ──────────────────────────────────────────────── */
+  .headerLinks ul {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding: 0.75rem 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    list-style: none !important;
+  }
+
+  .headerLinks ul li {
+    display: block !important;
+    margin: 0 !important;
+  }
+
+  /* ── Menu links ────────────────────────────────────────────────────── */
+  .headerWrapper .headerLinks a,
+  .headerWrapper .headerLinks a:link,
+  .headerWrapper .headerLinks a:visited {
+    display: block !important;
+    padding: 0.9rem 1.75rem !important;
+    font-size: 1.05rem !important;
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    border-left: 3px solid transparent;
+    transition: background-color 0.2s ease,
+                color 0.2s ease,
+                border-left-color 0.2s ease;
+    letter-spacing: 0.02em;
+  }
+
+  .headerWrapper .headerLinks a:hover,
+  .headerWrapper .headerLinks a:active {
+    background: rgba(88, 166, 255, 0.08) !important;
+    color: var(--accent) !important;
+    border-left-color: var(--accent) !important;
+    text-decoration: none !important;
+  }
+
+  /* ── Subtle dividers between items ─────────────────────────────────── */
+  .headerLinks ul li + li {
+    border-top: 1px solid var(--border-subtle);
+  }
+}
+
+/* ==========================================================================
+   Mobile Responsive Fixes – Content
    ========================================================================== */
 @media screen and (max-width: 992px) {
   /* Add proper padding on mobile so content isn't glued to edges */
