@@ -597,6 +597,338 @@ a:focus-visible {
 }
 
 /* ==========================================================================
+   Reading Progress Bar
+   ========================================================================== */
+#reading-progress {
+  position: fixed;
+  top: 2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  z-index: 9998;
+  pointer-events: none;
+  transition: width 0.15s ease-out;
+}
+
+/* ==========================================================================
+   Back to Top Button
+   ========================================================================== */
+#back-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(28, 29, 31, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--accent);
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease,
+              box-shadow 0.25s ease, border-color 0.25s ease,
+              background-color 0.25s ease;
+  z-index: 900;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+#back-to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+#back-to-top:hover {
+  background: rgba(88, 166, 255, 0.12);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 16px rgba(88, 166, 255, 0.25),
+    0 0 40px rgba(88, 166, 255, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+#back-to-top svg {
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Anchor Links on Headings
+   ========================================================================== */
+.postWrapper h2.has-anchor,
+.postWrapper h3.has-anchor,
+.postWrapper h4.has-anchor {
+  position: relative;
+}
+
+.heading-anchor {
+  position: absolute;
+  left: -1.3em;
+  top: 0;
+  color: var(--text-secondary) !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  font-weight: 400;
+  opacity: 0;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  font-size: 0.85em;
+  line-height: inherit;
+}
+
+.postWrapper h2:hover > .heading-anchor,
+.postWrapper h3:hover > .heading-anchor,
+.postWrapper h4:hover > .heading-anchor,
+.heading-anchor:focus {
+  opacity: 1;
+}
+
+.heading-anchor:hover {
+  color: var(--accent) !important;
+}
+
+/* ==========================================================================
+   Table of Contents – Inline Collapsible
+   ========================================================================== */
+.toc-nav {
+  margin: 1.5em 0 2em;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.toc-details {
+  padding: 0;
+}
+
+.toc-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.85em 1.25em;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--accent) !important;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.toc-summary::-webkit-details-marker {
+  display: none;
+}
+
+.toc-summary::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+  margin-left: auto;
+  transition: transform 0.25s ease;
+}
+
+.toc-details[open] > .toc-summary::after {
+  transform: rotate(45deg);
+}
+
+.toc-summary:hover {
+  background: rgba(88, 166, 255, 0.06);
+}
+
+.toc-details[open] > .toc-summary {
+  border-bottom-color: var(--border-subtle);
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.6em 1.25em 0.85em;
+}
+
+.toc-list li {
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+.toc-list li.toc-h2 {
+  margin-top: 0.35em;
+}
+
+.toc-list li.toc-h3 {
+  padding-left: 1.2em;
+  border-left: 1px solid var(--border-subtle);
+  margin-left: 0.4em;
+}
+
+.toc-link {
+  display: block;
+  padding: 0.3em 0.5em;
+  color: var(--text-secondary) !important;
+  font-size: 0.88em;
+  text-decoration: none !important;
+  border-bottom: none !important;
+  border-radius: 4px;
+  transition: color 0.2s ease, background-color 0.2s ease, padding-left 0.2s ease;
+}
+
+.toc-link:hover {
+  color: var(--accent) !important;
+  background: rgba(88, 166, 255, 0.06);
+}
+
+.toc-link.toc-active {
+  color: var(--accent) !important;
+  background: rgba(88, 166, 255, 0.1);
+  padding-left: 0.8em;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Callout / Admonition Blocks
+   ========================================================================== */
+
+/* Note – blue / accent */
+.postWrapper blockquote.callout-note {
+  border-left-color: var(--accent);
+  background: rgba(88, 166, 255, 0.06);
+}
+
+.postWrapper blockquote.callout-note p:first-child strong:first-child::before {
+  content: '💡 ';
+}
+
+.postWrapper blockquote.callout-note p:first-child strong:first-child {
+  color: var(--accent);
+}
+
+/* Warning / Important – orange */
+.postWrapper blockquote.callout-warning {
+  border-left-color: var(--orange);
+  background: rgba(210, 153, 34, 0.08);
+}
+
+.postWrapper blockquote.callout-warning p:first-child strong:first-child::before {
+  content: '⚠️ ';
+}
+
+.postWrapper blockquote.callout-warning p:first-child strong:first-child {
+  color: var(--orange);
+}
+
+/* Tip – green */
+.postWrapper blockquote.callout-tip {
+  border-left-color: var(--green);
+  background: rgba(63, 185, 80, 0.06);
+}
+
+.postWrapper blockquote.callout-tip p:first-child strong:first-child::before {
+  content: '✅ ';
+}
+
+.postWrapper blockquote.callout-tip p:first-child strong:first-child {
+  color: var(--green);
+}
+
+/* Info – purple */
+.postWrapper blockquote.callout-info {
+  border-left-color: var(--purple);
+  background: rgba(188, 140, 255, 0.06);
+}
+
+.postWrapper blockquote.callout-info p:first-child strong:first-child::before {
+  content: 'ℹ️ ';
+}
+
+.postWrapper blockquote.callout-info p:first-child strong:first-child {
+  color: var(--purple);
+}
+
+/* Danger – red */
+.postWrapper blockquote.callout-danger {
+  border-left-color: var(--red);
+  background: rgba(248, 81, 73, 0.08);
+}
+
+.postWrapper blockquote.callout-danger p:first-child strong:first-child::before {
+  content: '🚨 ';
+}
+
+.postWrapper blockquote.callout-danger p:first-child strong:first-child {
+  color: var(--red);
+}
+
+/* ==========================================================================
+   Terminal-Style Command Blocks
+   ========================================================================== */
+.highlight.terminal-block {
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1b1e;
+}
+
+.highlight.terminal-block pre {
+  border-radius: 0 0 8px 8px;
+  margin-top: 0;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg-darker);
+  border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+}
+
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.terminal-dot--red {
+  background: #ff5f57;
+}
+
+.terminal-dot--yellow {
+  background: #febc2e;
+}
+
+.terminal-dot--green {
+  background: #28c840;
+}
+
+.terminal-title {
+  margin-left: 8px;
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  letter-spacing: 0.03em;
+}
+
+/* Dim the $ prompt character in terminal blocks */
+.highlight.terminal-block .line:first-child .cl::first-letter,
+.highlight.terminal-block code .line .tok-gp {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* ==========================================================================
    Mobile Menu – Professional slide-down overlay
    backdrop-filter crea un nuovo containing block, quindi usiamo
    position:absolute invece di fixed, con max-height animata.
