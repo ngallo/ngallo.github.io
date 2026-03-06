@@ -6,7 +6,7 @@ description = "Working on Permguard"
 tags = ["permguard", "open-source"]
 +++
 
-<p>Kicking things off with something I’ve been building: `Permguard` - an open source project under the Apache 2.0 license.  </p>
+<p>Kicking things off with something I’ve been building: `Permguard`, an open source project under the Apache 2.0 license.  </p>
 
 <!--more-->
 
