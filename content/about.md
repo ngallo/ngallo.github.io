@@ -4,6 +4,7 @@ description = "Software architect for enterprise systems & distributed architect
 date = "2025-04-15"
 aliases = ["about", "about-us"]
 author = "Nicola Gallo"
+showMetadata = false
 +++
 
 > From scaling secure enterprise platforms to building zero-trust products, my mission is to shape technology into tools for a more open and equitable world.

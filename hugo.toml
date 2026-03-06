@@ -36,6 +36,7 @@ languageCode = 'en-uk'
 
 [params]
 color = "#58a6ff"
+openLinksInNewTab = true  # External links in blog posts open in new tab
 user = "root"
 hostname = "ngallo.it"
   [params.author]
