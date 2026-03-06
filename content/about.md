@@ -9,12 +9,12 @@ showMetadata = false
 
 > From scaling secure enterprise platforms to building zero-trust products, my mission is to shape technology into tools for a more open and equitable world.
 
-<p style="margin:.4rem 0 0; opacity:.9; font-size:.95rem;">
-  <span style="display:inline-block;border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">architecture</span>
-  <span style="display:inline-block;border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">distributed systems</span>
-  <span style="display:inline-block;border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">identity</span>
-  <span style="display:inline-block;border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">zero-trust</span>
-  <span style="display:inline-block;border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">decentralization</span>
+<p style="display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 0;opacity:.9;font-size:.95rem;">
+  <span style="border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">architecture</span>
+  <span style="border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">distributed systems</span>
+  <span style="border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">identity</span>
+  <span style="border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">zero-trust</span>
+  <span style="border:1px solid currentColor;border-radius:4px;padding:.15rem .6rem;opacity:.8;">decentralization</span>
 </p>
 
 ## Snapshot

@@ -58,11 +58,12 @@ html {
   position: sticky !important;
   top: 2px; /* below the accent line */
   z-index: 100;
-  background-color: rgba(37, 38, 39, 0.45) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  background-color: rgba(37, 38, 39, 0.30) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid rgba(48, 54, 61, 0.5);
   overflow: visible !important;
+  transition: background-color 0.3s ease;
 }
 
 /* ── Headings ─────────────────────────────────────────────────────────────── */
