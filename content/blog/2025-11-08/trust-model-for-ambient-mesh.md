@@ -116,7 +116,8 @@ The model must evolve to accommodate **decentralized**, **context-aware**, and *
 Before diving into specific use cases, it’s important to clarify the foundational concepts behind **ZTAuth***.  
 
 <figure class="post-banner">
-  <img src="/images/2025-11-08/tmam/ztauthstar-architecture.png" alt="ZTAuth*" loading="lazy">
+  <img src="/images/2025-11-08/tmam/ztauthstar-architecture.png" alt="ZTAuth* Architecture" loading="lazy">
+  <figcaption>ZTAuth* — Trust Elevations, Trust Levels, and Trust Chains architecture</figcaption>
 </figure>
 
 As illustrated in the model above, the architecture defines how **trust** is **evaluated**, **elevated**, and **propagated** across autonomous components in distributed systems:
@@ -211,6 +212,7 @@ The PDP input therefore includes:
 
 <figure class="post-banner">
   <img src="/images/2025-11-08/tmam/ztauth-and-ambient-mesh.png" alt="ZTAuth* and Ambient Mesh" loading="lazy">
+  <figcaption>ZTAuth* and Ambient Mesh — Microsegmentation with Trust Elevation</figcaption>
 </figure>
 
 > **Note:**  

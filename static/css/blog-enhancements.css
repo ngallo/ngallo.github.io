@@ -213,17 +213,24 @@ a:hover {
 }
 
 /* ── Images & Figures – Cloud Native Neon Style ───────────────────────────── */
+
+/* Auto-numbering for figures */
+.postWrapper {
+  counter-reset: figure-counter;
+}
+
 .postWrapper figure {
   margin: 2em 0;
   position: relative;
+  counter-increment: figure-counter;
 }
 
 .postWrapper img {
   border-radius: 6px;
-  border: 1px solid rgba(88, 166, 255, 0.4);
+  border: 1px solid rgba(88, 166, 255, 0.35);
   box-shadow:
-    0 0 0 1px rgba(88, 166, 255, 0.1),
-    0 0 20px rgba(88, 166, 255, 0.08),
+    0 0 0 1px rgba(88, 166, 255, 0.08),
+    0 0 20px rgba(88, 166, 255, 0.06),
     0 4px 16px rgba(0, 0, 0, 0.3);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -231,46 +238,43 @@ a:hover {
 .postWrapper img:hover {
   border-color: var(--accent);
   box-shadow:
-    0 0 0 1px rgba(88, 166, 255, 0.25),
-    0 0 30px rgba(88, 166, 255, 0.15),
-    0 0 60px rgba(88, 166, 255, 0.05),
+    0 0 0 1px rgba(88, 166, 255, 0.2),
+    0 0 30px rgba(88, 166, 255, 0.12),
+    0 0 60px rgba(88, 166, 255, 0.04),
     0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-/* Gradient accent line under figure images */
-.postWrapper figure::after {
-  content: '';
-  display: block;
-  height: 2px;
-  margin-top: 8px;
-  border-radius: 1px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    var(--accent) 25%,
-    var(--purple) 75%,
-    transparent 100%);
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
-}
-
-.postWrapper figure:hover::after {
-  opacity: 0.8;
 }
 
 .postWrapper figure img {
   border-radius: 6px;
-  border: 1px solid rgba(88, 166, 255, 0.4);
+  border: 1px solid rgba(88, 166, 255, 0.35);
   box-shadow:
-    0 0 0 1px rgba(88, 166, 255, 0.1),
-    0 0 20px rgba(88, 166, 255, 0.08),
+    0 0 0 1px rgba(88, 166, 255, 0.08),
+    0 0 20px rgba(88, 166, 255, 0.06),
     0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
+/* Figcaption with auto-numbering and gradient underline */
 .postWrapper figcaption {
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.88em;
-  margin-top: 0.5em;
+  font-size: 0.82em;
+  margin-top: 0.75em;
+  padding-bottom: 0.6em;
+  letter-spacing: 0.01em;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg,
+    transparent 0%,
+    var(--accent) 25%,
+    var(--purple) 75%,
+    transparent 100%) 1;
+}
+
+.postWrapper figcaption::before {
+  content: "Figure " counter(figure-counter) ": ";
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-style: italic;
+  opacity: 0.65;
 }
 
 /* ── Image Zoom Button ────────────────────────────────────────────────────── */
@@ -335,9 +339,17 @@ a:hover {
   visibility: visible;
 }
 
+.img-lightbox__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 92vw;
+  max-height: 94vh;
+}
+
 .img-lightbox__img {
   max-width: 92vw;
-  max-height: 90vh;
+  max-height: 85vh;
   object-fit: contain;
   border: 1px solid rgba(88, 166, 255, 0.6);
   border-radius: 6px;
@@ -346,6 +358,22 @@ a:hover {
     0 0 40px rgba(88, 166, 255, 0.15),
     0 0 80px rgba(88, 166, 255, 0.05),
     0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+.img-lightbox__caption {
+  margin-top: 12px;
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
+  letter-spacing: 0.02em;
+  background: rgba(28, 29, 31, 0.6);
+  border: 1px solid rgba(88, 166, 255, 0.15);
+  border-radius: 4px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  max-width: 80vw;
 }
 
 .img-lightbox__close {

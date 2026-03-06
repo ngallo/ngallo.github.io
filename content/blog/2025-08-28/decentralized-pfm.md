@@ -50,7 +50,8 @@ All this **without exposing your identity** or giving unlimited access to your f
 To provide a global view of how it works, the next image shows the complete flow; afterward, we analyze it step by step.
 
 <figure class="post-banner">
-  <img src="/images/2025-08-28/decentralized-pfm/pfm-flow.png" alt="PFM Flow" loading="lazy">
+  <img src="/images/2025-08-28/decentralized-pfm/pfm-flow.png" alt="Decentralized PFM Flow" loading="lazy">
+  <figcaption>Decentralized PFM — Data flow architecture</figcaption>
 </figure>
 
 ### 1. Authentication with VC
