@@ -411,6 +411,7 @@ a:hover {
 .postMetadata a {
   color: var(--accent) !important;
   transition: opacity 0.2s ease;
+  text-transform: lowercase;
 }
 
 .postMetadata a:hover {
@@ -932,18 +933,20 @@ a:focus-visible {
    Mermaid Diagram Containers
    ========================================================================== */
 .mermaid {
-  display: block;
-  text-align: center;
+  display: flex;
+  justify-content: center;
   padding: 1.5em 1em;
   margin: 1.5em 0;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   background: #22242a;
   overflow-x: auto;
+  min-width: 0;
 }
 
 .mermaid svg {
   max-width: 100%;
+  width: 100%;
   height: auto;
 }
 
