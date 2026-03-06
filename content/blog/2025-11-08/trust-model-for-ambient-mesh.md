@@ -6,7 +6,7 @@ description = "As Ambient Mesh redefines Cloud Native networking, ZTAuth* comple
 tags = ["security", "authz", "ambient mesh", "cloud native"]
 +++
 
-**Ambient Mesh** is redefining the Cloud Native service mesh for Zero Trust, whilst [**ZTAuth\***](https://spec.ztauthstar.com/openprotocolspec/2025-04-05/) completes it with **Trust Chains** built on **Trust Elevation**, **Trust Levels**, and **cryptographic signatures**. This article explores how these concepts apply to microsegmented and asynchronous workloads.
+`Ambient Mesh` is redefining the Cloud Native service mesh for Zero Trust, whilst [`ZTAuth*`](https://spec.ztauthstar.com/openprotocolspec/2025-04-05/) completes it with `Trust Chains` built on `Trust Elevation`, `Trust Levels`, and `cryptographic signatures`. This article explores how these concepts apply to microsegmented and asynchronous workloads.
 
 <!--more-->
 
