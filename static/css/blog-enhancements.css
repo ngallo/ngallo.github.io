@@ -53,15 +53,15 @@ html {
   max-width: 100vw;
 }
 
-/* ── Header – sticky with glassmorphism blur ──────────────────────────────── */
+/* ── Header – sticky with glassmorphism blur (frosted glass) ──────────────── */
 .headerWrapper {
   position: sticky !important;
   top: 2px; /* below the accent line */
   z-index: 100;
-  background-color: rgba(37, 38, 39, 0.82) !important;
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  backdrop-filter: blur(14px) saturate(180%);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: rgba(37, 38, 39, 0.45) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(48, 54, 61, 0.5);
   overflow: visible !important;
 }
 
