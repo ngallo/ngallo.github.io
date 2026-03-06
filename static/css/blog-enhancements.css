@@ -1,0 +1,376 @@
+/* ==========================================================================
+   Blog Enhancements – Cloud Native / Technical Blog Look & Feel
+   Overrides for hugo-theme-nightfall
+   ========================================================================== */
+
+/* ── CSS Custom Properties ────────────────────────────────────────────────── */
+:root {
+  --accent: #58a6ff;           /* vivid electric blue */
+  --accent-dim: #388bfd;       /* slightly darker for hover */
+  --accent-glow: rgba(88, 166, 255, 0.15);
+  --bg-dark: #292a2d;          /* theme background */
+  --bg-darker: #252627;        /* darker panels */
+  --bg-card: #2f2f2f;          /* card / post list items */
+  --bg-surface: #1c1d1f;       /* blockquotes, callouts */
+  --text-primary: #e6edf3;     /* brighter white for body */
+  --text-secondary: #8b949e;   /* muted text */
+  --border-subtle: #30363d;    /* subtle borders */
+  --green: #3fb950;
+  --orange: #d29922;
+  --red: #f85149;
+  --purple: #bc8cff;
+}
+
+/* ── Base Typography ──────────────────────────────────────────────────────── */
+body {
+  color: var(--text-primary);
+  line-height: 1.75;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Headings ─────────────────────────────────────────────────────────────── */
+.postWrapper h1,
+.postWrapper h2,
+.postWrapper h3,
+.postWrapper h4,
+.postWrapper h5,
+.postWrapper h6 {
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+}
+
+.postWrapper h2 {
+  font-size: 1.55em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.postWrapper h3 {
+  font-size: 1.3em;
+}
+
+.postWrapper h4 {
+  font-size: 1.1em;
+  color: var(--text-secondary);
+}
+
+/* ── Paragraphs & Text ────────────────────────────────────────────────────── */
+.postWrapper p {
+  margin: 1em 0;
+  line-height: 1.8;
+}
+
+.postWrapper strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.postWrapper em {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ── Links ────────────────────────────────────────────────────────────────── */
+.postWrapper a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.postWrapper a:hover {
+  color: var(--accent-dim);
+  border-bottom-color: var(--accent-dim);
+  text-decoration: none;
+}
+
+/* ── Blockquotes ──────────────────────────────────────────────────────────── */
+.postWrapper blockquote {
+  margin: 1.5em 0;
+  padding: 1em 1.25em;
+  background: var(--bg-surface);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
+.postWrapper blockquote p {
+  margin: 0.5em 0;
+}
+
+.postWrapper blockquote p:first-child {
+  margin-top: 0;
+}
+
+.postWrapper blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.postWrapper blockquote strong {
+  color: var(--text-primary);
+}
+
+/* Note / Important callouts inside blockquotes */
+.postWrapper blockquote p:first-child strong:first-child {
+  display: inline-block;
+  margin-bottom: 0.25em;
+}
+
+/* ── Lists ────────────────────────────────────────────────────────────────── */
+.postWrapper ul,
+.postWrapper ol {
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+.postWrapper li {
+  margin: 0.4em 0;
+  line-height: 1.7;
+}
+
+.postWrapper li::marker {
+  color: var(--accent);
+}
+
+/* ── Horizontal Rule ──────────────────────────────────────────────────────── */
+.postWrapper hr {
+  border: none;
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 2.5em 0;
+}
+
+/* ── Images & Figures ─────────────────────────────────────────────────────── */
+.postWrapper figure {
+  margin: 2em 0;
+}
+
+.postWrapper figure img {
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.postWrapper figcaption {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.88em;
+  margin-top: 0.5em;
+}
+
+/* ── Post Metadata ────────────────────────────────────────────────────────── */
+.postMetadata {
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  padding: 14px 18px !important;
+  margin-bottom: 1.5em;
+  font-size: 0.88em;
+}
+
+.postMetadata a {
+  color: var(--accent) !important;
+  transition: opacity 0.2s ease;
+}
+
+.postMetadata a:hover {
+  opacity: 0.8;
+  text-decoration: none !important;
+}
+
+/* ── Post List Items ──────────────────────────────────────────────────────── */
+.postListItem {
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.postListItem:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(88, 166, 255, 0.08);
+}
+
+/* Force left-align for post titles and headers */
+.postHeader {
+  text-align: left !important;
+}
+
+.postTitle {
+  font-size: 1.25em !important;
+  text-align: left !important;
+  float: none !important;
+  display: block;
+  margin-bottom: 0.25em;
+}
+
+.postDate {
+  float: none !important;
+  text-align: left !important;
+  display: block;
+  color: var(--text-secondary) !important;
+  font-size: 0.85em;
+  margin-bottom: 0.5em;
+}
+
+.postExcerpt {
+  color: var(--text-secondary) !important;
+  line-height: 1.6;
+  text-align: left !important;
+}
+
+.readingTime {
+  color: var(--text-secondary) !important;
+  font-size: 0.85em !important;
+  text-align: left !important;
+}
+
+/* ── Post single page title alignment ─────────────────────────────────────── */
+.postWrapper {
+  text-align: left !important;
+}
+
+.listHeader,
+.listContent {
+  text-align: left !important;
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+.postWrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.92em;
+}
+
+.postWrapper th {
+  background: var(--bg-darker);
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--accent);
+}
+
+.postWrapper td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.postWrapper tr:hover td {
+  background: var(--bg-surface);
+}
+
+/* ── Definition Lists (post metadata) ─────────────────────────────────────── */
+.postWrapper dt {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.postWrapper dd {
+  color: var(--text-primary);
+}
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+::selection {
+  background: var(--accent-glow);
+  color: #ffffff;
+}
+
+/* ── Smooth scroll ────────────────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Post hero / custom sections ──────────────────────────────────────────── */
+.post-hero {
+  border-color: var(--border-subtle) !important;
+  background: var(--bg-surface);
+}
+
+/* ── Blog page heading ────────────────────────────────────────────────────── */
+.listHeader h1 {
+  font-size: 2em;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+/* ── Single post page title ───────────────────────────────────────────────── */
+.postWrapper > h1:first-child {
+  font-size: 1.8em;
+  margin-top: 0;
+  line-height: 1.25;
+}
+
+/* ── Tag pills in metadata ────────────────────────────────────────────────── */
+.postMetadata a {
+  display: inline-block;
+  background: rgba(88, 166, 255, 0.1);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  border-radius: 16px;
+  padding: 2px 10px;
+  margin: 2px 3px;
+  font-size: 0.82em;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.postMetadata a:hover {
+  background: rgba(88, 166, 255, 0.2);
+  border-color: var(--accent);
+  opacity: 1 !important;
+}
+
+/* ── Accent line at top of page ───────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--purple) 50%, var(--green) 100%);
+  z-index: 9999;
+}
+
+/* ── Post card left accent ────────────────────────────────────────────────── */
+.postListItem {
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, border-left-color 0.2s ease;
+}
+
+.postListItem:hover {
+  border-left-color: var(--accent);
+}
+
+/* ── Better strong emphasis in specific contexts ──────────────────────────── */
+.postExcerpt strong {
+  color: var(--text-primary) !important;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 2em;
+}
+
+footer a {
+  transition: color 0.2s ease;
+}
+
+footer a:hover {
+  color: var(--accent) !important;
+}
+
+/* ── Focus styles for accessibility ───────────────────────────────────────── */
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

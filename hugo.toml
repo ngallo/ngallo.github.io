@@ -8,6 +8,12 @@ languageCode = 'en-uk'
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    lineNos = false
+    noClasses = false
+    style = "dracula"
 
 [module]
   [hugoVersion]
@@ -29,6 +35,7 @@ languageCode = 'en-uk'
     url = "disclaimer"
 
 [params]
+color = "#58a6ff"
 user = "root"
 hostname = "ngallo.it"
   [params.author]

@@ -1,0 +1,186 @@
+/* ==========================================================================
+   VS Code-like Code Blocks – Dracula Theme
+   ========================================================================== */
+
+/* ── Chroma (generated via: hugo gen chromastyles --style=dracula) ──────── */
+.bg { color:#f8f8f2; background-color:#282a36; }
+.chroma { color:#f8f8f2; background-color:#282a36; }
+.chroma .lnlinks { outline:none; text-decoration:none; color:inherit; }
+.chroma .lntd { vertical-align:top; padding:0; margin:0; border:0; }
+.chroma .lntable { border-spacing:0; padding:0; margin:0; border:0; }
+.chroma .hl { background-color:#3d3f4a; }
+.chroma .lnt { white-space:pre; -webkit-user-select:none; user-select:none; margin-right:0.4em; padding:0 0.4em; color:#7f7f7f; }
+.chroma .ln  { white-space:pre; -webkit-user-select:none; user-select:none; margin-right:0.4em; padding:0 0.4em; color:#7f7f7f; }
+.chroma .line { display:flex; }
+.chroma .k  { color:#ff79c6; }
+.chroma .kc { color:#ff79c6; }
+.chroma .kd { color:#8be9fd; font-style:italic; }
+.chroma .kn { color:#ff79c6; }
+.chroma .kp { color:#ff79c6; }
+.chroma .kr { color:#ff79c6; }
+.chroma .kt { color:#8be9fd; }
+.chroma .na { color:#50fa7b; }
+.chroma .nc { color:#50fa7b; }
+.chroma .nl { color:#8be9fd; font-style:italic; }
+.chroma .nt { color:#ff79c6; }
+.chroma .nb { color:#8be9fd; font-style:italic; }
+.chroma .bp { font-style:italic; }
+.chroma .nv { color:#8be9fd; font-style:italic; }
+.chroma .vc { color:#8be9fd; font-style:italic; }
+.chroma .vg { color:#8be9fd; font-style:italic; }
+.chroma .vi { color:#8be9fd; font-style:italic; }
+.chroma .vm { color:#8be9fd; font-style:italic; }
+.chroma .nf { color:#50fa7b; }
+.chroma .fm { color:#50fa7b; }
+.chroma .s  { color:#f1fa8c; }
+.chroma .sa { color:#f1fa8c; }
+.chroma .sb { color:#f1fa8c; }
+.chroma .sc { color:#f1fa8c; }
+.chroma .dl { color:#f1fa8c; }
+.chroma .sd { color:#f1fa8c; }
+.chroma .s2 { color:#f1fa8c; }
+.chroma .se { color:#f1fa8c; }
+.chroma .sh { color:#f1fa8c; }
+.chroma .si { color:#f1fa8c; }
+.chroma .sx { color:#f1fa8c; }
+.chroma .sr { color:#f1fa8c; }
+.chroma .s1 { color:#f1fa8c; }
+.chroma .ss { color:#f1fa8c; }
+.chroma .m  { color:#bd93f9; }
+.chroma .mb { color:#bd93f9; }
+.chroma .mf { color:#bd93f9; }
+.chroma .mh { color:#bd93f9; }
+.chroma .mi { color:#bd93f9; }
+.chroma .il { color:#bd93f9; }
+.chroma .mo { color:#bd93f9; }
+.chroma .o  { color:#ff79c6; }
+.chroma .ow { color:#ff79c6; }
+.chroma .c  { color:#6272a4; }
+.chroma .ch { color:#6272a4; }
+.chroma .cm { color:#6272a4; }
+.chroma .c1 { color:#6272a4; }
+.chroma .cs { color:#6272a4; }
+.chroma .cp { color:#ff79c6; }
+.chroma .cpf{ color:#ff79c6; }
+.chroma .gd { color:#f55; }
+.chroma .ge { text-decoration:underline; }
+.chroma .gh { font-weight:bold; }
+.chroma .gi { color:#50fa7b; font-weight:bold; }
+.chroma .go { color:#44475a; }
+.chroma .gu { font-weight:bold; }
+.chroma .gl { text-decoration:underline; }
+
+/* ── Code block wrapper ──────────────────────────────────────────────────── */
+.highlight {
+  position: relative;
+  margin: 1.25rem 0;
+}
+
+.highlight pre {
+  background-color: #1e1e2e;
+  border: 1px solid #44475a;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', 'Menlo', monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  tab-size: 2;
+  -moz-tab-size: 2;
+}
+
+.highlight pre code {
+  background: none;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* ── Language badge ──────────────────────────────────────────────────────── */
+.highlight .code-lang {
+  position: absolute;
+  top: 0;
+  right: 42px;
+  background: #44475a;
+  color: #cdd6f4;
+  font-size: 0.7rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 2px 10px;
+  border-radius: 0 0 6px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+  z-index: 2;
+}
+
+/* ── Copy button ─────────────────────────────────────────────────────────── */
+.highlight .copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: 1px solid #44475a;
+  border-radius: 6px;
+  color: #a6adc8;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
+  z-index: 3;
+}
+
+.highlight:hover .copy-btn {
+  opacity: 1;
+}
+
+.highlight .copy-btn:hover {
+  background: #44475a;
+  color: #f8f8f2;
+}
+
+.highlight .copy-btn.copied {
+  color: #50fa7b;
+  border-color: #50fa7b;
+}
+
+.highlight .copy-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Inline code ─────────────────────────────────────────────────────────── */
+:not(pre) > code {
+  background-color: #1e1e2e;
+  color: #cdd6f4;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.88em;
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', 'Menlo', monospace;
+  border: 1px solid #44475a;
+}
+
+/* ── Scrollbar for code blocks ───────────────────────────────────────────── */
+.highlight pre::-webkit-scrollbar {
+  height: 6px;
+}
+.highlight pre::-webkit-scrollbar-track {
+  background: transparent;
+}
+.highlight pre::-webkit-scrollbar-thumb {
+  background: #44475a;
+  border-radius: 3px;
+}
+.highlight pre::-webkit-scrollbar-thumb:hover {
+  background: #6272a4;
+}
