@@ -43,10 +43,26 @@ html {
 }
 
 .content,
-.main,
-.flexWrapper {
+.main {
   max-width: 100vw;
   overflow-x: hidden;
+}
+
+/* flexWrapper must NOT have overflow hidden — it breaks position:sticky on the header */
+.flexWrapper {
+  max-width: 100vw;
+}
+
+/* ── Header – sticky with glassmorphism blur ──────────────────────────────── */
+.headerWrapper {
+  position: sticky !important;
+  top: 2px; /* below the accent line */
+  z-index: 100;
+  background-color: rgba(37, 38, 39, 0.82) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: visible !important;
 }
 
 /* ── Headings ─────────────────────────────────────────────────────────────── */
@@ -94,7 +110,19 @@ html {
   font-style: italic;
 }
 
-/* ── Links ────────────────────────────────────────────────────────────────── */
+/* ── Global link color override (consistent across all pages) ─────────────── */
+a,
+a:link,
+a:visited,
+a:active {
+  color: var(--accent) !important;
+}
+
+a:hover {
+  color: var(--accent-dim) !important;
+}
+
+/* ── Post content links ───────────────────────────────────────────────────── */
 .postWrapper a {
   color: var(--accent);
   text-decoration: none;
@@ -106,6 +134,13 @@ html {
   color: var(--accent-dim);
   border-bottom-color: var(--accent-dim);
   text-decoration: none;
+}
+
+/* ── Header links stay white ──────────────────────────────────────────────── */
+.headerWrapper a,
+.headerWrapper a:link,
+.headerWrapper a:visited {
+  color: #f8f8ff !important;
 }
 
 /* ── Blockquotes ──────────────────────────────────────────────────────────── */
