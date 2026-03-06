@@ -213,9 +213,14 @@ a:hover {
   margin: 2em 0;
 }
 
+.postWrapper img {
+  border-radius: 0;
+  border: 2px solid var(--accent);
+}
+
 .postWrapper figure img {
   border-radius: 0;
-  border: 1px solid var(--border-subtle);
+  border: 2px solid var(--accent);
 }
 
 .postWrapper figcaption {
@@ -223,6 +228,94 @@ a:hover {
   color: var(--text-secondary);
   font-size: 0.88em;
   margin-top: 0.5em;
+}
+
+/* ── Image Zoom Button ────────────────────────────────────────────────────── */
+.img-zoom-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: rgba(28, 29, 31, 0.85);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  z-index: 2;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.img-zoom-btn svg {
+  flex-shrink: 0;
+}
+
+.postWrapper figure:hover .img-zoom-btn {
+  opacity: 1;
+}
+
+.img-zoom-btn:hover {
+  background: rgba(88, 166, 255, 0.2);
+}
+
+/* ── Lightbox Overlay ─────────────────────────────────────────────────────── */
+.img-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.88);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.img-lightbox.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.img-lightbox__img {
+  max-width: 92vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border: 2px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 0 4px 40px rgba(88, 166, 255, 0.15);
+}
+
+.img-lightbox__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(28, 29, 31, 0.8);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.img-lightbox__close:hover {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ── Post Metadata ────────────────────────────────────────────────────────── */
