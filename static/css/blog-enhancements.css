@@ -932,13 +932,13 @@ a:focus-visible {
    Mermaid Diagram Containers
    ========================================================================== */
 .mermaid {
-  display: flex;
-  justify-content: center;
+  display: block;
+  text-align: center;
   padding: 1.5em 1em;
   margin: 1.5em 0;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--bg-surface);
+  background: #22242a;
   overflow-x: auto;
 }
 

@@ -193,15 +193,17 @@ A project timeline:
 gantt
     title Project Alpha
     dateFormat  YYYY-MM-DD
+    axisFormat  %b %d
+    tickInterval 1week
     section Design
-        Requirements     :done,    des1, 2026-01-01, 2026-01-15
-        Architecture     :done,    des2, 2026-01-10, 2026-01-25
+        Requirements     :done,    des1, 2026-01-05, 7d
+        Architecture     :done,    des2, 2026-01-12, 10d
     section Development
-        Backend API      :active,  dev1, 2026-01-20, 2026-03-01
-        Frontend UI      :         dev2, 2026-02-01, 2026-03-15
+        Backend API      :active,  dev1, 2026-01-22, 14d
+        Frontend UI      :         dev2, 2026-01-26, 14d
     section Testing
-        Integration Tests:         test1, 2026-03-01, 2026-03-20
-        UAT              :         test2, 2026-03-15, 2026-03-30
+        Integration Tests:         test1, 2026-02-09, 7d
+        UAT              :         test2, 2026-02-16, 5d
 ```
 
 ### Entity Relationship Diagram
@@ -243,7 +245,7 @@ pie title Tech Stack
     "Go" : 40
     "TypeScript" : 30
     "Python" : 15
-    "Rust" : 10
+    "Rust" : 50
     "Other" : 5
 ```
 
