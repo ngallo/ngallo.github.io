@@ -10,7 +10,7 @@ showMetadata = false
 > **TL;DR**  
 > Content is provided **“as is”**, with no warranties and no liability.  
 > All trademarks and logos belong to their respective owners.  
-> Original content is licensed under **CC BY-SA 4.0**.
+> Original content is licensed under **CC BY 4.0**.
 
 ## About This Blog
 This site (**ngallo.it**) is a personal blog maintained by **Nicola Gallo**.  
@@ -46,10 +46,10 @@ Unless explicitly stated otherwise, **ngallo.it** and its author are **not affil
 
 ## License
 All original content on this blog is licensed under the  
-**[Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/)**.
+**[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/4.0/)**.
 
 <details>
-  <summary><strong>Usage rights under CC BY-SA 4.0</strong> (click to expand)</summary>
+  <summary><strong>Usage rights under CC BY 4.0</strong> (click to expand)</summary>
 
 - **Share** — copy and redistribute the material in any medium or format  
 - **Adapt** — remix, transform, and build upon the material, even commercially  
