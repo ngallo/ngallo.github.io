@@ -25,5 +25,3 @@ These two roles, authority and governance, are the stable core of the model.
 Some earlier posts explored ideas that did not survive into the final model, or used terminology that has since shifted. Nothing dramatic, just the normal cost of thinking in public. I am leaving them as they are, as an honest record of the process.
 
 What changes from here is that this post marks the **starting point** of the stable model. Going forward, `PIC` and `ZTAuth*` will be built on this foundation.
-
----
