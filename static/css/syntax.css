@@ -104,6 +104,9 @@
   line-height: 1.6;
   tab-size: 4;
   -moz-tab-size: 4;
+  /* Prevent mobile browsers from auto-inflating text size */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .highlight pre code {
@@ -229,12 +232,14 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .highlight.is-wrapped pre code {
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 /* ── Inline code ─────────────────────────────────────────────────────────── */
@@ -246,6 +251,23 @@
   font-size: 0.88em;
   font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', 'Menlo', monospace;
   border: 1px solid #3c3c3c;
+}
+
+/* ── Mobile: buttons always visible + proper spacing ─────────────────────── */
+@media screen and (max-width: 768px) {
+  .highlight .copy-btn,
+  .highlight .wrap-btn {
+    opacity: 1;
+  }
+
+  .highlight .copy-btn {
+    right: 12px;
+  }
+
+  .highlight .wrap-btn {
+    /* Position wrap button to the left of copy with a proper gap (~12px) */
+    right: 90px;
+  }
 }
 
 /* ── Scrollbar for code blocks (VS Code style) ───────────────────────────── */

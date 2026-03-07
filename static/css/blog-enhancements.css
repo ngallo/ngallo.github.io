@@ -1239,7 +1239,11 @@ a:focus-visible {
     max-width: calc(100vw - 64px);
   }
 
-  code {
+  .highlight pre code {
+    word-break: normal;
+  }
+
+  .highlight.is-wrapped pre code {
     word-break: break-all;
   }
 
