@@ -353,7 +353,7 @@
     var author = authorMeta ? authorMeta.content : 'Nicola Gallo';
 
     // Build structured tweet text with unicode
-    var tweetText = '📝 ' + cleanTitle + '\n\n' +
+    var tweetText = cleanTitle + '\n\n' +
       '✍️ ' + author + '\n' +
       '🔗 ' + pageUrl;
 
