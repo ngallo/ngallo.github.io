@@ -683,9 +683,9 @@ a:hover {
 .terminal-home {
   display: flex;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   min-height: calc(100vh - 200px);
-  padding: 2em 0;
+  padding: 2.5em 0 2em;
   text-align: left;
 }
 
@@ -780,7 +780,7 @@ a:hover {
   font-size: 0.86rem;
   line-height: 1.75;
   color: var(--text-primary);
-  min-height: 280px;
+  min-height: 420px;
   position: relative;
   z-index: 2;
   text-align: left;
