@@ -26,12 +26,21 @@
   {{ end }}
   {{ $uniqueTags := $allTags | uniq | sort }}
 
-  {{/* Tag filter bar */}}
+  {{/* Tag filter bar — collapse only when > 50 tags */}}
   {{ if gt (len $uniqueTags) 0 }}
-  <div class="tag-filter-bar" role="navigation" aria-label="Filter posts by tag">
-    <button class="tag-pill tag-pill--active" data-tag="all">all</button>
-    {{ range $uniqueTags }}
-    <button class="tag-pill" data-tag="{{ . }}">{{ . }}</button>
+  {{ $manyTags := gt (len $uniqueTags) 50 }}
+  <div class="tag-filter-wrapper">
+    <div class="tag-filter-bar{{ if $manyTags }} is-collapsed{{ end }}" role="navigation" aria-label="Filter posts by tag">
+      <button class="tag-pill tag-pill--active" data-tag="all">all</button>
+      {{ range $uniqueTags }}
+      <button class="tag-pill" data-tag="{{ . }}">{{ . }}</button>
+      {{ end }}
+    </div>
+    {{ if $manyTags }}
+    <button class="tag-toggle" aria-expanded="false">
+      <span class="tag-toggle-text">show all</span>
+      <svg class="tag-toggle-icon" viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/></svg>
+    </button>
     {{ end }}
   </div>
   {{ end }}
@@ -98,34 +107,68 @@
 
 <script>
 (function() {
-  const pills = document.querySelectorAll('.tag-pill');
-  const items = document.querySelectorAll('.postListItem');
-  const yearGroups = document.querySelectorAll('.year-group');
+  // ── Tag filter logic ──────────────────────────────────────────────────
+  var pills = document.querySelectorAll('.tag-pill');
+  var items = document.querySelectorAll('.postListItem');
+  var yearGroups = document.querySelectorAll('.year-group');
 
   pills.forEach(function(pill) {
     pill.addEventListener('click', function() {
-      // Update active pill
       pills.forEach(function(p) { p.classList.remove('tag-pill--active'); });
       pill.classList.add('tag-pill--active');
 
-      const tag = pill.getAttribute('data-tag');
+      var tag = pill.getAttribute('data-tag');
 
       if (tag === 'all') {
         items.forEach(function(item) { item.style.display = ''; });
       } else {
         items.forEach(function(item) {
-          const tags = (item.getAttribute('data-tags') || '').split(',');
+          var tags = (item.getAttribute('data-tags') || '').split(',');
           item.style.display = tags.indexOf(tag) !== -1 ? '' : 'none';
         });
       }
 
-      // Hide year groups that have no visible posts
       yearGroups.forEach(function(group) {
-        const visiblePosts = group.querySelectorAll('.postListItem:not([style*="display: none"])');
+        var visiblePosts = group.querySelectorAll('.postListItem:not([style*="display: none"])');
         group.style.display = visiblePosts.length > 0 ? '' : 'none';
       });
     });
   });
+
+  // ── Tag bar expand/collapse ───────────────────────────────────────────
+  var filterBar = document.querySelector('.tag-filter-bar');
+  var toggleBtn = document.querySelector('.tag-toggle');
+
+  if (filterBar && toggleBtn) {
+    function checkOverflow() {
+      if (filterBar.classList.contains('is-collapsed')) {
+        // scrollHeight = full content; clientHeight = visible (constrained by max-height)
+        var overflows = filterBar.scrollHeight > filterBar.clientHeight + 2;
+        toggleBtn.style.display = overflows ? '' : 'none';
+      }
+    }
+
+    toggleBtn.addEventListener('click', function() {
+      var nowCollapsed = filterBar.classList.toggle('is-collapsed');
+      if (nowCollapsed) {
+        toggleBtn.querySelector('.tag-toggle-text').textContent = 'show more';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.classList.remove('is-expanded');
+      } else {
+        toggleBtn.querySelector('.tag-toggle-text').textContent = 'show less';
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        toggleBtn.classList.add('is-expanded');
+      }
+    });
+
+    // Wait for layout before measuring
+    requestAnimationFrame(function() {
+      checkOverflow();
+    });
+    window.addEventListener('resize', function() {
+      requestAnimationFrame(checkOverflow);
+    });
+  }
 })();
 </script>
 
