@@ -463,6 +463,56 @@
     track.addEventListener('scroll', updateArrows, { passive: true });
     window.addEventListener('resize', updateArrows, { passive: true });
 
+    // ── Mouse drag-to-scroll ──────────────────────────────────────────────
+    var isDragging = false;
+    var startX = 0;
+    var scrollStart = 0;
+
+    track.addEventListener('mousedown', function (e) {
+      // Only left mouse button
+      if (e.button !== 0) return;
+      isDragging = true;
+      startX = e.pageX;
+      scrollStart = track.scrollLeft;
+      track.style.scrollBehavior = 'auto';   // instant while dragging
+      track.style.cursor = 'grabbing';
+      track.style.userSelect = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!isDragging) return;
+      var dx = e.pageX - startX;
+      track.scrollLeft = scrollStart - dx;
+    });
+
+    document.addEventListener('mouseup', function () {
+      if (!isDragging) return;
+      isDragging = false;
+      track.style.scrollBehavior = '';        // restore smooth for buttons
+      track.style.cursor = '';
+      track.style.userSelect = '';
+    });
+
+    // Prevent click on cards after a drag (so links don't fire)
+    track.addEventListener('click', function (e) {
+      // If the mouse moved more than 5px, it was a drag — cancel the click
+      if (Math.abs(e.pageX - startX) > 5 && scrollStart !== track.scrollLeft) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    // ── Wheel horizontal scroll (Shift+wheel or horizontal wheel) ─────────
+    track.addEventListener('wheel', function (e) {
+      // If there's horizontal delta (trackpad) or Shift is held, scroll horizontally
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        var delta = e.deltaX || e.deltaY;
+        track.scrollLeft += delta;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
     // Initial state
     updateArrows();
   }

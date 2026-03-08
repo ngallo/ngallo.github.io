@@ -682,7 +682,8 @@ a:hover {
   }
 
   .search-input {
-    font-size: 0.85rem;
+    /* 16px minimum prevents iOS auto-zoom on focus */
+    font-size: 16px;
     padding: 9px 12px 9px 36px;
   }
 }
@@ -1268,9 +1269,14 @@ body::before {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   padding: 4px 2px 8px;
+  cursor: grab;
   /* Hide scrollbar across browsers */
   scrollbar-width: none;            /* Firefox  */
   -ms-overflow-style: none;         /* IE / Edge */
+}
+
+.related-posts__track:active {
+  cursor: grabbing;
 }
 
 .related-posts__track::-webkit-scrollbar {
