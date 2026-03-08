@@ -1,6 +1,6 @@
 {{/* Related Posts – shows up to 3 posts that share tags with the current post */}}
 {{ $currentPage := . }}
-{{ $related := site.RegularPages.Related . | first 3 }}
+{{ $related := site.RegularPages.Related . | first 10 }}
 
 {{ if gt (len $related) 0 }}
 <nav class="related-posts" aria-label="Related posts">

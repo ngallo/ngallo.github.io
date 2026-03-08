@@ -39,6 +39,17 @@ languageCode = 'en-uk'
     weight = 1
     url = "disclaimer"
 
+[related]
+  includeNewer = true
+  threshold = 50
+  toLower = true
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "date"
+    weight = 10
+
 [params]
 color = "#58a6ff"
 openLinksInNewTab = true  # External links in blog posts open in new tab
