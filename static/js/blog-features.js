@@ -427,23 +427,25 @@
     function updateArrows() {
       var scrollLeft = Math.round(track.scrollLeft);
       var maxScroll = track.scrollWidth - track.clientWidth;
+      // Small tolerance to account for sub-pixel rounding
+      var threshold = 2;
 
       // If there's nothing to scroll at all, hide both arrows
-      if (maxScroll <= 1) {
+      if (maxScroll <= threshold) {
         leftBtn.classList.remove('is-visible');
         rightBtn.classList.remove('is-visible');
         return;
       }
 
       // Show/hide left arrow: visible only when there's content scrolled off to the left
-      if (scrollLeft > 0) {
+      if (scrollLeft > threshold) {
         leftBtn.classList.add('is-visible');
       } else {
         leftBtn.classList.remove('is-visible');
       }
 
       // Show/hide right arrow: visible only when there's content scrolled off to the right
-      if (scrollLeft < maxScroll - 1) {
+      if (scrollLeft < maxScroll - threshold) {
         rightBtn.classList.add('is-visible');
       } else {
         rightBtn.classList.remove('is-visible');

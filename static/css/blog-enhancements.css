@@ -44,10 +44,13 @@ body {
 }
 
 /* ── Contenitori interni: qui l'overflow è sicuro ─────────────────────────── */
+/* overflow-x: clip instead of hidden → clips visual overflow WITHOUT
+   creating a scroll container, so inner elements with overflow-x:auto
+   (like the related-posts carousel) can still be scrolled via trackpad/touch */
 .content,
 .main {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .flexWrapper {
