@@ -677,6 +677,302 @@ a:hover {
   }
 }
 
+/* ==========================================================================
+   Homepage – Terminal Typing Animation (Cyberpunk / Hacker aesthetic)
+   ========================================================================== */
+.terminal-home {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-height: calc(100vh - 200px);
+  padding: 3em 0 2em;
+  text-align: left;
+}
+
+.terminal-window {
+  width: 100%;
+  max-width: 720px;
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  background: #0d1117;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(88, 166, 255, 0.08),
+    0 0 30px rgba(88, 166, 255, 0.06),
+    0 0 60px rgba(88, 166, 255, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.terminal-window:hover {
+  border-color: rgba(88, 166, 255, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(88, 166, 255, 0.15),
+    0 0 40px rgba(88, 166, 255, 0.1),
+    0 0 80px rgba(88, 166, 255, 0.05),
+    0 12px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* Scanline overlay for CRT effect */
+.terminal-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.terminal-chrome {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 16px;
+  background: linear-gradient(180deg, #1c1f26 0%, #161920 100%);
+  border-bottom: 1px solid rgba(88, 166, 255, 0.15);
+  user-select: none;
+  position: relative;
+  z-index: 2;
+}
+
+.terminal-chrome__title {
+  margin-left: 10px;
+  font-size: 0.73em;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+/* Traffic light dots with subtle glow */
+.terminal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.terminal-dot--red {
+  background: #ff5f57;
+  box-shadow: 0 0 6px rgba(255, 95, 87, 0.4);
+}
+
+.terminal-dot--yellow {
+  background: #febc2e;
+  box-shadow: 0 0 6px rgba(254, 188, 46, 0.4);
+}
+
+.terminal-dot--green {
+  background: #28c840;
+  box-shadow: 0 0 6px rgba(40, 200, 64, 0.4);
+}
+
+.terminal-body {
+  padding: 1.25em 1.5em;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.86rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+  min-height: 280px;
+  position: relative;
+  z-index: 2;
+  text-align: left;
+}
+
+.terminal-line {
+  margin-bottom: 1em;
+}
+
+/* Prompt: user@host style */
+.terminal-prompt {
+  color: var(--green);
+  user-select: none;
+  text-shadow: 0 0 8px rgba(63, 185, 80, 0.4);
+}
+
+.terminal-prompt-user {
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(88, 166, 255, 0.4);
+}
+
+.terminal-prompt-at {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.terminal-prompt-host {
+  color: var(--purple);
+  text-shadow: 0 0 8px rgba(188, 140, 255, 0.3);
+}
+
+.terminal-prompt-sep {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+.terminal-prompt-dollar {
+  color: var(--green);
+  text-shadow: 0 0 8px rgba(63, 185, 80, 0.4);
+}
+
+.terminal-cmd {
+  color: var(--text-primary);
+}
+
+.terminal-output {
+  display: block;
+  color: var(--text-secondary);
+  padding-left: 0;
+  margin-top: 0.25em;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.terminal-output--visible {
+  opacity: 1;
+}
+
+.terminal-output--name {
+  color: var(--accent);
+  font-size: 1.15em;
+  font-weight: 600;
+  text-shadow: 0 0 12px rgba(88, 166, 255, 0.3);
+}
+
+/* Latest posts as file listing */
+.terminal-output--posts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.terminal-post-link {
+  display: flex;
+  gap: 1em;
+  color: var(--text-secondary) !important;
+  text-decoration: none !important;
+  border: none !important;
+  padding: 2px 0;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.terminal-post-link:hover {
+  color: var(--accent) !important;
+}
+
+.terminal-post-date {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.terminal-post-title {
+  color: var(--green);
+}
+
+.terminal-post-link:hover .terminal-post-title {
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
+}
+
+.terminal-post-link:hover .terminal-post-date {
+  opacity: 1;
+}
+
+/* "See all posts" link */
+.terminal-output--allposts {
+  margin-top: 0.5em;
+}
+
+.terminal-allposts-link {
+  color: var(--accent) !important;
+  text-decoration: none !important;
+  border: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.terminal-allposts-link:hover {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+}
+
+.terminal-allposts-count {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  opacity: 0.6;
+}
+
+/* Social links */
+.terminal-output--links {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.terminal-social-link {
+  color: var(--accent) !important;
+  text-decoration: none !important;
+  border: none !important;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.terminal-social-link:hover {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+}
+
+/* Blinking cursor – blockier, more retro */
+.terminal-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 1.15em;
+  background: var(--green);
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+  box-shadow: 0 0 6px rgba(63, 185, 80, 0.5);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.terminal-line--final {
+  margin-bottom: 0;
+}
+
+/* Mobile adjustments */
+@media screen and (max-width: 768px) {
+  .terminal-home {
+    min-height: auto;
+    padding: 1.5em 0;
+  }
+
+  .terminal-body {
+    padding: 1em;
+    font-size: 0.78rem;
+  }
+
+  .terminal-post-link {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .terminal-window {
+    max-width: 100%;
+  }
+}
+
 /* ── Blog page heading ────────────────────────────────────────────────────── */
 .listHeader h1 {
   font-size: 2em;

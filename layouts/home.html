@@ -1,0 +1,149 @@
+{{ define "title"}}
+{{ .Site.Params.author.name }} | {{ .Site.Params.hostname }}
+{{ end }}
+
+{{ define "main" }}
+
+{{- $allPosts := (where site.RegularPages "Section" "blog") -}}
+{{- $postCount := len $allPosts -}}
+
+<div class="terminal-home">
+  <div class="terminal-window">
+    <div class="terminal-chrome">
+      <span class="terminal-dot terminal-dot--red"></span>
+      <span class="terminal-dot terminal-dot--yellow"></span>
+      <span class="terminal-dot terminal-dot--green"></span>
+      <span class="terminal-chrome__title">{{ .Site.Params.user }}@{{ .Site.Params.hostname }} — zsh</span>
+    </div>
+    <div class="terminal-body" id="terminal-body">
+      <div class="terminal-line" data-cmd="whoami" data-delay="0">
+        <span class="terminal-output terminal-output--name">{{ .Site.Params.author.name }}</span>
+      </div>
+      <div class="terminal-line" data-cmd="cat role.txt" data-delay="800">
+        <span class="terminal-output">Cloud Native Security · Identity &amp; Access Management · Zero Trust</span>
+      </div>
+      <div class="terminal-line" data-cmd="ls -lt ~/blog/ | head -5" data-delay="1600">
+        <span class="terminal-output terminal-output--posts">
+          {{- $latestPosts := $allPosts | first 5 -}}
+          {{- range $latestPosts -}}
+          <a href="{{ .Permalink }}" class="terminal-post-link">
+            <span class="terminal-post-date">{{ .Date | time.Format "2006-01-02" }}</span>
+            <span class="terminal-post-title">{{ .Title | urlize }}.md</span>
+          </a>
+          {{- end -}}
+        </span>
+      </div>
+      <div class="terminal-line" data-cmd="find ~/blog/ -name '*.md' | wc -l" data-delay="2400">
+        <span class="terminal-output terminal-output--allposts">
+          <a href="{{ "blog/" | relURL }}" class="terminal-allposts-link">{{ $postCount }} posts found → open ~/blog/</a>
+        </span>
+      </div>
+      <div class="terminal-line" data-cmd="cat links.txt" data-delay="3200">
+        <span class="terminal-output terminal-output--links">
+          {{- range .Site.Params.social -}}
+          <a href="{{ .url }}" target="{{ .target | default "_blank" }}" rel="noopener noreferrer" class="terminal-social-link" aria-label="{{ .aria }}">→ {{ .name }}</a>
+          {{- end -}}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var lines = document.querySelectorAll('.terminal-line');
+  var body = document.getElementById('terminal-body');
+  if (!lines.length || !body) return;
+
+  var CHAR_DELAY = 30;   // ms per character for typing
+  var CMD_PAUSE = 250;   // pause after prompt before typing
+  var OUTPUT_PAUSE = 150; // pause after command before showing output
+
+  var PROMPT_USER = '{{ .Site.Params.user }}';
+  var PROMPT_HOST = '{{ .Site.Params.hostname }}';
+
+  // Hide all lines initially
+  lines.forEach(function(line) {
+    line.style.display = 'none';
+  });
+
+  function typeText(el, text, callback) {
+    el.textContent = '';
+    el.style.display = '';
+    var i = 0;
+    function tick() {
+      if (i < text.length) {
+        el.textContent += text[i];
+        i++;
+        setTimeout(tick, CHAR_DELAY);
+      } else if (callback) {
+        callback();
+      }
+    }
+    tick();
+  }
+
+  function makePrompt() {
+    return '<span class="terminal-prompt-user">' + PROMPT_USER + '</span>' +
+           '<span class="terminal-prompt-at">@</span>' +
+           '<span class="terminal-prompt-host">' + PROMPT_HOST + '</span>' +
+           '<span class="terminal-prompt-sep"> </span>' +
+           '<span class="terminal-prompt-dollar">$ </span>';
+  }
+
+  function processLine(index) {
+    if (index >= lines.length) {
+      // Show final blinking cursor
+      var cursor = document.createElement('div');
+      cursor.className = 'terminal-line terminal-line--final';
+      cursor.innerHTML = makePrompt() + '<span class="terminal-cursor"></span>';
+      body.appendChild(cursor);
+      return;
+    }
+
+    var line = lines[index];
+    var cmd = line.getAttribute('data-cmd');
+    var output = line.querySelector('.terminal-output');
+
+    // Show the line container
+    line.style.display = '';
+
+    // Create prompt + command span
+    var promptSpan = document.createElement('span');
+    promptSpan.className = 'terminal-prompt';
+    promptSpan.innerHTML = makePrompt();
+
+    var cmdSpan = document.createElement('span');
+    cmdSpan.className = 'terminal-cmd';
+
+    // Hide output initially
+    if (output) output.style.display = 'none';
+
+    // Insert prompt and cmd before output
+    line.insertBefore(cmdSpan, line.firstChild);
+    line.insertBefore(promptSpan, cmdSpan);
+
+    // Type the command
+    setTimeout(function() {
+      typeText(cmdSpan, cmd, function() {
+        // Show output after typing
+        setTimeout(function() {
+          if (output) {
+            output.style.display = '';
+            output.classList.add('terminal-output--visible');
+          }
+          // Process next line
+          setTimeout(function() {
+            processLine(index + 1);
+          }, CMD_PAUSE);
+        }, OUTPUT_PAUSE);
+      });
+    }, index === 0 ? 400 : CMD_PAUSE);
+  }
+
+  // Start the animation
+  processLine(0);
+})();
+</script>
+
+{{ end }}
