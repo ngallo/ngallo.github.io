@@ -559,6 +559,126 @@ a:hover {
   margin-top: 0.5em;
 }
 
+/* Year post count badge */
+.year-count {
+  font-size: 0.5em;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 0.5em;
+  vertical-align: middle;
+}
+
+/* ── Tag Filter Bar ──────────────────────────────────────────────────────── */
+.tag-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 1em 0 0.5em;
+  padding: 0;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease,
+              border-color 0.2s ease, box-shadow 0.2s ease;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.tag-pill:hover {
+  color: var(--accent);
+  border-color: rgba(88, 166, 255, 0.5);
+  background: rgba(88, 166, 255, 0.06);
+}
+
+.tag-pill--active {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  background: rgba(88, 166, 255, 0.12) !important;
+  box-shadow: 0 0 8px rgba(88, 166, 255, 0.15);
+}
+
+/* ── Post Meta Row (date + reading time inline) ──────────────────────────── */
+.postMeta {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  flex-wrap: wrap;
+  margin-bottom: 0.25em;
+}
+
+.postMeta .postDate {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 0 !important;
+}
+
+.postMeta .readingTime {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+}
+
+.meta-icon {
+  flex-shrink: 0;
+  opacity: 0.6;
+  vertical-align: middle;
+}
+
+/* ── Post Tags on Cards ──────────────────────────────────────────────────── */
+.postTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 0.6em;
+}
+
+.post-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  color: var(--text-secondary) !important;
+  background: rgba(88, 166, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  text-decoration: none !important;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.post-tag:hover {
+  color: var(--accent) !important;
+  border-color: rgba(88, 166, 255, 0.5);
+  background: rgba(88, 166, 255, 0.12);
+}
+
+/* ── Mobile adjustments for tag filter ────────────────────────────────────── */
+@media screen and (max-width: 768px) {
+  .tag-filter-bar {
+    gap: 6px;
+  }
+
+  .tag-pill {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+
+  .postMeta {
+    gap: 0.6em;
+  }
+}
+
 /* ── Single post page title ───────────────────────────────────────────────── */
 .postWrapper > h1:first-child {
   font-size: 1.8em;

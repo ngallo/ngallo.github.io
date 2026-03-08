@@ -6,7 +6,7 @@
 
 <div>
   <div class="listHeader">
-    <h1>{{ .Title }}</h1>
+    <h1>All Posts</h1>
   </div>
 
   {{ with .Content }}
@@ -15,36 +15,79 @@
   </div>
   {{ end }}
 
+  {{/* Collect all tags from blog posts (excluding "index") */}}
+  {{ $allTags := slice }}
+  {{ range .RegularPages }}
+    {{ range .Params.tags }}
+      {{ if ne . "index" }}
+        {{ $allTags = $allTags | append . }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  {{ $uniqueTags := $allTags | uniq | sort }}
+
+  {{/* Tag filter bar */}}
+  {{ if gt (len $uniqueTags) 0 }}
+  <div class="tag-filter-bar" role="navigation" aria-label="Filter posts by tag">
+    <button class="tag-pill tag-pill--active" data-tag="all">all</button>
+    {{ range $uniqueTags }}
+    <button class="tag-pill" data-tag="{{ . }}">{{ . }}</button>
+    {{ end }}
+  </div>
+  {{ end }}
+
   {{/* Group all pages by year (descending) */}}
   {{ $pages := .RegularPages }}
   {{ range $pages.GroupByDate "2006" }}
-  <section class="year-group">
-    <h2 class="year-heading">{{ .Key }}</h2>
+  <section class="year-group" data-year="{{ .Key }}">
+    <h2 class="year-heading">
+      {{ .Key }}
+      <span class="year-count">{{ len .Pages }} {{ if eq (len .Pages) 1 }}post{{ else }}posts{{ end }}</span>
+    </h2>
     <div role="list">
       {{ range .Pages }}
-        <div class="postListItem" role="listitem">
+        {{ $tagList := slice }}
+        {{ range .Params.tags }}
+          {{ if ne . "index" }}
+            {{ $tagList = $tagList | append . }}
+          {{ end }}
+        {{ end }}
+        <div class="postListItem" role="listitem" data-tags="{{ delimit $tagList "," }}">
           <a class="postListLink" href="{{ .Permalink }}">
             <div class="postHeader">
               <span class="postTitle">{{ .Title }}</span>
-              {{ $layout := .Site.Params.displayDateFormat | default "2006-01-02" }}
-              {{ $iso := .Date | time.Format "2006-01-02" }}
-              <time class="postDate" datetime="{{ $iso }}">{{ .Date | time.Format $layout }}</time>
+              <div class="postMeta">
+                {{ $layout := .Site.Params.displayDateFormat | default "2006-01-02" }}
+                {{ $iso := .Date | time.Format "2006-01-02" }}
+                <time class="postDate" datetime="{{ $iso }}">
+                  <svg class="meta-icon" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M4.75 0a.75.75 0 01.75.75V2h5V.75a.75.75 0 011.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0113.25 16H2.75A1.75 1.75 0 011 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 014.75 0zm0 3.5h-2a.25.25 0 00-.25.25V6h11V3.75a.25.25 0 00-.25-.25h-2v.75a.75.75 0 01-1.5 0v-.75h-5v.75a.75.75 0 01-1.5 0V3.5zm-2.25 4v6.75c0 .138.112.25.25.25h10.5a.25.25 0 00.25-.25V7.5H2.5z"/></svg>
+                  {{ .Date | time.Format $layout }}
+                </time>
+                {{ $showReadingTime := true }}
+                {{ if eq .Site.Params.showReadingTime false }}{{ $showReadingTime = false }}{{ end }}
+                {{ if eq .Site.Params.readingTime false }}{{ $showReadingTime = false }}{{ end }}
+                {{ if eq .Params.showReadingTime false }}{{ $showReadingTime = false }}{{ end }}
+                {{ if $showReadingTime }}
+                <span class="readingTime">
+                  <svg class="meta-icon" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm0 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zm.25 2a.75.75 0 01.75.75v3.69l2.28 2.28a.75.75 0 01-1.06 1.06l-2.5-2.5a.75.75 0 01-.22-.53V4.25a.75.75 0 01.75-.75z"/></svg>
+                  {{ .ReadingTime }} min read
+                </span>
+                {{ end }}
+              </div>
             </div>
-            {{ $showReadingTime := true }}
-            {{ if eq .Site.Params.showReadingTime false }}{{ $showReadingTime = false }}{{ end }}
-            {{ if eq .Site.Params.readingTime false }}{{ $showReadingTime = false }}{{ end }}
-            {{ if eq .Params.showReadingTime false }}{{ $showReadingTime = false }}{{ end }}
-            {{ if $showReadingTime }}
-            <div class="readingTime">
-              {{ i18n "reading_time" }}: {{ i18n "reading_time_desc" .ReadingTime }}
-            </div>
-            {{ end }}
           </a>
           <div class="postExcerpt">
             {{- $excerpt := .Summary | plainify | truncate 160 "" -}}
             {{- $excerpt = replaceRE `[,;:\-–—\s]+$` "" $excerpt -}}
             {{- $excerpt -}}…
           </div>
+          {{ if gt (len $tagList) 0 }}
+          <div class="postTags">
+            {{ range $tagList }}
+            <a href="{{ "/tags/" | relURL }}{{ . | urlize }}/" class="post-tag">#{{ . }}</a>
+            {{ end }}
+          </div>
+          {{ end }}
         </div>
       {{ end }}
     </div>
@@ -52,5 +95,38 @@
   {{ end }}
 
 </div>
+
+<script>
+(function() {
+  const pills = document.querySelectorAll('.tag-pill');
+  const items = document.querySelectorAll('.postListItem');
+  const yearGroups = document.querySelectorAll('.year-group');
+
+  pills.forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      // Update active pill
+      pills.forEach(function(p) { p.classList.remove('tag-pill--active'); });
+      pill.classList.add('tag-pill--active');
+
+      const tag = pill.getAttribute('data-tag');
+
+      if (tag === 'all') {
+        items.forEach(function(item) { item.style.display = ''; });
+      } else {
+        items.forEach(function(item) {
+          const tags = (item.getAttribute('data-tags') || '').split(',');
+          item.style.display = tags.indexOf(tag) !== -1 ? '' : 'none';
+        });
+      }
+
+      // Hide year groups that have no visible posts
+      yearGroups.forEach(function(group) {
+        const visiblePosts = group.querySelectorAll('.postListItem:not([style*="display: none"])');
+        group.style.display = visiblePosts.length > 0 ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>
 
 {{ end }}
