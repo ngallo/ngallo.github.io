@@ -1702,13 +1702,20 @@ a:focus-visible {
    ========================================================================== */
 .share-buttons {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   gap: 0.75rem;
   margin-top: 2.5rem;
   padding-top: 1.5rem;
   border-top: none;
   position: relative;
+}
+
+.share-buttons__row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* Gradient line with diamond ornament */
@@ -1747,12 +1754,11 @@ a:focus-visible {
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-right: 4px;
+  letter-spacing: 0.14em;
   white-space: nowrap;
-  flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0.5;
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  margin: 0;
 }
 
 .share-btn {
