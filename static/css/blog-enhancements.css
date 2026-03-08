@@ -661,15 +661,11 @@ a:focus-visible {
 /* ==========================================================================
    Anchor Links on Headings
    ========================================================================== */
-.postWrapper h2.has-anchor,
-.postWrapper h3.has-anchor,
-.postWrapper h4.has-anchor {
-  position: relative;
-}
+
 
 .heading-anchor {
   position: absolute;
-  left: -1.3em;
+  left: 0;
   top: 0;
   color: var(--text-secondary) !important;
   text-decoration: none !important;
