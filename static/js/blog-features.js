@@ -342,6 +342,9 @@
     var post = document.querySelector('.postWrapper');
     if (!post) return;
 
+    // Prefer the dedicated container (before related posts) if it exists
+    var shareContainer = document.getElementById('share-buttons-container');
+
     var pageUrl = window.location.href;
 
     // Extract clean title (strip " | Site Name" suffix)
@@ -373,7 +376,7 @@
         '<span>copy</span>' +
       '</button>';
 
-    post.appendChild(container);
+    (shareContainer || post).appendChild(container);
 
     // Twitter / X — always open X directly (intent URL works on mobile too, opens X app)
     container.querySelector('.share-btn--twitter').addEventListener('click', function () {

@@ -683,9 +683,9 @@ a:hover {
 .terminal-home {
   display: flex;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
   min-height: calc(100vh - 200px);
-  padding: 3em 0 2em;
+  padding: 2em 0;
   text-align: left;
 }
 
@@ -1197,7 +1197,23 @@ body::before {
 .related-posts {
   margin-top: 3em;
   padding-top: 2em;
-  border-top: 1px solid var(--border-subtle);
+  border-top: none;
+  position: relative;
+}
+
+.related-posts::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--green) 30%,
+    var(--accent) 70%,
+    transparent 100%);
+  opacity: 0.4;
 }
 
 .related-posts__heading {
@@ -1220,19 +1236,25 @@ body::before {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(88, 166, 255, 0.12);
   border-left: 3px solid transparent;
   text-decoration: none !important;
-  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
 }
 
 .related-post-card:hover {
-  border-color: var(--accent);
+  border-color: rgba(88, 166, 255, 0.35);
   border-left-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(88, 166, 255, 0.08);
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 16px rgba(88, 166, 255, 0.1),
+    0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.related-post-card:hover .related-post-card__title {
+  text-shadow: 0 0 10px rgba(88, 166, 255, 0.2);
 }
 
 .related-post-card__title {
@@ -1240,11 +1262,13 @@ body::before {
   font-weight: 600;
   color: var(--accent) !important;
   line-height: 1.35;
+  transition: text-shadow 0.2s ease;
 }
 
 .related-post-card__meta {
   font-size: 0.75em;
   color: var(--text-secondary) !important;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
 }
 
 .related-post-card__tags {
@@ -1664,10 +1688,27 @@ a:focus-visible {
 .share-buttons {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 0.75rem;
   margin-top: 2.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border-subtle);
+  border-top: none;
+  position: relative;
+}
+
+.share-buttons::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--accent) 30%,
+    var(--purple) 70%,
+    transparent 100%);
+  opacity: 0.5;
 }
 
 .share-label {

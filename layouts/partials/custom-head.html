@@ -1,6 +1,46 @@
 {{ partial "math.html" . }}
 {{ partial "analytics.html" . }}
 
+<!-- ── SEO: Author ────────────────────────────────────────────────────────── -->
+<meta name="author" content="{{ .Site.Params.author.name }}">
+
+<!-- ── SEO: Open Graph ────────────────────────────────────────────────────── -->
+<meta property="og:site_name" content="{{ .Site.Params.author.name }}">
+<meta property="og:locale" content="en_GB">
+{{- if .IsPage }}
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 160 "" }}{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+{{- with .Date }}<meta property="article:published_time" content="{{ .Format "2006-01-02T15:04:05Z07:00" }}">{{ end }}
+{{- with .Lastmod }}<meta property="article:modified_time" content="{{ .Format "2006-01-02T15:04:05Z07:00" }}">{{ end }}
+<meta property="article:author" content="{{ .Site.Params.author.name }}">
+{{- range .Params.tags }}<meta property="article:tag" content="{{ . }}">{{ end }}
+{{- else }}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ .Title | default .Site.Title }}">
+<meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.author.name }} — Cloud Native Security, Identity & Access Management, Zero Trust{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+{{- end }}
+
+<!-- ── SEO: Twitter Card ──────────────────────────────────────────────────── -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ .Title | default .Site.Title }}">
+<meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 160 "" }}{{ end }}">
+{{- with .Site.Params.social }}{{- range . }}{{- if eq .name "twitter" }}<meta name="twitter:site" content="@ngallo83">{{ end }}{{ end }}{{ end }}
+
+<!-- ── SEO: JSON-LD Structured Data ───────────────────────────────────────── -->
+{{- if .IsPage }}
+{{- $desc := .Description | default (.Summary | plainify | truncate 300 "") }}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","headline":"{{ .Title | safeJS }}","description":"{{ $desc | safeJS }}","url":"{{ .Permalink }}","datePublished":"{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}","dateModified":"{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}","author":{"@type":"Person","name":"{{ .Site.Params.author.name }}","url":"https://www.ngallo.it/about/"},"publisher":{"@type":"Person","name":"{{ .Site.Params.author.name }}"},"mainEntityOfPage":{"@type":"WebPage","@id":"{{ .Permalink }}"},"wordCount":{{ .WordCount }},"keywords":[{{ range $i, $t := .Params.tags }}{{ if $i }},{{ end }}"{{ $t }}"{{ end }}],"inLanguage":"en"}
+</script>
+{{- else if .IsHome }}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"{{ .Site.Params.author.name }}","url":"{{ .Site.BaseURL }}","description":"Cloud Native Security, Identity & Access Management, Zero Trust","author":{"@type":"Person","name":"{{ .Site.Params.author.name }}"}}
+</script>
+{{- end }}
+
 <!-- Blog enhancements & VS Code-like code blocks -->
 <link rel="stylesheet" href="/css/blog-enhancements.css">
 <link rel="stylesheet" href="/css/syntax.css">

@@ -1,8 +1,22 @@
 baseURL = 'https://www.ngallo.it/'
 languageCode = 'en-uk'
+enableRobotsTXT = true
 
 [[module.imports]]
   path = 'github.com/lordmathis/hugo-theme-nightfall'
+
+# ── Custom output formats for LLM crawlers ────────────────────────────────
+[mediaTypes."text/plain"]
+  suffixes = ["txt"]
+
+[outputFormats.LLMsTxt]
+  mediaType = "text/plain"
+  baseName = "llms"
+  isPlainText = true
+  notAlternative = true
+
+[outputs]
+  home = ["HTML", "RSS", "LLMsTxt"]
 
 [markup]
   [markup.goldmark]
@@ -52,6 +66,7 @@ languageCode = 'en-uk'
 
 [params]
 color = "#58a6ff"
+description = "Nicola Gallo — Cloud Native Security, Identity & Access Management, Zero Trust. Technical blog on ZTAuth*, PIC, Ambient Mesh, and decentralized systems."
 openLinksInNewTab = true  # External links in blog posts open in new tab
 user = "root"
 hostname = "ngallo.it"

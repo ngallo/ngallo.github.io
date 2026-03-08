@@ -1,0 +1,28 @@
+# {{ .Site.Params.author.name }} — {{ .Site.Params.hostname }}
+
+> {{ .Site.Params.description }}
+
+## About the Author
+
+{{ .Site.Params.author.name }} is a software engineer and researcher focused on Cloud Native Security, Identity & Access Management, and Zero Trust. He works on ZTAuth* (a zero-trust authorization model) and PIC (Policy Information Coordinator).
+
+- Website: {{ .Site.BaseURL }}
+- About: {{ .Site.BaseURL }}about/
+- Blog: {{ .Site.BaseURL }}blog/
+{{- range .Site.Params.social }}
+- {{ .name | title }}: {{ .url }}
+{{- end }}
+
+## Blog Posts
+{{ range (where site.RegularPages "Section" "blog") }}
+- [{{ .Title }}]({{ .Permalink }}): {{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 200 "" }}{{ end }}
+{{- end }}
+
+## Key Topics
+{{ $allTags := slice }}{{ range (where site.RegularPages "Section" "blog") }}{{ range .Params.tags }}{{ $allTags = $allTags | append . }}{{ end }}{{ end }}{{ $uniqueTags := $allTags | uniq | sort }}{{ range $uniqueTags }}
+- {{ . }}
+{{- end }}
+
+## License
+
+Content is published under CC BY 4.0. Written in English by the author, polished with AI.
