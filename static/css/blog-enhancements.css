@@ -1696,19 +1696,35 @@ a:focus-visible {
   position: relative;
 }
 
+/* Gradient line with diamond ornament */
 .share-buttons::before {
+  content: '◆';
+  position: absolute;
+  top: -0.45em;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  color: var(--accent);
+  background: var(--bg-dark);
+  padding: 0 0.8em;
+  z-index: 1;
+  opacity: 0.6;
+  letter-spacing: 0.3em;
+}
+
+.share-buttons::after {
   content: '';
   position: absolute;
   top: 0;
-  left: 10%;
-  right: 10%;
+  left: 15%;
+  right: 15%;
   height: 1px;
   background: linear-gradient(90deg,
     transparent 0%,
-    var(--accent) 30%,
-    var(--purple) 70%,
+    rgba(88, 166, 255, 0.3) 20%,
+    rgba(188, 140, 255, 0.4) 50%,
+    rgba(88, 166, 255, 0.3) 80%,
     transparent 100%);
-  opacity: 0.5;
 }
 
 .share-label {
