@@ -1,0 +1,32 @@
+{{/* Related Posts – shows up to 3 posts that share tags with the current post */}}
+{{ $currentPage := . }}
+{{ $related := site.RegularPages.Related . | first 3 }}
+
+{{ if gt (len $related) 0 }}
+<nav class="related-posts" aria-label="Related posts">
+  <h2 class="related-posts__heading">Related Posts</h2>
+  <div class="related-posts__grid">
+    {{ range $related }}
+    <a href="{{ .Permalink }}" class="related-post-card">
+      <span class="related-post-card__title">{{ .Title }}</span>
+      <span class="related-post-card__meta">
+        {{ $layout := .Site.Params.displayDateFormat | default "2006-01-02" }}
+        {{ .Date | time.Format $layout }}
+        {{ if .ReadingTime }}· {{ .ReadingTime }} min read{{ end }}
+      </span>
+      {{ $tagList := slice }}
+      {{ range .Params.tags }}
+        {{ if ne . "index" }}{{ $tagList = $tagList | append . }}{{ end }}
+      {{ end }}
+      {{ if gt (len $tagList) 0 }}
+      <span class="related-post-card__tags">
+        {{ range $tagList }}
+        <span class="related-post-card__tag">#{{ . }}</span>
+        {{ end }}
+      </span>
+      {{ end }}
+    </a>
+    {{ end }}
+  </div>
+</nav>
+{{ end }}
