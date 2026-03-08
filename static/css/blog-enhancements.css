@@ -460,6 +460,10 @@ a:hover {
   color: var(--text-secondary) !important;
   line-height: 1.6;
   text-align: left !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .readingTime {
@@ -534,6 +538,25 @@ a:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
+}
+
+/* ── Year Group Headings (blog list grouped by year) ──────────────────────── */
+.year-group {
+  margin-bottom: 2em;
+}
+
+.year-heading {
+  font-size: 1.6em;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 1.5em 0 0.5em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--border-subtle);
+  letter-spacing: -0.01em;
+}
+
+.year-group:first-of-type .year-heading {
+  margin-top: 0.5em;
 }
 
 /* ── Single post page title ───────────────────────────────────────────────── */
