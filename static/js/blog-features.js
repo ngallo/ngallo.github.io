@@ -411,6 +411,60 @@
     });
   }
 
+  /* ── 9. Related Posts Carousel ────────────────────────────────────────── */
+  function initRelatedPostsCarousel() {
+    var carousel = document.querySelector('.related-posts__carousel');
+    if (!carousel) return;
+
+    var track = carousel.querySelector('.related-posts__track');
+    var leftBtn = carousel.querySelector('.related-posts__arrow--left');
+    var rightBtn = carousel.querySelector('.related-posts__arrow--right');
+    if (!track || !leftBtn || !rightBtn) return;
+
+    // Scroll amount per click ≈ one card width + gap
+    var scrollAmount = 280;
+
+    function updateArrows() {
+      var scrollLeft = Math.round(track.scrollLeft);
+      var maxScroll = track.scrollWidth - track.clientWidth;
+
+      // If there's nothing to scroll at all, hide both arrows
+      if (maxScroll <= 1) {
+        leftBtn.classList.remove('is-visible');
+        rightBtn.classList.remove('is-visible');
+        return;
+      }
+
+      // Show/hide left arrow: visible only when there's content scrolled off to the left
+      if (scrollLeft > 0) {
+        leftBtn.classList.add('is-visible');
+      } else {
+        leftBtn.classList.remove('is-visible');
+      }
+
+      // Show/hide right arrow: visible only when there's content scrolled off to the right
+      if (scrollLeft < maxScroll - 1) {
+        rightBtn.classList.add('is-visible');
+      } else {
+        rightBtn.classList.remove('is-visible');
+      }
+    }
+
+    leftBtn.addEventListener('click', function () {
+      track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+
+    rightBtn.addEventListener('click', function () {
+      track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+
+    track.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows, { passive: true });
+
+    // Initial state
+    updateArrows();
+  }
+
   /* ── 6 (original). Terminal-Style Command Blocks ─────────────────────── */
   function initTerminalBlocks() {
     var blocks = document.querySelectorAll('.highlight');
@@ -455,5 +509,6 @@
     initTerminalBlocks();
     initMermaid();
     initShareButtons();
+    initRelatedPostsCarousel();
   }
 })();

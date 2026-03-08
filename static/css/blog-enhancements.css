@@ -1199,7 +1199,7 @@ body::before {
 }
 
 /* ==========================================================================
-   Related Posts
+   Related Posts – Horizontal Carousel
    ========================================================================== */
 .related-posts {
   margin-top: 3em;
@@ -1248,22 +1248,97 @@ body::before {
   letter-spacing: -0.01em;
 }
 
-.related-posts__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 12px;
+/* ── Carousel wrapper (arrows + track) ───────────────────────────────────── */
+.related-posts__carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0;
 }
 
+/* ── Scrollable track ────────────────────────────────────────────────────── */
+.related-posts__track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 8px;
+  /* Hide scrollbar across browsers */
+  scrollbar-width: none;            /* Firefox  */
+  -ms-overflow-style: none;         /* IE / Edge */
+}
+
+.related-posts__track::-webkit-scrollbar {
+  display: none;                    /* Chrome / Safari */
+}
+
+/* ── Arrow buttons ───────────────────────────────────────────────────────── */
+.related-posts__arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(28, 29, 31, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.2s ease, background-color 0.2s ease,
+              border-color 0.2s ease, box-shadow 0.2s ease,
+              opacity 0.3s ease, visibility 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  /* Hidden by default – JS adds .is-visible when there's content to scroll */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.related-posts__arrow.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.related-posts__arrow:hover {
+  color: var(--accent);
+  background: rgba(88, 166, 255, 0.12);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 12px rgba(88, 166, 255, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.related-posts__arrow--left {
+  margin-right: 8px;
+}
+
+.related-posts__arrow--right {
+  margin-left: 8px;
+}
+
+/* ── Cards inside carousel ───────────────────────────────────────────────── */
 .related-post-card {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 260px;
+  max-width: 300px;
+  flex: 0 0 auto;
   padding: 16px 18px;
   background: var(--bg-surface);
   border: 1px solid rgba(88, 166, 255, 0.12);
   border-left: 3px solid transparent;
   text-decoration: none !important;
-  transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
+  scroll-snap-align: start;
+  transition: border-color 0.25s ease, transform 0.2s ease,
+              box-shadow 0.25s ease, border-left-color 0.25s ease;
 }
 
 .related-post-card:hover {
@@ -1285,6 +1360,11 @@ body::before {
   color: var(--accent) !important;
   line-height: 1.35;
   transition: text-shadow 0.2s ease;
+  /* Clamp title to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .related-post-card__meta {
@@ -1307,10 +1387,48 @@ body::before {
   opacity: 0.7;
 }
 
+/* ── Mobile: smaller cards, keep arrows ──────────────────────────────────── */
 @media screen and (max-width: 480px) {
-  .related-posts__grid {
-    grid-template-columns: 1fr;
+  .related-post-card {
+    min-width: 220px;
+    max-width: 260px;
   }
+
+  .related-posts__arrow {
+    width: 30px;
+    height: 30px;
+  }
+
+  .related-posts__arrow svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ── "View all posts" link ───────────────────────────────────────────────── */
+.related-posts__all {
+  text-align: center;
+  margin-top: 1.25em;
+}
+
+.related-posts__all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 0.82rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  color: var(--text-secondary) !important;
+  text-decoration: none !important;
+  border: none !important;
+  letter-spacing: 0.03em;
+  padding: 6px 16px;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.related-posts__all-link:hover {
+  color: var(--accent) !important;
+  background: rgba(88, 166, 255, 0.08);
 }
 
 /* ── Better strong emphasis in specific contexts ──────────────────────────── */
