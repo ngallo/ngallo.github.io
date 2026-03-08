@@ -55,9 +55,9 @@
   var body = document.getElementById('terminal-body');
   if (!lines.length || !body) return;
 
-  var CHAR_DELAY = 30;   // ms per character for typing
-  var CMD_PAUSE = 250;   // pause after prompt before typing
-  var OUTPUT_PAUSE = 150; // pause after command before showing output
+  var CHAR_DELAY = 25;   // ms per character for typing (fast typist)
+  var CMD_PAUSE = 200;   // pause after prompt before typing
+  var OUTPUT_PAUSE = 100; // pause after command before showing output
 
   var PROMPT_USER = '{{ .Site.Params.user }}';
   var PROMPT_HOST = '{{ .Site.Params.hostname }}';
@@ -138,7 +138,7 @@
           }, CMD_PAUSE);
         }, OUTPUT_PAUSE);
       });
-    }, index === 0 ? 400 : CMD_PAUSE);
+    }, index === 0 ? 250 : CMD_PAUSE);
   }
 
   // Start the animation
