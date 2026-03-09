@@ -12,6 +12,7 @@
   --bg-darker: #252627;        /* darker panels */
   --bg-card: #2f2f2f;          /* card / post list items */
   --bg-surface: #1c1d1f;       /* blockquotes, callouts */
+  --bg-content: #24262a;       /* solid content panel – no dot pattern */
   --text-primary: #e6edf3;     /* brighter white for body */
   --text-secondary: #8b949e;   /* muted text */
   --border-subtle: #30363d;    /* subtle borders */
@@ -56,6 +57,24 @@ body {
 .main {
   max-width: 100vw;
   overflow-x: clip;
+}
+
+/* ── Content panel – solid background over the dot grid ───────────────────── */
+/* Applied to post pages and list pages only, not the homepage */
+.main:has(.postWrapper),
+.main:has(.listHeader) {
+  background: linear-gradient(
+    180deg,
+    #262830 0%,
+    var(--bg-content) 6%,
+    var(--bg-content) 100%
+  );
+  border-left: 1px solid rgba(48, 54, 61, 0.45);
+  border-right: 1px solid rgba(48, 54, 61, 0.45);
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  padding: 2em 2em;
 }
 
 .flexWrapper {
@@ -439,12 +458,14 @@ a:hover {
   border-radius: 0;
   border: 1px solid var(--border-subtle);
   border-left: 3px solid transparent;
-  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, border-left-color 0.2s ease;
+  background: var(--bg-surface);
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, border-left-color 0.2s ease, background-color 0.2s ease;
 }
 
 .postListItem:hover {
   border-color: var(--accent);
   border-left-color: var(--accent);
+  background: #222428;
   transform: translateY(-2px);
   box-shadow:
     0 4px 20px rgba(88, 166, 255, 0.1),
@@ -1225,7 +1246,7 @@ body::before {
   transform: translateX(-50%);
   font-size: 0.6rem;
   color: var(--green);
-  background: var(--bg-dark);
+  background: var(--bg-content);
   padding: 0 0.8em;
   z-index: 1;
   opacity: 0.5;
@@ -1453,10 +1474,18 @@ body::before {
 /* ── Footer ───────────────────────────────────────────────────────────────── */
 footer {
   border-top: 1px solid var(--border-subtle);
-  margin-top: 2em;
+  margin-top: 0;
   opacity: 1 !important;
   /* Il footer si espande per riempire tutto lo spazio restante nel viewport */
   flex: 1 0 auto;
+}
+
+/* On post/list pages, footer gets the same solid background as the content panel */
+body:has(.postWrapper) footer,
+body:has(.listHeader) footer {
+  background: var(--bg-content);
+  border-left: 1px solid rgba(48, 54, 61, 0.45);
+  border-right: 1px solid rgba(48, 54, 61, 0.45);
 }
 
 footer a,
@@ -1868,7 +1897,7 @@ a:focus-visible {
   transform: translateX(-50%);
   font-size: 0.6rem;
   color: var(--accent);
-  background: var(--bg-dark);
+  background: var(--bg-content);
   padding: 0 0.8em;
   z-index: 1;
   opacity: 0.6;
@@ -2133,9 +2162,13 @@ a:focus-visible {
    ========================================================================== */
 @media screen and (max-width: 992px) {
   .main {
-    padding: 0 16px;
     width: 100% !important;
     max-width: 100vw;
+  }
+
+  .main:has(.postWrapper),
+  .main:has(.listHeader) {
+    padding: 1.5em 16px;
   }
 
   .postWrapper {
@@ -2188,8 +2221,9 @@ a:focus-visible {
 }
 
 @media screen and (max-width: 480px) {
-  .main {
-    padding: 0 12px;
+  .main:has(.postWrapper),
+  .main:has(.listHeader) {
+    padding: 1em 12px;
   }
 
   .postWrapper {
