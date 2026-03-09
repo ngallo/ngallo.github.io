@@ -96,9 +96,10 @@
             </div>
           </a>
           <div class="postExcerpt">
-            {{- $excerpt := .Summary | plainify | truncate 160 "" -}}
+            {{- $plain := .Summary | plainify -}}
+            {{- $excerpt := $plain | truncate 160 "" -}}
             {{- $excerpt = replaceRE `[,;:\-–—\s]+$` "" $excerpt -}}
-            {{- $excerpt -}}…
+            {{- $excerpt -}}{{- if gt (len $plain) 160 -}}…{{- end -}}
           </div>
           {{ if gt (len $tagList) 0 }}
           <div class="postTags">
