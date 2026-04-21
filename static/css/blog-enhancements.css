@@ -1018,9 +1018,6 @@ a:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
-}
-
-.listHeader h1 {
   margin-bottom: 0.1em;
 }
 
