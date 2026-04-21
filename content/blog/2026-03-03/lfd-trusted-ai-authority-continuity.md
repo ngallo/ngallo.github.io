@@ -3,7 +3,7 @@ author = "Nicola Gallo"
 title = "LFDT - Trusted AI Agents by Design: From Trust Ecosystems to Authority Continuity"
 date = "2026-03-03"
 description = "Trusted AI Agents by Design: From Trust Ecosystems to Authority Continuity"
-tags = ["digital-identity", "talk", "pic", "lfdt", "trusted-ai", "ai-agents", "zero-trust", "provenance", "authority-propagation", "authorization", "access-control", "security", "privacy", "distributed-systems"]
+tags = ["digital-identity", "presentation", "pic", "lfdt", "trusted-ai", "ai-agents", "zero-trust", "provenance", "authority-propagation", "authorization", "access-control", "security", "privacy", "distributed-systems"]
 +++
 
 On March 3, 2026, LF Decentralized Trust hosted the session *“Trusted AI Agents by Design: From Trust Ecosystems to Authority Continuity”*, presented by Nicola Gallo.

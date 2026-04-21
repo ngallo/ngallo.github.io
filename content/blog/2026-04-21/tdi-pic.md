@@ -3,7 +3,7 @@ author = "Nicola Gallo"
 title = "TDI2026 - PIC"
 date = "2026-04-21"
 description = "Provenance Identity Continuity (PIC): Secure Authority Propagation from Human and Non-Human Origins Across Trust Boundaries"
-tags = ["digital-identity", "talk", "pic", "tdi2026", "zero-trust", "provenance", "authority-propagation", "authorization", "access-control", "security", "privacy", "distributed-systems"]
+tags = ["digital-identity", "talk", "presentation", "pic", "tdi2026", "zero-trust", "provenance", "authority-propagation", "authorization", "access-control", "security", "privacy", "distributed-systems"]
 +++
 
 On April 20–21, 2026, the **4th International Workshop on Trends in Digital Identity (TDI 2026)** takes place in Verona. The workshop program also includes the talk *“Provenance Identity Continuity (PIC): Secure Authority Propagation from Human and Non-Human Origins Across Trust Boundaries”*, presented by Nicola Gallo and Antonio Radesca (Nitro Agility Srl).

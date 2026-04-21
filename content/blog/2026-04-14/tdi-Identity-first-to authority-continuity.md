@@ -3,7 +3,7 @@ author = "Nicola Gallo"
 title = "LFDT - From Identity-First to Authority Continuity"
 date = "2026-04-14"
 description = "From Identity-First to Authority Continuity"
-tags = ["digital-identity", "talk", "pic", "lfdt", "zero-trust", "provenance", "authority-propagation", "authorization", "access-control", "security", "privacy", "distributed-systems"]
+tags = ["digital-identity", "presentation", "pic", "lfdt", "zero-trust", "provenance", "authority-propagation", "authorization", "access-control", "security", "privacy", "distributed-systems"]
 +++
 
 On March 3, 2026, LF Decentralized Trust hosted the session *“From Identity-First to Authority Continuity”*, presented by Nicola Gallo.

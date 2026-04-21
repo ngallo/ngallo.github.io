@@ -49,9 +49,9 @@ enableRobotsTXT = true
     weight = 2
     url = "disclaimer"
   [[menu.header]]
-    name = "presentations"
+    name = "share"
     weight = 3
-    url = "presentations"
+    url = "share"
   [[menu.header]]
     name = "blog"
     weight = 4
