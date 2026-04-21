@@ -1,0 +1,234 @@
+{{ define "title"}}
+{{ .Title }} | {{ .Site.Params.author.name }}
+{{ end }}
+
+{{ define "main" }}
+
+{{/* Filter site pages by talk/presentation tags */}}
+{{ $filterTags := slice "talk" "presentation" }}
+{{ $pages := where site.RegularPages "Params.tags" "intersect" $filterTags }}
+
+<div>
+  <div class="listHeader">
+    <h1>{{ .Title }}</h1>
+  </div>
+
+  {{ with .Content }}
+  <div class="listContent">
+    {{- . -}}
+  </div>
+  {{ end }}
+
+  {{/* Search bar */}}
+  <div class="search-wrapper">
+    <div class="search-input-container">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M10.68 11.74a6 6 0 01-7.922-8.982 6 6 0 018.982 7.922l3.04 3.04a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215l-3.04-3.04zM11.5 7a4.499 4.499 0 10-8.997 0A4.499 4.499 0 0011.5 7z"/></svg>
+      <input type="text" id="blog-search" class="search-input" placeholder="Search presentations…" autocomplete="off" />
+      <kbd class="search-kbd">⌘K</kbd>
+    </div>
+    <div id="search-results-count" class="search-results-count"></div>
+  </div>
+
+  {{/* Collect all tags from filtered pages (excluding "index") */}}
+  {{ $allTags := slice }}
+  {{ range $pages }}
+    {{ range .Params.tags }}
+      {{ if ne . "index" }}
+        {{ $allTags = $allTags | append . }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  {{ $uniqueTags := $allTags | uniq | sort }}
+
+  {{/* Tag filter bar — collapse only when > 50 tags */}}
+  {{ if gt (len $uniqueTags) 0 }}
+  {{ $manyTags := gt (len $uniqueTags) 50 }}
+  <div class="tag-filter-wrapper">
+    <div class="tag-filter-bar{{ if $manyTags }} is-collapsed{{ end }}" role="navigation" aria-label="Filter presentations by tag">
+      <button class="tag-pill tag-pill--active" data-tag="all">all</button>
+      {{ range $uniqueTags }}
+      <button class="tag-pill" data-tag="{{ . }}">{{ . }}</button>
+      {{ end }}
+    </div>
+    {{ if $manyTags }}
+    <button class="tag-toggle" aria-expanded="false">
+      <span class="tag-toggle-text">show all</span>
+      <svg class="tag-toggle-icon" viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/></svg>
+    </button>
+    {{ end }}
+  </div>
+  {{ end }}
+
+  {{/* Group filtered pages by year (descending) */}}
+  {{ range $pages.GroupByDate "2006" }}
+  <section class="year-group" data-year="{{ .Key }}">
+    <h2 class="year-heading">
+      {{ .Key }}
+      <span class="year-count">{{ len .Pages }} {{ if eq (len .Pages) 1 }}presentation{{ else }}presentations{{ end }}</span>
+    </h2>
+    <div role="list">
+      {{ range .Pages }}
+        {{ $tagList := slice }}
+        {{ range .Params.tags }}
+          {{ if ne . "index" }}
+            {{ $tagList = $tagList | append . }}
+          {{ end }}
+        {{ end }}
+        <div class="postListItem" role="listitem" data-tags="{{ delimit $tagList "," }}">
+          <a class="postListLink" href="{{ .Permalink }}">
+            <div class="postHeader">
+              <span class="postTitle">{{ .Title }}</span>
+              <div class="postMeta">
+                {{ $layout := .Site.Params.displayDateFormat | default "2006-01-02" }}
+                {{ $iso := .Date | time.Format "2006-01-02" }}
+                <time class="postDate" datetime="{{ $iso }}">
+                  <svg class="meta-icon" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M4.75 0a.75.75 0 01.75.75V2h5V.75a.75.75 0 011.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0113.25 16H2.75A1.75 1.75 0 011 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 014.75 0zm0 3.5h-2a.25.25 0 00-.25.25V6h11V3.75a.25.25 0 00-.25-.25h-2v.75a.75.75 0 01-1.5 0v-.75h-5v.75a.75.75 0 01-1.5 0V3.5zm-2.25 4v6.75c0 .138.112.25.25.25h10.5a.25.25 0 00.25-.25V7.5H2.5z"/></svg>
+                  {{ .Date | time.Format $layout }}
+                </time>
+                {{ $showReadingTime := true }}
+                {{ if eq .Site.Params.showReadingTime false }}{{ $showReadingTime = false }}{{ end }}
+                {{ if eq .Site.Params.readingTime false }}{{ $showReadingTime = false }}{{ end }}
+                {{ if eq .Params.showReadingTime false }}{{ $showReadingTime = false }}{{ end }}
+                {{ if $showReadingTime }}
+                <span class="readingTime">
+                  <svg class="meta-icon" viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M8 0a8 8 0 110 16A8 8 0 018 0zm0 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zm.25 2a.75.75 0 01.75.75v3.69l2.28 2.28a.75.75 0 01-1.06 1.06l-2.5-2.5a.75.75 0 01-.22-.53V4.25a.75.75 0 01.75-.75z"/></svg>
+                  {{ .ReadingTime }} min read
+                </span>
+                {{ end }}
+              </div>
+            </div>
+          </a>
+          <div class="postExcerpt">
+            {{- $plain := .Summary | plainify -}}
+            {{- $excerpt := $plain | truncate 160 "" -}}
+            {{- $excerpt = replaceRE `[,;:\-–—\s]+$` "" $excerpt -}}
+            {{- $excerpt -}}{{- if gt (len $plain) 160 -}}…{{- end -}}
+          </div>
+          {{ if gt (len $tagList) 0 }}
+          <div class="postTags">
+            {{ range $tagList }}
+            <a href="{{ "/tags/" | relURL }}{{ . | urlize }}/" class="post-tag">#{{ . }}</a>
+            {{ end }}
+          </div>
+          {{ end }}
+        </div>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
+
+</div>
+
+<script>
+(function() {
+  var pills = document.querySelectorAll('.tag-pill');
+  var items = document.querySelectorAll('.postListItem');
+  var yearGroups = document.querySelectorAll('.year-group');
+  var searchInput = document.getElementById('blog-search');
+  var resultsCount = document.getElementById('search-results-count');
+
+  var activeTag = 'all';
+  var searchQuery = '';
+
+  var searchData = [];
+  items.forEach(function(item) {
+    var title = (item.querySelector('.postTitle') || {}).textContent || '';
+    var excerpt = (item.querySelector('.postExcerpt') || {}).textContent || '';
+    var tags = item.getAttribute('data-tags') || '';
+    searchData.push({
+      el: item,
+      text: (title + ' ' + excerpt + ' ' + tags).toLowerCase()
+    });
+  });
+
+  function applyFilters() {
+    var query = searchQuery.toLowerCase().trim();
+    var visibleCount = 0;
+
+    searchData.forEach(function(entry) {
+      var tagMatch = activeTag === 'all' ||
+        (entry.el.getAttribute('data-tags') || '').split(',').indexOf(activeTag) !== -1;
+      var searchMatch = !query || entry.text.indexOf(query) !== -1;
+      var visible = tagMatch && searchMatch;
+      entry.el.style.display = visible ? '' : 'none';
+      if (visible) visibleCount++;
+    });
+
+    yearGroups.forEach(function(group) {
+      var vis = group.querySelectorAll('.postListItem:not([style*="display: none"])');
+      group.style.display = vis.length > 0 ? '' : 'none';
+    });
+
+    if (query) {
+      resultsCount.textContent = visibleCount + ' result' + (visibleCount !== 1 ? 's' : '') + ' found';
+      resultsCount.style.display = '';
+    } else {
+      resultsCount.style.display = 'none';
+    }
+  }
+
+  pills.forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      pills.forEach(function(p) { p.classList.remove('tag-pill--active'); });
+      pill.classList.add('tag-pill--active');
+      activeTag = pill.getAttribute('data-tag');
+      applyFilters();
+    });
+  });
+
+  if (searchInput) {
+    var debounceTimer;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() {
+        searchQuery = searchInput.value;
+        applyFilters();
+      }, 150);
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.value = '';
+        searchQuery = '';
+        applyFilters();
+        searchInput.blur();
+      }
+    });
+  }
+
+  var filterBar = document.querySelector('.tag-filter-bar');
+  var toggleBtn = document.querySelector('.tag-toggle');
+
+  if (filterBar && toggleBtn) {
+    function checkOverflow() {
+      if (filterBar.classList.contains('is-collapsed')) {
+        var overflows = filterBar.scrollHeight > filterBar.clientHeight + 2;
+        toggleBtn.style.display = overflows ? '' : 'none';
+      }
+    }
+
+    toggleBtn.addEventListener('click', function() {
+      var nowCollapsed = filterBar.classList.toggle('is-collapsed');
+      if (nowCollapsed) {
+        toggleBtn.querySelector('.tag-toggle-text').textContent = 'show more';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.classList.remove('is-expanded');
+      } else {
+        toggleBtn.querySelector('.tag-toggle-text').textContent = 'show less';
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        toggleBtn.classList.add('is-expanded');
+      }
+    });
+
+    requestAnimationFrame(function() { checkOverflow(); });
+    window.addEventListener('resize', function() { requestAnimationFrame(checkOverflow); });
+  }
+})();
+</script>
+
+{{ end }}

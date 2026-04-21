@@ -41,17 +41,21 @@ enableRobotsTXT = true
 
 [menu]
   [[menu.header]]
-    name = "blog"
-    weight = 0
-    url = "blog"
-  [[menu.header]]
     name = "about"
     weight = 1
     url = "about"
   [[menu.header]]
     name = "disclaimer"
-    weight = 1
+    weight = 2
     url = "disclaimer"
+  [[menu.header]]
+    name = "presentations"
+    weight = 3
+    url = "presentations"
+  [[menu.header]]
+    name = "blog"
+    weight = 4
+    url = "blog"
 
 [related]
   includeNewer = true
