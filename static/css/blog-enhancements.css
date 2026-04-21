@@ -1018,15 +1018,18 @@ a:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
-  margin-bottom: 0.1em;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .listHeader .tagline {
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 1.15em;
   margin: 0 0 0 1.25em;
+  padding: 0;
   letter-spacing: 0.01em;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .listHeader .tagline-branch {

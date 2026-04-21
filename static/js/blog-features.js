@@ -8,52 +8,67 @@
   /* ── 1. Reading Progress Bar ──────────────────────────────────────────── */
   function initProgressBar() {
     var post = document.querySelector('.postWrapper');
-    if (!post) return;
+    var list = document.querySelector('.listHeader');
+    if (!post && !list) return;
 
     var bar = document.createElement('div');
     bar.id = 'reading-progress';
     document.body.appendChild(bar);
 
-    // Calculate total reading time from word count (200 wpm)
-    var text = post.textContent || post.innerText || '';
-    var wordCount = text.trim().split(/\s+/).length;
-    var totalMinutes = Math.ceil(wordCount / 200);
+    var timeLeft = null;
+    var totalMinutes = 0;
 
-    // Create reading-time-left indicator
-    var timeLeft = document.createElement('span');
-    timeLeft.id = 'reading-time-left';
-    timeLeft.textContent = '~' + totalMinutes + ' min left';
-    document.body.appendChild(timeLeft);
+    if (post) {
+      // Calculate total reading time from word count (200 wpm)
+      var text = post.textContent || post.innerText || '';
+      var wordCount = text.trim().split(/\s+/).length;
+      totalMinutes = Math.ceil(wordCount / 200);
+
+      timeLeft = document.createElement('span');
+      timeLeft.id = 'reading-time-left';
+      timeLeft.textContent = '~' + totalMinutes + ' min left';
+      document.body.appendChild(timeLeft);
+    }
 
     function updateProgress() {
-      var rect = post.getBoundingClientRect();
-      var postTop = rect.top + window.scrollY;
-      var postHeight = post.offsetHeight;
-      var viewportH = window.innerHeight;
       var scrollY = window.scrollY;
-
-      var start = postTop;
-      var end = postTop + postHeight - viewportH;
+      var viewportH = window.innerHeight;
       var progress = 0;
 
-      if (scrollY >= end) {
-        progress = 100;
-      } else if (scrollY > start) {
-        progress = ((scrollY - start) / (end - start)) * 100;
+      if (post) {
+        var rect = post.getBoundingClientRect();
+        var postTop = rect.top + scrollY;
+        var postHeight = post.offsetHeight;
+        var start = postTop;
+        var end = postTop + postHeight - viewportH;
+        if (scrollY >= end) {
+          progress = 100;
+        } else if (scrollY > start) {
+          progress = ((scrollY - start) / (end - start)) * 100;
+        }
+      } else {
+        // List page: track document scroll
+        var docH = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight
+        );
+        var scrollable = docH - viewportH;
+        if (scrollable > 0) {
+          progress = (scrollY / scrollable) * 100;
+        }
       }
 
       bar.style.width = progress + '%';
 
-      // Update time remaining
-      var remaining = Math.ceil(totalMinutes * (1 - progress / 100));
-      if (remaining < 1) remaining = 0;
-      timeLeft.textContent = remaining === 0 ? 'Done!' : '~' + remaining + ' min left';
-
-      // Show/hide: fade out at top (before article) and at bottom (finished)
-      if (progress <= 0 || progress >= 100) {
-        timeLeft.classList.remove('is-visible');
-      } else {
-        timeLeft.classList.add('is-visible');
+      if (timeLeft) {
+        var remaining = Math.ceil(totalMinutes * (1 - progress / 100));
+        if (remaining < 1) remaining = 0;
+        timeLeft.textContent = remaining === 0 ? 'Done!' : '~' + remaining + ' min left';
+        if (progress <= 0 || progress >= 100) {
+          timeLeft.classList.remove('is-visible');
+        } else {
+          timeLeft.classList.add('is-visible');
+        }
       }
     }
 
