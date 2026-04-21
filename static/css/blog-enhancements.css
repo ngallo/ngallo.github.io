@@ -1010,6 +1010,16 @@ a:hover {
   }
 }
 
+/* ── Active menu item ─────────────────────────────────────────────────────── */
+.headerWrapper .headerLinks a.active {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 0.35em;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--purple);
+}
+
 /* ── Blog page heading ────────────────────────────────────────────────────── */
 .listHeader h1 {
   font-size: 2em;

@@ -1,0 +1,29 @@
+<header class="headerWrapper">
+    <div class="header">
+        <div>
+            <a class="terminal" href="{{ .Site.BaseURL | relLangURL }}">
+                <span>{{ .Site.Params.user }}@{{ .Site.Params.hostname }} ~ $</span>
+            </a>
+        </div>
+        <input class="side-menu" type="checkbox" id="side-menu">
+        <label class="hamb" for="side-menu"><span class="hamb-line"></span></label>
+        <nav class="headerLinks">
+            <ul>
+                {{ $page := . }}
+                {{ range .Site.Menus.header }}
+                {{ $menuPath := urls.Parse (.URL | absLangURL) }}
+                {{ $menuRel := $menuPath.Path }}
+                {{ if not (hasSuffix $menuRel "/") }}{{ $menuRel = printf "%s/" $menuRel }}{{ end }}
+                {{ $current := $page.RelPermalink }}
+                {{ if not (hasSuffix $current "/") }}{{ $current = printf "%s/" $current }}{{ end }}
+                {{ $isActive := or (eq $current $menuRel) (and (ne $menuRel "/") (hasPrefix $current $menuRel)) }}
+                <li>
+                    <a href="{{ .URL | absLangURL }}" title="{{ .Title }}"{{ if $isActive }} class="active" aria-current="page"{{ end }}>
+                        ~/{{- .Name -}}
+                    </a>
+                </li>
+                {{ end }}
+            </ul>
+        </nav>
+    </div>
+</header>
