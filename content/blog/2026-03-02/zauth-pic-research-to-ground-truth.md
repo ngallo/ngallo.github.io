@@ -1,7 +1,7 @@
 +++
 author = "Nicola Gallo"
 title = "ZTAuth* and PIC: From Research to Ground Truth"
-date = "2026-03-06"
+date = "2026-03-02"
 description = "Earlier articles on ZTAuth* explored different directions and ideas. This post marks the starting point of the stable model: ZTAuth* as governance, PIC as authority."
 tags = ["security", "authz", "ztauthstar", "pic", "zero-trust"]
 +++
