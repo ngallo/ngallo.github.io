@@ -4,7 +4,14 @@
 
 {{ define "main" }}
 <div class="postWrapper">
+    {{ if .Params.tagline }}
+    <div class="listHeader">
+        <h1>{{ .Title }}</h1>
+        <div class="tagline"><span class="tagline-branch">└─</span> {{ range $i, $w := .Params.tagline }}{{ if gt $i 0 }}<span class="tagline-sep">·</span>{{ end }}<span class="tagline-word">{{ $w }}</span>{{ end }}</div>
+    </div>
+    {{ else }}
     <h1>{{ .Title }}</h1>
+    {{ end }}
     {{ if .Description}}
     	<p>{{.Description}}</p>
     {{ end }}

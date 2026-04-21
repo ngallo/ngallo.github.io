@@ -5,6 +5,7 @@ date = "2025-04-15"
 aliases = ["about", "about-us"]
 author = "Nicola Gallo"
 showMetadata = false
+tagline = ["myself", "contacts", "socials"]
 +++
 
 > From scaling secure enterprise platforms to building zero-trust products, my mission is to shape technology into tools for a more open and equitable world.

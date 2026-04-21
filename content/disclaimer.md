@@ -5,6 +5,7 @@ date = "2025-04-15"
 aliases = ["disclaimer", "legal-disclaimer"]
 author = "Nicola Gallo"
 showMetadata = false
+tagline = ["license", "trademarks"]
 +++
 
 > **TL;DR**  
