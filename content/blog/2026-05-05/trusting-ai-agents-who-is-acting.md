@@ -8,6 +8,8 @@ tags = ["security", "ai agents", "agentic", "authz", "authority continuity", "pi
 
 AI agent security is usually approached as an **identity problem**: the question becomes *"what is the agent's identity, and what is it allowed to do?"*. This framing is inherited from decades of human-centric and client-centric authorization design, and it works reasonably well as long as the entity being authorized is stable, persistent, and accountable in its own right. AI agents are none of those things in practice, and the framing produces a steady accumulation of edge cases that **identity-centric security models** keep trying to patch without changing the underlying assumption.
 
+> **A note on terminology.** Throughout this article, *AI agent* and *workload* are used interchangeably. The reasoning applies to any executor that participates in a multi-hop execution chain, whether it is an AI agent, a microservice, a serverless function, or a long-running daemon. The structural problem and its solution are the same in all cases.
+
 A more useful question is: *which execution is this workload continuing, and under whose authority?* Identity remains relevant, but it stops being the center of the model. **Execution becomes the center**, and identity, role, identifier, attestation, and authority each take a narrower and more precise role around it. The rest of this article works through these five concepts using a deliberately minimal example, then shows why this separation matters for agentic systems.
 
 ## A shared workload pool
@@ -66,6 +68,11 @@ This gives the second piece of the model: **attestation proves runtime propertie
 ## Continuing authority versus creating it
 
 So far Alice has been the source of authority: she expressed intent, and the workload continued it. The picture changes when a workload initiates an action on its own. If `unknown_01` decides to start a new operation without a delegating principal upstream, it is no longer continuing authority. **It is creating it.**
+
+<figure class="post-banner">
+  <img src="/images/2026-05-05/taia-who/role-authority.png" alt="Sample Work Pool" loading="lazy">
+  <figcaption>Who Is Acting?</figcaption>
+</figure>
 
 Creating authority requires a **root of accountability**, because authority is meaningful only when it can be tied back to an entity that can be held responsible for it. A workload may be authorized to create authority because of its role: a `Security Monitoring Agent` may be permitted to initiate actions like:
 
@@ -128,3 +135,5 @@ That is a different primitive, and it requires modeling the execution itself rat
 AI agent security should not start with *"what is the agent's identity?"*. It should start with *"which execution is this agent continuing, and under whose authority?"*. Identity remains part of the model, it anchors responsibility wherever responsibility needs to be anchored, but it stops being the center.
 
 > **Execution is the center.** Identity, role, identifier, attestation, and authority each do a smaller, more precise job around it, and the system becomes easier to reason about as a result.
+
+It is worth keeping in mind that AI agents are not the source of this problem, they are only making it visible. The same gap exists in any distributed system where workloads are replicated, short-lived, re-keyed, or composed into chains that cross trust boundaries. Microservice meshes, multi-cloud workflows, and workload-to-workload communication inside a single cluster all face the same structural mismatch between an identity-centric authorization model and an execution that moves across multiple hops. Agents simply remove the assumptions, the perimeter, the synchrony, the stable ownership, that previously hid the problem. **What breaks under AI agents was already broken in distributed systems**, and the fix is the same in both cases.
