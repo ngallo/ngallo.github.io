@@ -71,7 +71,7 @@ So far Alice has been the source of authority: she expressed intent, and the wor
 
 <figure class="post-banner">
   <img src="/images/2026-05-05/taia-who/role-authority.png" alt="Sample Work Pool" loading="lazy">
-  <figcaption>Who Is Acting?</figcaption>
+  <figcaption>Create Authority</figcaption>
 </figure>
 
 Creating authority requires a **root of accountability**, because authority is meaningful only when it can be tied back to an entity that can be held responsible for it. A workload may be authorized to create authority because of its role: a `Security Monitoring Agent` may be permitted to initiate actions like:
