@@ -6,6 +6,11 @@ description = "AI agent security is often framed as an identity problem. It is m
 tags = ["security", "ai agents", "agentic", "authz", "authority continuity", "pic"]
 +++
 
+<figure class="post-banner">
+  <img src="/images/2026-05-05/taia-who/trust-ai-agents-who-is-acting.png" alt="Sample Work Pool" loading="lazy">
+  <figcaption>Who Is Acting?</figcaption>
+</figure>
+
 AI agent security is usually approached as an **identity problem**: the question becomes *"what is the agent's identity, and what is it allowed to do?"*. This framing is inherited from decades of human-centric and client-centric authorization design, and it works reasonably well as long as the entity being authorized is stable, persistent, and accountable in its own right. AI agents are none of those things in practice, and the framing produces a steady accumulation of edge cases that **identity-centric security models** keep trying to patch without changing the underlying assumption.
 
 > **A note on terminology.** Throughout this article, *AI agent* and *workload* are used interchangeably. The reasoning applies to any executor that participates in a multi-hop execution chain, whether it is an AI agent, a microservice, a serverless function, or a long-running daemon. The structural problem and its solution are the same in all cases.
