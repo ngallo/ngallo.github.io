@@ -64,7 +64,7 @@ A role is **not an identity**. A role cannot be held accountable, cannot sign a 
 
 The accountable party is rarely visible inside the execution itself. A workload running in a cluster may carry no human identity and no direct organizational identity. It may carry only an **attestation** that says, in effect: *"this workload, with this role, was deployed in this environment under these conditions"*. If the attestation is verifiable, accountability can be inferred from it: the accountable entity is whoever deployed, authorized, configured, or operates the workload. That entity may be a human, an organization, a system owner, a cloud control plane, a certificate authority, an attestation root, or a legal structure.
 
-This is structurally similar to how trust works on the public web. When you visit `www.companyx.com`, you do not authenticate every process behind the service. You rely on a certificate, a domain, an organization, and the legal and operational accountability that sits behind them. Workload accountability follows the same pattern:
+This is structurally similar to how trust works on the public web. When you visit `www.companyx-example.com`, you do not authenticate every process behind the service. You rely on a certificate, a domain, an organization, and the legal and operational accountability that sits behind them. Workload accountability follows the same pattern:
 
 > **Responsibility is assigned to an accountable entity.** That entity may be represented through identity, certificate, attestation, organizational binding, or legal structure, not necessarily through an identity that appears inside the execution.
 
