@@ -61,7 +61,7 @@ The comparison is therefore not between a mechanism with no discriminator and on
 
 <blockquote class="callout-tip">
 
-<p style="color: var(--text-primary);"><strong>What “native to PIC” means.</strong> Under the threat model defined here, a receiving boundary must verify that propagated authority validly continues one concrete predecessor execution and request. PIC makes that requirement part of its represented state, successor construction, and receiving acceptance rules through predecessor binding, request binding, execution-contract conformance, Proof of Relationship, and authority non-expansion.</p>
+<p style="color: var(--text-primary);"><span style="color: var(--green); font-weight: 600;">What “native to PIC” means.</span> Under the threat model defined here, a receiving boundary must verify that propagated authority validly continues one concrete predecessor execution and request. PIC makes that requirement part of its represented state, successor construction, and receiving acceptance rules through predecessor binding, request binding, execution-contract conformance, Proof of Relationship, and authority non-expansion.</p>
 
 <p style="color: var(--text-primary);">“Native” does not mean assumption-free, implementation-free, or uniquely achievable by PIC. Concrete deployments still depend on correct cryptography, canonicalisation, verification, enforcement, attestation handling, origination policy, authority-domain semantics, and profile-specific trust assumptions.</p>
 
