@@ -547,6 +547,130 @@ a:hover {
   background: var(--bg-surface);
 }
 
+/* ── Danger block (wrap headings + tables in <div class="table-danger">) ──── */
+/* Same shape as the rest of the article; only the accents turn red. */
+.postWrapper .table-danger h3,
+.postWrapper .table-danger h4 {
+  color: var(--text-primary);
+  font-size: 1em;
+  margin-top: 2em;
+  margin-bottom: 0.4em;
+}
+
+.postWrapper .table-danger table {
+  background: rgba(248, 81, 73, 0.035);
+}
+
+.postWrapper .table-danger th {
+  border-bottom: 2px solid var(--red);
+}
+
+.postWrapper .table-danger td {
+  border-bottom: 1px solid rgba(248, 81, 73, 0.18);
+}
+
+.postWrapper .table-danger tr:hover td {
+  background: rgba(248, 81, 73, 0.07);
+}
+
+/* ── Tip block (wrap headings + tables in <div class="table-tip">) ────────── */
+.postWrapper .table-tip h3,
+.postWrapper .table-tip h4 {
+  color: var(--green);
+  font-size: 1em;
+  margin-top: 2em;
+  margin-bottom: 0.4em;
+}
+
+.postWrapper .table-tip table {
+  background: rgba(63, 185, 80, 0.035);
+}
+
+.postWrapper .table-tip th {
+  border-bottom: 2px solid var(--green);
+}
+
+.postWrapper .table-tip td {
+  border-bottom: 1px solid rgba(63, 185, 80, 0.18);
+}
+
+.postWrapper .table-tip tr:hover td {
+  background: rgba(63, 185, 80, 0.07);
+}
+
+/* ── Source entry: two-column vertical table ───────────────────────────────── */
+/* Label column on the left, value on the right, one row per field.
+   Holds a full untruncated verbatim quotation, which a wide table cannot. */
+.postWrapper table.source-entry {
+  margin: 1.2em 0 2.4em;
+  background: none;
+}
+
+.postWrapper table.source-entry th {
+  width: 10.5rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.postWrapper table.source-entry td {
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.postWrapper table.source-entry tr:hover td {
+  background: none;
+}
+
+/* Unsatisfied threat-model element: the one adversarial field, marked in red. */
+.postWrapper table.source-entry tr.not-satisfied th,
+.postWrapper table.source-entry tr.not-satisfied td {
+  color: var(--red);
+}
+
+.postWrapper table.source-entry tr.not-satisfied td em {
+  color: rgba(248, 81, 73, 0.72);
+}
+
+/* Verbatim source text: visually marked as quoted, never paraphrased. */
+.postWrapper table.source-entry .verbatim {
+  border-left: 2px solid var(--border-subtle);
+  padding-left: 0.9em;
+  color: var(--text-primary);
+}
+
+.postWrapper table.source-entry .verbatim p,
+.postWrapper table.source-entry .verbatim li {
+  font-style: italic;
+}
+
+.postWrapper table.source-entry .verbatim p:first-child {
+  margin-top: 0;
+}
+
+.postWrapper table.source-entry .verbatim p:last-child,
+.postWrapper table.source-entry .verbatim ul:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .postWrapper table.source-entry th,
+  .postWrapper table.source-entry td {
+    display: block;
+    width: auto;
+  }
+
+  .postWrapper table.source-entry th {
+    border-bottom: none;
+    padding-bottom: 0.15em;
+  }
+}
+
 /* ── Definition Lists (post metadata) ─────────────────────────────────────── */
 .postWrapper dt {
   color: var(--text-secondary);
@@ -1808,6 +1932,45 @@ a:focus-visible {
 
 .postWrapper blockquote.callout-info p:first-child strong:first-child {
   color: var(--purple);
+}
+
+/* Formal notation / mathematics – purple */
+.postWrapper blockquote.callout-math {
+  border-left-color: var(--purple);
+  background: rgba(188, 140, 255, 0.06);
+}
+
+.postWrapper blockquote.callout-math p:first-child strong:first-child::before {
+  content: '∑\00a0';
+}
+
+.postWrapper blockquote.callout-math p:first-child strong:first-child {
+  color: var(--purple);
+}
+
+/* Multi-paragraph formal derivation: same treatment for a whole block, so that
+   display maths, lists and prose can sit inside one visually separated box. */
+.postWrapper .math-block {
+  margin: 1.5em 0;
+  padding: 1em 1.25em;
+  background: rgba(188, 140, 255, 0.06);
+  border-left: 3px solid var(--purple);
+}
+
+.postWrapper .math-block > p:first-child strong:first-child::before {
+  content: '∑\00a0';
+}
+
+.postWrapper .math-block > p:first-child strong:first-child {
+  color: var(--purple);
+}
+
+.postWrapper .math-block > p:first-child {
+  margin-top: 0;
+}
+
+.postWrapper .math-block > :last-child {
+  margin-bottom: 0;
 }
 
 /* Danger – red */
