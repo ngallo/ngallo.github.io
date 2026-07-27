@@ -17,7 +17,7 @@ tags = ["confused deputy problem", "ai agents", "threat-model", "security", "age
 
 ### The change of question in authority propagation: from actor selection to execution continuity
 
-One scope condition should be kept in mind throughout this article: the following discussion of *who* concerns only the propagation of authority after initial authentication and authority origination. It addresses what happens when already-established authority is handed off, exchanged, resumed, attenuated, or otherwise continued across a later execution boundary. It does not claim that identity is unnecessary for authentication, initial authorisation, eligibility, accountability, revocation, or other security properties.
+One scope condition should be kept in mind throughout this article: the following discussion of *who* concerns only the propagation of authority after initial authentication and authority origination. It addresses what happens when already-established authority is handed off, exchanged, resumed, attenuated, or otherwise continued across a later execution boundary. It does not claim that identity is unnecessary for authentication, initial authorization, eligibility, accountability, revocation, or other security properties.
 
 When authority is being propagated, many constructions naturally express security through questions about an actor or holder:
 
@@ -39,11 +39,11 @@ It asks:
 
 A conforming receiver answers that question by verifying the represented predecessor, the concrete request, execution-contract conformance, Proof of Relationship, integrity, applicable freshness and revocation conditions, and authority non-expansion. Identity, authentication, attestation, and successor eligibility may remain necessary inputs. What is not accepted as proof is the predecessor's unverified assertion, subjective intention, or discretionary selection of the execution context.
 
-This is the conceptual shift examined here: within authority propagation, from relying on an actor to choose the correct continuation, to requiring the receiving boundary to verify whether the presented continuation is valid. Security mechanisms are intended to reject prohibited transitions whether they arise from error, confusion, compromise, or malicious conduct. For the property defined in this article, **Authority Continuity makes the represented execution itself a coordinate of authorisation.** This reframing is limited to the propagation property examined here; it does not replace identity-based questions outside that stage.
+This is the conceptual shift examined here: within authority propagation, from relying on an actor to choose the correct continuation, to requiring the receiving boundary to verify whether the presented continuation is valid. Security mechanisms are intended to reject prohibited transitions whether they arise from error, confusion, compromise, or malicious conduct. For the property defined in this article, **Authority Continuity makes the represented execution itself a coordinate of authorization.** This reframing is limited to the propagation property examined here; it does not replace identity-based questions outside that stage.
 
 > **When authority is being propagated, the question changes from “Who chose the next actor?” to “Can this execution validly continue through this actor?”**
 
-Authentication and the creation of initial authority are presupposed. A principal may authenticate through OpenID Connect (OIDC), and initial authority may be established through OAuth or another authorisation mechanism. One possible PIC integration path is an OAuth 2.0 Token Exchange profile that exchanges an OAuth access token for `PCA₀`, the origin PIC Context of Authority. This is a proposed integration direction, not a capability defined by the current PIC specification set or an existing interoperability guarantee. The analysis begins when that authority must continue through later, potentially long-running, concurrent, or untrusted execution.
+Authentication and the creation of initial authority are presupposed. A principal may authenticate through OpenID Connect (OIDC), and initial authority may be established through OAuth Framework or another authorization mechanism. One possible PIC integration path is an OAuth 2.0 Token Exchange profile that exchanges an OAuth access token for `PCA₀`, the origin PIC Context of Authority. This is a proposed integration direction, not a capability defined by the current PIC specification set or an existing interoperability guarantee. The analysis begins when that authority must continue through later, potentially long-running, concurrent, or untrusted execution.
 
 Capabilities already solve the classical designation–authority mismatch at invocation by combining designation with permission. This article accepts that result. It asks a different question: whether the local request-to-authority binding remains receiver-verifiable when authority is propagated through several execution steps and when one executor may retain authority associated with more than one execution.
 
@@ -97,7 +97,7 @@ PIC is published for critical inspection. Its definitions, assumptions, model co
 
 </div>
 
-> **A note on terminology.** Throughout this article, *protocol* means **application security protocol**, and more precisely **authorisation protocol**. Authentication, transport, wire formats, runtime isolation, and deployment controls are named separately where relevant.
+> **A note on terminology.** Throughout this article, *protocol* means **application security protocol**, and more precisely **authorization protocol**. Authentication, transport, wire formats, runtime isolation, and deployment controls are named separately where relevant.
 
 ## Evaluation method
 
@@ -116,7 +116,7 @@ The analysis follows five premises.
 
 **4. Protocol closure is property-specific.** For the property examined here, a protocol is closed when a receiving boundary can decide whether authority is a valid continuation from the evidence and rules required by that protocol, without treating the predecessor's discretionary assertion of correct purpose or context selection as proof. Closure for authority continuity does not imply control over every local action or every other security property.
 
-**5. Local conduct and propagated acceptance are different questions.** No authorisation protocol executes application code or proves the semantic and physical correctness of everything an executor does inside its own boundary. The protocol question is whether one executor can cause a later conforming boundary to accept and propagate authority that is invalid for the represented continuation.
+**5. Local conduct and propagated acceptance are different questions.** No authorization protocol executes application code or proves the semantic and physical correctness of everything an executor does inside its own boundary. The protocol question is whether one executor can cause a later conforming boundary to accept and propagate authority that is invalid for the represented continuation.
 
 > A protocol guarantee consists of what its model represents and what a conforming receiver verifies. Everything else is either an explicit assumption, a separate control, or outside the guarantee.
 
@@ -211,7 +211,7 @@ Their principal, executor, operation, resource, and privilege set may all coinci
 
 For the authority-continuity property, PIC internalises this requirement in the protocol construction: the receiver checks the represented predecessor, the concrete request binding, the execution contract, the relationship evidence, integrity and freshness conditions, and authority non-expansion. It does not require the receiver to infer subjective intent or trust an unverified claim that the executor selected the correct internal context.
 
-In this limited sense, PIC makes execution lineage a causal or temporal coordinate of authorisation. “Temporal” refers to the represented succession of execution steps and their predecessor relationships, not merely to wall-clock time.
+In this limited sense, PIC makes execution lineage a causal or temporal coordinate of authorization. “Temporal” refers to the represented succession of execution steps and their predecessor relationships, not merely to wall-clock time.
 
 This property remains narrower than correct execution. Selecting authority from the wrong execution and performing an operation incorrectly are different failures. PIC governs whether propagated authority is accepted as a valid continuation; it does not prove semantic intent, physical effects, or correct local application behaviour.
 
@@ -323,7 +323,7 @@ This condition remains relevant where:
 
 A system may preserve this separation through PIC or through another construction that represents and verifies an equivalent per-execution relationship. Under the evaluation method stated above, the question is whether the relationship is part of the receiving acceptance predicate or remains an external implementation assumption.
 
-**The article-defined Temporal Confused Deputy condition.** For the purposes of this article, *Temporal Confused Deputy* names the cross-execution authority/causality mismatch defined here. It describes a temporal and multi-step instance of the general mismatch exemplified by the classical Confused Deputy Problem. The term is introduced by this article and is not attributed to Hardy.
+**The article-defined Temporal Confused Deputy condition.** For the purposes of this article, *Temporal Confused Deputy* names the cross-execution authority/causality mismatch defined here. It describes a temporal and multi-step instance of the general mismatch exemplified by the classical Confused Deputy Problem.
 
 It is not primarily an authority-expansion failure. In the classical case the deputy uses its own authority on a resource designated by the requester. In the temporal case one executor hosts more than one execution occurrence and presents authority associated with one occurrence while continuing another.
 
@@ -339,7 +339,7 @@ The label applies only to an accepted transition satisfying the stated model and
 
 > Capability security makes the resource and the authority inseparable at invocation. Authority continuity additionally makes the authority and its execution lineage inseparable across time.
 
-**Operations over the execution.** Once the execution is an explicit object of authorisation, operations traditionally defined over capabilities or resources have to be defined over the execution context as well. An execution is originated. It may be continued. Its authority may be attenuated. Several independent executions may participate jointly without merging their authorities into one lineage. An execution may be revoked or interrupted by coordinates of its own. And a continuation must prove which execution it belongs to.
+**Operations over the execution.** Once the execution is an explicit object of authorization, operations traditionally defined over capabilities or resources have to be defined over the execution context as well. An execution is originated. It may be continued. Its authority may be attenuated. Several independent executions may participate jointly without merging their authorities into one lineage. An execution may be revoked or interrupted by coordinates of its own. And a continuation must prove which execution it belongs to.
 
 **A `run` command can have this shape.** A user may authorise `run this task`, or `start this execution under authority C`. At the moment the command is given the process may not exist yet, the next executor may not be known, one or many executors may appear later, and no identity is necessarily available in advance to bind the authority to.
 
@@ -564,7 +564,7 @@ When every hop requires the current actor or service to select a successor and r
 
 Under the untrusted-execution threat model adopted here, that cooperation cannot itself be the proof that those choices were correct. A compromised or confused participant may obtain or issue a cryptographically valid token for the wrong execution context. An unavailable, crashed, or revoked participant may be unable to advance a still-authorised execution. The resulting token sequence can therefore be valid under its applicable issuance and validation rules while still failing to prove the execution-continuation property defined here.
 
-This is not a universal impossibility result for OAuth access-token protocols. An authorisation service, durable workflow authority, receiver, or other construction may independently validate a represented predecessor and request relation. When it does, the continuity property is supplied by that complete verified construction. It is not supplied merely by the validity of each token step.
+This is not a universal impossibility result for OAuth access-token protocols. An authorization service, durable workflow authority, receiver, or other construction may independently validate a represented predecessor and request relation. When it does, the continuity property is supplied by that complete verified construction. It is not supplied merely by the validity of each token step.
 
 <blockquote style="border-left: 3px solid #e6edf3;">
 
@@ -576,9 +576,9 @@ This is not a universal impossibility result for OAuth access-token protocols. A
 
 This section does not claim that OAuth access tokens “do not work.” It evaluates one additional property under one stated threat model. OAuth access tokens may be valid, secure, and suitable within their intended specifications, profiles, and deployments; implementations may also provide execution binding through controls outside the base token semantics.
 
-The base OAuth access-token specification defines an access token as representing an authorisation, while RFC 6750 defines bearer presentation and the transport and handling protections required for that usage. The exact token syntax, claims, validation data, sender constraint, and deployment trust model depend on the applicable profile. Those base specifications do not require the receiver-verifiable predecessor-specific execution-continuity predicate used in this article.
+The base OAuth access-token specification defines an access token as representing an authorization, while RFC 6750 defines bearer presentation and the transport and handling protections required for that usage. The exact token syntax, claims, validation data, sender constraint, and deployment trust model depend on the applicable profile. Those base specifications do not require the receiver-verifiable predecessor-specific execution-continuity predicate used in this article.
 
-The property-specific conclusion is therefore affirmative but limited: **the base access-token and bearer-token construction, without an additional execution-sensitive profile, does not establish receiver-verifiable multi-hop execution continuity under the adopted threat model.** A receiving rule that verifies token validity, issuer or authorisation server, audience, scope, expiry, holder where applicable, and other profile conditions but does not verify an execution-sensitive continuation relation cannot distinguish two occurrences that are identical under those token-visible conditions but belong to lineages requiring different decisions.
+The property-specific conclusion is therefore affirmative but limited: **the base access-token and bearer-token construction, without an additional execution-sensitive profile, does not establish receiver-verifiable multi-hop execution continuity under the adopted threat model.** A receiving rule that verifies token validity, issuer or authorization server, audience, scope, expiry, holder where applicable, and other profile conditions but does not verify an execution-sensitive continuation relation cannot distinguish two occurrences that are identical under those token-visible conditions but belong to lineages requiring different decisions.
 
 Sender constraint can prove possession of a designated key and can materially reduce token theft and replay. Secure transport and protected storage can preserve confidentiality and integrity. None of those properties, by itself, proves which concurrent, retried, recovered, or retained execution occurrence the use continues. A profile that also verifies the required execution relationship may establish the property; the guarantee then comes from that additional profile and its complete receiving predicate.
 
@@ -650,7 +650,7 @@ A capability invocation, as characterised by the companion paper, is not equival
 
 The discriminator theorem therefore does not show that capabilities lack discrimination. It establishes, under its stated definitions, that a policy distinguishing an authorised occurrence from a confused occurrence must read some lineage-sensitive discriminator.
 
-The trade-off theorem further establishes, under its stated definitions, that lineage-invariant authorisation, authority-mixing-capable delegation, and confused-deputy safety cannot all be retained simultaneously. The comparison below therefore concerns where the discriminator is represented, who verifies it, and whether the local one-hop binding composes as a receiver-verifiable invariant across multiple execution steps.
+The trade-off theorem further establishes, under its stated definitions, that lineage-invariant authorization, authority-mixing-capable delegation, and confused-deputy safety cannot all be retained simultaneously. The comparison below therefore concerns where the discriminator is represented, who verifies it, and whether the local one-hop binding composes as a receiver-verifiable invariant across multiple execution steps.
 
 The formal comparison below applies only where the stated hypotheses hold, particularly where the receiving decision is invariant under execution lineage.
 
@@ -834,7 +834,7 @@ Under the threat model adopted by this article, an intermediate executor's inter
 
 After the point-by-point comparison above, no proof was identified in the specific capability material examined that portable authority alone composes into the receiver-verifiable multi-hop execution-continuity property defined here. This is a limited result about the analysed sources, not a claim that no capability-based construction or proof exists elsewhere.
 
-The narrower formal consequence below applies only to authorisation decisions that remain invariant under execution lineage.
+The narrower formal consequence below applies only to authorization decisions that remain invariant under execution lineage.
 
 ### Formal consequence — lineage-invariant propagation cannot establish execution-context non-mixing
 
@@ -850,7 +850,7 @@ Portable authority is intended to be held, transferred, delegated, attenuated, a
 
 The impossibility arises only when three conditions are required together:
 
-1. the receiving authorisation decision remains invariant under execution lineage;
+1. the receiving authorization decision remains invariant under execution lineage;
 2. independent authority contexts may coexist, and the construction permits their selection, application, or composition without verifying the execution lineage to which each authority use belongs;
 3. the system requires receiver-verifiable execution-context non-mixing.
 
@@ -886,7 +886,7 @@ An authority-use occurrence has three relevant coordinates:
 - the resource;
 - the execution lineage in which the use occurs.
 
-A lineage-invariant authorisation policy ignores the third coordinate. It therefore gives the same decision whenever two occurrences use the same operation and resource, even when the occurrences belong to different lineages.
+A lineage-invariant authorization policy ignores the third coordinate. It therefore gives the same decision whenever two occurrences use the same operation and resource, even when the occurrences belong to different lineages.
 
 The adopted threat model can require the opposite. One occurrence of a privilege may be a valid continuation of the authorising execution and must be accepted. Another occurrence of the same privilege may belong to a different execution and must be rejected.
 
@@ -894,7 +894,7 @@ A policy that ignores lineage must give those occurrences the same decision. Exe
 
 The conclusion is limited:
 
-> A lineage-invariant authorisation policy cannot establish execution-context non-mixing where two authority-use occurrences have the same operation and resource but their execution lineages require different authorisation decisions.
+> A lineage-invariant authorization policy cannot establish execution-context non-mixing where two authority-use occurrences have the same operation and resource but their execution lineages require different authorization decisions.
 
 Any policy that distinguishes the two occurrences must read and verify some execution- or lineage-sensitive discriminator. The argument does not prescribe where that discriminator is stored or which implementation family supplies it.
 
@@ -940,7 +940,7 @@ Let:
 A:E\rightarrow\{0,1\}
 \]
 
-be an authorisation policy.
+be an authorization policy.
 
 The policy is lineage-invariant when there exists:
 
@@ -1008,7 +1008,7 @@ A(e_A)=A(e_B).
 
 The two requirements are inconsistent.
 
-It follows that a lineage-invariant authorisation policy cannot establish execution-context non-mixing for occurrences that have the same operation and resource but belong to execution lineages requiring different authorisation decisions.
+It follows that a lineage-invariant authorization policy cannot establish execution-context non-mixing for occurrences that have the same operation and resource but belong to execution lineages requiring different authorization decisions.
 
 This conclusion is an application of the companion paper's Theorems 3 and 4. Theorem 3 establishes that a lineage-invariant policy cannot individuate occurrences whose projections are equal. Theorem 4 establishes that a policy distinguishing those occurrences must read some lineage-sensitive discriminator.
 
@@ -1026,7 +1026,7 @@ g(\ell_A)\neq g(\ell_B).
 
 The representation of \(g\) is not fixed by this argument. It may be carried alongside a request, embedded in an artefact, represented through a predecessor relationship, implemented through a non-transferable reference, or supplied by another verified construction.
 
-The relevant question is whether the receiving authorisation decision reads and verifies the discriminator. Its storage location or implementation category does not alter the formal requirement.
+The relevant question is whether the receiving authorization decision reads and verifies the discriminator. Its storage location or implementation category does not alter the formal requirement.
 
 The condition \(g(\ell_A)\neq g(\ell_B)\) is necessary for occurrence individuation, but it is not sufficient by itself to establish authority continuity. The receiver must also authenticate and verify the relationship among the discriminator, the exact predecessor, the concrete request, the presented authority state, the applicable execution contract, the required integrity and freshness conditions, and the non-expansion relation. PIC supplies one model-relative construction for those combined checks; another construction may establish an equivalent predicate under comparable assumptions.
 
@@ -1045,7 +1045,7 @@ An executor may legitimately hold:
 
 The impossibility concerns the simultaneous retention of these three properties:
 
-1. the authorisation decision remains lineage-invariant;
+1. the authorization decision remains lineage-invariant;
 2. independent authority contexts may coexist and may be selected or applied without a verified lineage-sensitive receiving rule;
 3. the system requires confused-deputy safety and execution-context non-mixing.
 
@@ -1053,7 +1053,7 @@ This is the trade-off formalised by Theorem 5 of the companion paper.
 
 Composition and attenuation may still be performed. The impossibility result does not remove, prohibit, or invalidate either operation.
 
-The restriction concerns the receiving authorisation decision. A decision that considers only the operation and resource cannot distinguish two occurrences whose operation and resource are identical but whose execution lineages require different outcomes.
+The restriction concerns the receiving authorization decision. A decision that considers only the operation and resource cannot distinguish two occurrences whose operation and resource are identical but whose execution lineages require different outcomes.
 
 A construction that adds and verifies a lineage-sensitive discriminator may still be capability-based. Once its receiving decision depends on that discriminator, however, it is no longer lineage-invariant. In the terminology of the companion paper, it has become continuity-aware.
 
@@ -1081,7 +1081,7 @@ The formal conclusion is therefore limited:
 
 In the terminology introduced by this article, lineage sensitivity is required to distinguish an authorised continuation from a Temporal Confused Deputy occurrence where the projected operation and resource are identical but the execution lineages require different decisions.
 
-This is an impossibility result for lineage-invariant authorisation under the stated assumptions. It is not an impossibility result for capability systems generally, and the name Temporal Confused Deputy does not enlarge the scope of that result.
+This is an impossibility result for lineage-invariant authorization under the stated assumptions. It is not an impossibility result for capability systems generally, and the name Temporal Confused Deputy does not enlarge the scope of that result.
 
 An equivalent capability-based construction remains possible if it represents and verifies an equivalent per-execution, multi-hop relationship.
 
@@ -1128,7 +1128,7 @@ The point is not that authentic authority becomes invalid or that an executor ca
 **And its boundaries, stated rather than assumed.** Premises 3 and 4 apply to PIC as much as to anything else, so the assumptions the guarantee rests on are named here:
 
 - **Cryptographic unforgeability is assumed.** The relationship evidence is taken as unforgeable, and a break of the underlying cryptography falls outside the model — as it does for capability and OAuth access-token systems alike.
-- **Executor behaviour stays outside the guarantee.** No authorisation model can establish that an application is free of bugs. What this one bounds is whether a local fault can propagate as valid authority.
+- **Executor behaviour stays outside the guarantee.** No authorization model can establish that an application is free of bugs. What this one bounds is whether a local fault can propagate as valid authority.
 - **Deployment profiles are not equivalent.** The invariants are identical whether a chain is validated fully decentralised or with the help of a trusted snapshot component, but the concrete assurance and trust assumptions differ by profile. Incremental validation does not provide the same full-prefix assurance as full-chain validation against consecutive colluding hops; any such claim must remain profile-specific.
 - **The guarantee does not come from transport.** A compromised channel may read, copy, delay, reorder, or drop messages. Under the stated cryptographic, freshness, verification, and enforcement assumptions, channel control alone does not allow a forged, altered, or expanded PCA to be accepted as a valid continuation. Confidentiality and availability are separate properties and are not claimed here.
 - **Verifier and enforcement correctness are assumed.** The ordered checks, canonicalisation, hashing, signature validation, attestation validation, and enforcement decision must be implemented correctly.
@@ -1145,9 +1145,9 @@ The point is not that authentic authority becomes invalid or that an executor ca
 
 ### Continuity as a resilience requirement
 
-Long-running distributed and asynchronous executions may outlive one process, survive a crash, retry after interruption, migrate to another worker, or continue after an executor is removed from service. For the system class considered here, resilience therefore includes an authorisation question: when the execution's authority and accepted predecessor state remain valid, can an eligible successor resume the same execution without requiring a fresh discretionary act from the failed, unavailable, compromised, or revoked executor?
+Long-running distributed and asynchronous executions may outlive one process, survive a crash, retry after interruption, migrate to another worker, or continue after an executor is removed from service. For the system class considered here, resilience therefore includes an authorization question: when the execution's authority and accepted predecessor state remain valid, can an eligible successor resume the same execution without requiring a fresh discretionary act from the failed, unavailable, compromised, or revoked executor?
 
-This article does not claim that an authorisation protocol guarantees availability or task completion. Durable storage, replication, scheduling, recovery, consensus, and operational failover remain separate system properties. The narrower continuity requirement is a closure property: executor replacement must not, by itself, destroy an otherwise valid authorisation lineage or force the security argument to trust the unavailable predecessor's new decision.
+This article does not claim that an authorization protocol guarantees availability or task completion. Durable storage, replication, scheduling, recovery, consensus, and operational failover remain separate system properties. The narrower continuity requirement is a closure property: executor replacement must not, by itself, destroy an otherwise valid authorization lineage or force the security argument to trust the unavailable predecessor's new decision.
 
 A system may satisfy this requirement through durable workflow state, a trusted orchestration service, a workflow authority, a verified OAuth access-token profile, a capability construction, PIC, or another mechanism. Under this article's method, the mechanism must be represented in the acceptance construction and its failure and trust assumptions must be stated. If recovery instead depends only on retaining a bearer artefact or asking the previous executor to delegate again, the deployment has coupled resilience to possession or cooperation rather than established receiver-verifiable execution continuity.
 
@@ -1173,15 +1173,15 @@ The metaphor concerns continuity, not automatic execution. Every receiving hop s
 
 Consider a hypothetical post office. Alice authorises one execution: send a parcel. Bob is the employee handling the first step. In a holder-to-holder portable-delegation construction, the next courier may receive authority because Bob transfers or delegates the relevant capability. That can work correctly while Bob remains authorised and available.
 
-The important dependency is not merely that Bob possesses a capability. If continuation requires Bob to perform the next discretionary delegation, then Bob's continuing availability, authorisation, correct successor selection, and correct association between authority and execution become premises of the next hand-off. Bob is not only a prior executor; his cooperation is part of the mechanism by which the chain advances. Under the threat model used here, that cooperation cannot itself be treated as receiver-verifiable proof of continuity.
+The important dependency is not merely that Bob possesses a capability. If continuation requires Bob to perform the next discretionary delegation, then Bob's continuing availability, authorization, correct successor selection, and correct association between authority and execution become premises of the next hand-off. Bob is not only a prior executor; his cooperation is part of the mechanism by which the chain advances. Under the threat model used here, that cooperation cannot itself be treated as receiver-verifiable proof of continuity.
 
 Before pickup, Bob's employer determines that his future access must be terminated and revokes the local employment authority that would permit him to act further. Carol replaces him. Assume that this does not revoke Alice's parcel lineage or invalidate the already accepted predecessor state, and that Alice is temporarily unavailable. If Carol can continue only after Bob performs a fresh delegation, the hand-off is blocked for a sound reason: Bob is no longer permitted to act. Portability alone does not determine whether Carol is a valid replacement for the still-authorised execution.
 
-This is the precise continuity limit illustrated by the example. Alice's parcel authorisation may remain valid, yet the execution cannot advance because that construction requires a new act by an intermediate holder who is no longer an admissible participant. If Bob were compromised rather than revoked, the corresponding safety dependency would remain: he could select a successor incorrectly or transfer authentic authority associated with another execution. Fresh holder-to-holder delegation therefore makes both continued progress and correct execution attribution depend on the intermediate holder, unless another verified mechanism removes that dependency.
+This is the precise continuity limit illustrated by the example. Alice's parcel authorization may remain valid, yet the execution cannot advance because that construction requires a new act by an intermediate holder who is no longer an admissible participant. If Bob were compromised rather than revoked, the corresponding safety dependency would remain: he could select a successor incorrectly or transfer authentic authority associated with another execution. Fresh holder-to-holder delegation therefore makes both continued progress and correct execution attribution depend on the intermediate holder, unless another verified mechanism removes that dependency.
 
 Changing the hand-off from a capability transfer to an OAuth access-token hand-off does not, by itself, remove the dependency. The conclusions differ by mechanism, but the receiving question remains the same.
 
-With a base OAuth access token, Carol may present an authentic, unexpired token representing Alice's authority and a `delivery:parcel` scope. That can establish a valid authorisation under the applicable resource-server policy. The base token does not, without an additional profile or mechanism, identify the exact parcel execution or prove that Carol is continuing the accepted predecessor state rather than another authentic parcel execution covered by the same authority.
+With a base OAuth access token, Carol may present an authentic, unexpired token representing Alice's authority and a `delivery:parcel` scope. That can establish a valid authorization under the applicable resource-server policy. The base token does not, without an additional profile or mechanism, identify the exact parcel execution or prove that Carol is continuing the accepted predecessor state rather than another authentic parcel execution covered by the same authority.
 
 Placing either a capability or an OAuth access token in secure storage does not change that distinction. The store may preserve confidentiality, integrity, and availability, but the record that associates one stored token with this parcel execution becomes security-critical. If a verified workflow or storage authority maintains and proves the association, it is part of the solution. If an untrusted executor merely retrieves and presents a genuine token, the receiver still needs proof that it is the right token for the right predecessor execution.
 
@@ -1368,7 +1368,7 @@ Together they represent and verify authority continuity across an execution line
 
 The resulting claim is not that each executor behaved correctly internally. It is that a receiving boundary accepts propagated authority only when the state presented to it satisfies the continuation predicate required by the selected PIC profile.
 
-**PIC adds the represented execution lineage as a coordinate of authorisation, alongside the operation and resource.** Two authority uses with the same operation and resource may therefore remain distinguishable when they belong to different predecessor executions or requests.
+**PIC adds the represented execution lineage as a coordinate of authorization, alongside the operation and resource.** Two authority uses with the same operation and resource may therefore remain distinguishable when they belong to different predecessor executions or requests.
 
 Composition, attenuation, and related operations must be evaluated over the execution context as well as over the privilege set. At the level of primitives, this is a temporal refinement of the local binding already present at capability invocation. At the level of system construction, the receiving boundary verifies whether the current use continues one represented predecessor rather than relying only on the executor's internal association between authority and request.
 
@@ -1377,7 +1377,7 @@ Composition, attenuation, and related operations must be evaluated over the exec
 **The specification set is deliberately minimal**, and it is where the normative expression of the model and its conformance language live. The [PIC Specification](https://github.com/pic-protocol/pic-spec/blob/main/draft/0.2/pic-spec.md) is the entry point, defining the normative semantics of the model and indexing four subordinate documents:
 
 - <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-prover-verifier-spec.html" target="_blank" rel="noopener noreferrer">PIC Prover and Verifier Specification</a> — per-hop Proof of Relationship and successor-PCA construction, the ordered Verifier checks, and the chain representations
-- <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-revocation-spec.html" target="_blank" rel="noopener noreferrer">PIC Revocation Specification</a> — revocation coordinates, their hop-by-hop continuity, and revocation-authorisation and revocation-state requirements
+- <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-revocation-spec.html" target="_blank" rel="noopener noreferrer">PIC Revocation Specification</a> — revocation coordinates, their hop-by-hop continuity, and revocation-authorization and revocation-state requirements
 - <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-lineage-guardrail-spec.html" target="_blank" rel="noopener noreferrer">PIC Sandboxed Execution</a> — Lineage and Multi-Lineage Executions, and the guardrails that validate participating PCAs and enforce permit or deny
 - <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-architecture-deployment-spec.html" target="_blank" rel="noopener noreferrer">PIC Architecture and Deployment Specification</a> — centralised and decentralised architectures, hybrid topologies, and interoperability with existing token infrastructures
 
@@ -1395,7 +1395,7 @@ An accepted transition violating that condition is what this article calls a **T
 
 The cited capability work establishes the local designation–authority binding and the delegation and safety properties stated in its model. The additional question considered here is multi-hop execution attribution when correct internal context selection is not admitted as the proof. PIC answers that question by requiring the receiver to validate a contract-conforming, non-expansive continuation of one represented predecessor and concrete request.
 
-A holder-to-holder propagation rule that requires a fresh delegation at every hand-off also inherits the current holder's availability, continued authorisation, correct successor selection, and correct execution-context selection as prerequisites. Under the adopted threat model, those prerequisites remain external dependencies unless the receiving construction represents and verifies an equivalent continuation relationship. The limitation is therefore not portability itself, but reliance on fresh discretionary delegation as the mechanism that proves and advances continuity.
+A holder-to-holder propagation rule that requires a fresh delegation at every hand-off also inherits the current holder's availability, continued authorization, correct successor selection, and correct execution-context selection as prerequisites. Under the adopted threat model, those prerequisites remain external dependencies unless the receiving construction represents and verifies an equivalent continuation relationship. The limitation is therefore not portability itself, but reliance on fresh discretionary delegation as the mechanism that proves and advances continuity.
 
 The same criterion applies to OAuth access tokens. The base OAuth access-token and bearer-token specifications do not, without an additional execution-sensitive profile or mechanism, establish the predecessor-specific multi-hop continuity property defined here. This is not a conclusion that OAuth access tokens are defective, insecure, or unsuitable for their intended purposes. A complete profile, workflow, storage, runtime, or mediated construction may establish an equivalent property when its receiver independently verifies the required relationship.
 
