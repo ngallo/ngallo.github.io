@@ -149,13 +149,19 @@ The required receiving property is **execution-context non-mixing**:
 
 Execution-context non-mixing is not an additional threat-model element. It is the receiving requirement derived from untrusted execution, overlapping or retained authority state, and the N+1 Invalid Authority-State Problem.
 
-The requirement is occurrence-sensitive rather than merely privilege-set-sensitive. Two executions may carry exactly the same authority context without becoming the same execution:
+The requirement is occurrence-sensitive rather than merely privilege-set-sensitive. Two executions may carry exactly the same authority context without becoming the same execution. In ordinary language, equality of privilege sets does not establish identity of execution occurrences.
+
+<blockquote class="callout-math">
+
+<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive point.</p>
 
 \[
 C_A=C_B
 \not\Longrightarrow
 X_A=X_B.
 \]
+
+</blockquote>
 
 Their principal, executor, operation, resource, and privilege set may all coincide while their predecessor relationships and requests remain different. Non-expansion alone therefore cannot distinguish every cross-execution substitution; the complete receiving predicate must also verify the applicable predecessor, request, lineage, relationship, integrity, and freshness conditions.
 
@@ -746,7 +752,7 @@ Any policy that distinguishes the two occurrences must read and verify some exec
 
 A construction is not excluded by this impossibility result when its receiving decision introduces and verifies an execution- or lineage-sensitive discriminator. Establishing authority continuity additionally requires the complete authenticated binding and validation predicate described below, irrespective of the construction's implementation family.
 
-<div class="math-block">
+<blockquote class="callout-math">
 
 <p style="color: var(--text-primary);"><strong>Formal derivation — optional for narrative reading.</strong> The prose above states the complete substantive claim. Readers following the narrative may skip this box; formal and technical reviewers should inspect it.</p>
 
@@ -876,7 +882,7 @@ The relevant question is whether the receiving authorisation decision reads and 
 
 The condition \(g(\ell_A)\neq g(\ell_B)\) is necessary for occurrence individuation, but it is not sufficient by itself to establish authority continuity. The receiver must also authenticate and verify the relationship among the discriminator, the exact predecessor, the concrete request, the presented authority state, the applicable execution contract, the required integrity and freshness conditions, and the non-expansion relation. PIC supplies one model-relative construction for those combined checks; another construction may establish an equivalent predicate under comparable assumptions.
 
-</div>
+</blockquote>
 
 ### Relation to authority coexistence and delegation
 
@@ -991,11 +997,17 @@ The point is not that authentic authority becomes invalid or that an executor ca
 
 ### A continuity example: the post-office hand-off
 
-A valid ordinary authority lineage can be pictured as a river. At every accepted continuation, the authority carried downstream is bounded by the authority immediately upstream:
+A valid ordinary authority lineage can be pictured as a river. At every accepted continuation, the authority carried downstream is bounded by the authority immediately upstream. The flow may stay equal or be attenuated, but it cannot increase during an ordinary continuation.
+
+<blockquote class="callout-math">
+
+<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive point.</p>
 
 \[
 C_{i+1}\subseteq C_i.
 \]
+
+</blockquote>
 
 The flow may be attenuated, but an ordinary successor cannot introduce authority from outside its represented predecessor. A new origin, a sound cross-domain translation, or an explicitly defined multi-lineage construction is a separate operation; it is not ordinary downstream continuation. Authority from another lineage cannot simply be poured into the first and accepted as the same ordinary flow.
 
@@ -1223,7 +1235,13 @@ A holder-to-holder propagation rule that requires a fresh delegation at every ha
 
 Under PIC's definitions, assumptions, and applicable verification profile, authority continuity is a protocol acceptance property rather than a conclusion delegated to the predecessor's discretionary context selection. An equivalent construction remains possible whenever it represents and verifies the same property under comparable assumptions and proof obligations.
 
-Let \(P_{\mathrm{continuity}}\) denote the receiver-verifiable authority-continuity property defined in this article, including execution-context non-mixing under the adopted threat model. The formal relationship is property-specific. Under PIC's stated definitions and assumptions:
+The relationship is property-specific. In prose, under PIC's stated definitions and assumptions, PIC establishes the receiver-verifiable authority-continuity property defined in this article, including execution-context non-mixing under the adopted threat model. For the class covered by the impossibility result and under its hypotheses, a propagation rule whose decision remains invariant under execution lineage does not establish that property.
+
+<blockquote class="callout-math">
+
+<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive conclusion.</p>
+
+<p style="color: var(--text-primary);">Let \(P_{\mathrm{continuity}}\) denote the receiver-verifiable authority-continuity property defined in this article.</p>
 
 \[
 \mathrm{PIC}
@@ -1231,7 +1249,7 @@ Let \(P_{\mathrm{continuity}}\) denote the receiver-verifiable authority-continu
 P_{\mathrm{continuity}}.
 \]
 
-For the class covered by the impossibility result, under the adopted threat-model hypotheses:
+<p style="color: var(--text-primary);">For the class covered by the impossibility result, under the adopted threat-model hypotheses:</p>
 
 \[
 \mathrm{LineageInvariantPropagation}
@@ -1239,7 +1257,9 @@ For the class covered by the impossibility result, under the adopted threat-mode
 P_{\mathrm{continuity}}.
 \]
 
-In prose, PIC establishes a strictly stronger receiving-acceptance guarantee on the authority-continuity axis than a propagation rule whose decision remains invariant under execution lineage. This is not a universal ranking of security systems and does not exclude an equivalent capability-based, runtime, mediated, isolation-based, or deployment-specific construction.
+</blockquote>
+
+PIC therefore establishes a strictly stronger receiving-acceptance guarantee on the authority-continuity axis than a propagation rule whose decision remains invariant under execution lineage. This is not a universal ranking of security systems and does not exclude an equivalent capability-based, runtime, mediated, isolation-based, or deployment-specific construction.
 
 Before drawing any conclusion from the above, please read the [Research and use disclaimer](#research-and-use-disclaimer) below.
 
