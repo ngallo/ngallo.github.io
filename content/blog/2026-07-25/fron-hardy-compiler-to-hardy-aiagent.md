@@ -13,181 +13,113 @@ tags = ["confused deputy problem", "ai agents", "threat-model", "security", "age
 
 <div class="post-hero">
 
-**What is claimed.** This article isolates one problem: preserving the binding between delegated authority and the execution for which it was granted, across time and concurrent execution — essentially, **authority propagation**.
+**The question.** This article examines one narrowly defined security property: whether authority propagated across time and multiple execution boundaries remains verifiably attributable to the concrete execution and request for which it was granted.
 
-The *creation* of authority is presupposed here, not re-examined. A principal may authenticate through OIDC, for example, and initial authority may be established through an OAuth-based system or another authorisation mechanism. This article begins when that authority must be propagated across later execution boundaries.
+Authentication and the creation of initial authority are presupposed. A principal may authenticate through OIDC, and initial authority may be established through OAuth or another authorisation mechanism. The analysis begins when that authority must continue through later, potentially long-running, concurrent, or untrusted execution.
 
-Under the threat model adopted here, possession and presentation of a conventional OAuth access token do not by themselves establish the required authority-to-execution relationship. One proposed future integration direction is an **OAuth 2.0 Token Exchange (RFC 8693) profile** that would derive a PCA₀ from a validated OAuth authority artefact. That integration profile is not defined by the current PIC specification set. Authentication and initial authorisation remain complementary to the continuity property examined here.
+Capabilities already solve the classical designation–authority mismatch at invocation by combining designation with permission. This article accepts that result. It asks a different question: whether the local request-to-authority binding remains receiver-verifiable when authority is propagated through several execution steps and when one executor may retain authority associated with more than one execution.
 
-PIC continues capability research through a temporal refinement of the local designation–authority binding already present at capability invocation. Capabilities make authority portable and bind designation to permission at the point of invocation. PIC takes that local binding as its starting point and defines a different propagation construction: a receiving boundary accepts authority only with evidence that the current step validly continues one predecessor execution. The distinction is therefore not that capabilities lack a discriminator, but that PIC makes execution continuity part of the receiver's acceptance decision across multiple hops.
+PIC is presented as a temporal refinement of that local binding. For the authority-continuity property defined here, PIC places the decision-relevant evidence and checks in the represented protocol state, successor construction, and receiving acceptance predicate. A conforming receiver evaluates predecessor binding, request binding, execution-contract conformance, Proof of Relationship, integrity, freshness where applicable, and authority non-expansion before accepting propagated authority.
 
-Under its explicit assumptions, PIC's formal model establishes the authority-continuity property defined in this article. The result remains conditional on those assumptions and on the correctness of the definitions and proof.
+> **The article's central distinction:** capabilities bind designation and authority at invocation; PIC makes the continued authority-to-execution relationship represented and receiver-verifiable across an execution lineage.
 
-**What is not claimed.** This article does not claim that capabilities are incorrect, that the cited prior results fail within their stated models, that PIC replaces capability-based security, or that PIC resolves every question of authority across untrusted execution.
+### Standing scope and interpretation
 
-**Why this article exists.** Capability-based security remains one of the strongest and most elegant approaches developed for controlling delegated authority. Nothing in this article argues otherwise.
+The following conditions govern the whole article and are not repeated unless a later section introduces a narrower technical assumption.
 
-The results established by Spiessens are treated here as correct within their stated definitions, assumptions, and formal model.
+This article does not dispute capability-based security, claim that prior work is incorrect, or attribute error, fault, motive, competence, conduct, or opinion to any cited author. The results established by Spiessens and the other cited works are treated as valid within their stated definitions, assumptions, and formal models. The comparison concerns only which security property follows under the threat model adopted here.
 
-The question examined here is different.
+No statement in this article is a finding that a named product, project, organisation, implementation, or deployment is defective, insecure, or vulnerable. The examples are abstract or hypothetical. Applying the analysis to a concrete system would require a separate system-specific assessment of its complete architecture, acceptance rules, implementation, and operational controls.
 
-This article asks whether the transition from short-lived execution to long-running, concurrent, and autonomous execution introduces an additional security property that should be modelled explicitly.
+PIC is not claimed to replace capabilities, to be the only possible construction, or to establish every property relevant to secure execution. A capability-based, transaction-context, runtime, mediated, isolation-based, or deployment-specific construction may establish an equivalent property if its receiving decision represents and verifies an equivalent execution-sensitive relationship. Equivalence requires comparable definitions, assumptions, threat model, acceptance predicate, and proof obligations; it is not inferred from terminology or implementation category alone.
+
+The PIC claim is conditional on the model's definitions and assumptions, the sound correspondence between concrete verification and the abstract relation, and correct implementation of the selected profile. It does not establish subjective intention, physical or counterfactual causation, semantic correctness, scheduler correctness, internal memory isolation, bug-free local execution, certification, regulatory conformity, or suitability for a particular deployment.
 
 <blockquote class="callout-tip">
 
-If that question is answered positively, <span style="color: var(--green); font-weight: 600;">the consequence is not that capability-based security was incorrect.</span> It suggests a temporal refinement in which valid propagation requires execution continuity in addition to possession and delegation. Delegated authority remains relevant; the additional question is whether its relationship to the execution being continued is represented and verified across multiple hops.
+<p style="color: var(--text-primary);"><span style="color: var(--green); font-weight: 600;">What “native to the protocol” means here.</span> For the authority-continuity acceptance property, the required discriminator, transition evidence, non-expansion rule, and receiving checks are part of PIC's protocol model and conformance rules. The proof is not delegated to an executor's goodwill, request routing, scheduler, shared-memory discipline, request-scoped isolation, or a separate global mediator.</p>
+
+<p style="color: var(--text-primary);">This does not mean that PIC operates without implementation. Correct cryptography, canonicalisation, verification, enforcement, attestation handling, authority-domain semantics, origination policy, and profile-specific trust assumptions remain necessary. They implement the protocol; they are not substitute mechanisms from which the authority-continuity property is inferred.</p>
+
+<p style="color: var(--text-primary);">Additional isolation, sequencing, mediation, or runtime controls may still be valuable as defence in depth. Under this article's method, however, a security-relevant dependency outside the represented protocol state and receiving acceptance rules is classified as an external assumption and part of the remaining attack surface. It is not counted as a property proved by the protocol.</p>
 
 </blockquote>
 
-PIC is presented as one possible formalisation of that additional property. Whether that formalisation is correct is the subject of the accompanying proof, independent inspection and reproduction, and the technical discussion invited by this article.
-
-If the argument presented here is correct, the conclusion is not that capability-based security should be replaced, but that it may be extended under a broader execution model.
-
-**On equivalence.** No equivalent formal result has been identified in the material examined for this article for mechanisms whose acceptance semantics rest on bearer possession and presentation alone, or for capabilities propagated as transferable authority artefacts across untrusted execution. This is not a claim that no such result exists elsewhere. In the context of this article, establishing equivalence would require comparable definitions, assumptions, threat model, acceptance predicates, and proof of the same property. Until such a result is identified in the examined material, this article does not treat those mechanisms alone as establishing authority continuity.
-
-**This is published for critical review.** Test the assumptions, identify counterexamples or defects in the definitions or proof, and determine whether PIC establishes the stated property or whether a stronger construction is required. Within the formal model and assumptions stated here, I presently consider the authority-continuity property established.
+PIC is published for critical inspection. Its definitions, assumptions, model correspondence, proof, and implementation requirements remain open to counterexample, reproduction, and correction. Within the stated model and assumptions, this article treats the authority-continuity property as established; that conclusion does not extend beyond them.
 
 </div>
 
-**A note on prior work.** This article revisits ***Patterns of Safe Collaboration*** (Alfred Spiessens, 2007) because, in the author's view, it is among the most influential, technically rigorous, and valuable contributions to capability-based security and safe composition. Its results are treated here as correct within their stated definitions, assumptions, and formal model. The scope is deliberately narrow: one work, examined closely, rather than a survey. No conclusion about the wider capability literature should be drawn from its selection, and nothing here is asserted about works not examined.
+> **A note on terminology.** Throughout this article, *protocol* means **application security protocol**, and more precisely **authorisation protocol**. Authentication, transport, wire formats, runtime isolation, and deployment controls are named separately where relevant.
 
-**The purpose of this article is not to contradict or replace those results.** It asks whether extending the threat model to long-running, concurrent, and untrusted executions introduces an additional dimension — time and execution continuity — that falls outside the scope of the properties formally established in that work.
+## Evaluation method
 
-**And it continues that line of research through a temporal refinement.** At the level of primitives, capability invocation already binds designation and permission at one hop. The companion paper treats that local binding as an instance of the continuity primitive. At the level of system construction, however, the design road differs: capability delegation makes authority portable, while PIC makes continued acceptance depend on receiver-verifiable evidence that one execution step validly continues another.
+The analysis follows five premises.
 
-> The distinction in one line: capabilities bind designation and authority at invocation; PIC makes that binding composable and verifiable across an execution lineage.
-
-The comparison is therefore not between a mechanism with no discriminator and one with a discriminator. It concerns where the discriminator is represented, who verifies it, and whether the local binding composes across time, independent executions, and multiple hops. Under the threat model set out below, the specific capability results examined here do not themselves establish that additional property; PIC is one construction that establishes it under its own stated assumptions.
-
-<blockquote class="callout-tip">
-
-<p style="color: var(--text-primary);"><span style="color: var(--green); font-weight: 600;">What “native to PIC” means.</span> Under the threat model defined here, a receiving boundary must verify that propagated authority validly continues one concrete predecessor execution and request. PIC makes that requirement part of its represented state, successor construction, and receiving acceptance rules through predecessor binding, request binding, execution-contract conformance, Proof of Relationship, and authority non-expansion.</p>
-
-<p style="color: var(--text-primary);">“Native” does not mean assumption-free, implementation-free, or uniquely achievable by PIC. Concrete deployments still depend on correct cryptography, canonicalisation, verification, enforcement, attestation handling, origination policy, authority-domain semantics, and profile-specific trust assumptions.</p>
-
-<p style="color: var(--text-primary);">Capability-based, transaction-context, runtime, mediated, or deployment-specific constructions may establish an equivalent property when their receiving decisions represent and verify an equivalent execution-sensitive binding. The comparison concerns acceptance semantics under a stated threat model. It is not a claim that other security models are incorrect or that equivalent constructions are impossible.</p>
-
-</blockquote>
-
-The analysis and conclusions that follow are the author's interpretation of the cited material. They are not statements about the original author's intentions, competence, conduct, or views, and should not be understood as asserting that those results are incorrect within their stated model. Readers are encouraged to consult the original work, consider the cited passages in their full context, and independently assess whether the interpretation presented here is justified. Nothing in this article should be understood as diminishing the scientific value of the cited work.
-
-For clarity, any comparison made in this article concerns the scope of formally established security properties under different threat models, not the quality, importance, or correctness of the cited work within its original scope.
-
-> **A note on terminology.** Throughout this article, *protocol* means **application security protocol**, and more precisely **authorisation protocol**. Where authentication is meant it is named explicitly, and so are transport and wire protocols.
-
-Before going further, consider the scope, four methodological premises, and the threat model that frame the discussion.
-
-## Scope
-
-**Authority already exists; the subject is propagating it.** The user has authenticated and authority has been created. Whether the IdP issues a propagatable token directly, or issues an OAuth access token that is then exchanged for a PCA, is not examined here. What matters is that authority exists and must be propagated. The article asks which properties remain verifiable when that propagation crosses long-running, concurrent, or untrusted execution boundaries.
-
-## Premises
+**1. Authority already exists; the subject is propagation.** The user has authenticated and an initial authority state has been created. Whether an identity provider issues a propagatable artefact directly or an OAuth authority artefact is exchanged for a `PCA₀` is outside the present construction. The question begins when authority crosses a later execution boundary.
 
 <figure class="post-banner">
   <img src="/images/2026-07-25/authority-propagation.png" alt="Authority Propagation." loading="lazy">
   <figcaption>Authority Propagation.</figcaption>
 </figure>
 
+**2. A protocol is evaluated by its internal consistency under its declared model.** A claimed guarantee must follow from represented state, transition rules, acceptance predicates, and explicit assumptions. A property is not established merely because a conforming or well-behaved executor is expected to preserve it.
 
-**1. No authorisation protocol controls every action inside an executor.** A protocol defines conditions for valid authority use and propagation; it does not itself execute application code. A faulty or non-conforming implementation may accept `READ` authority and still perform a `WRITE` inside its own security boundary. This limitation must be distinguished from the separate question of whether invalid authority can be accepted and propagated by another execution boundary.
+**3. External security dependencies remain assumptions.** If correct attribution depends on scheduler behaviour, request routing, memory separation, executor cooperation, a global mediator, or another mechanism outside the protocol acceptance construction, that dependency must be stated. Under an untrusted-execution threat model, it remains an attack surface unless the external mechanism is separately modelled and verified.
 
-**2. An authorisation protocol must prevent one executor from causing another execution boundary to accept authority that is not valid for the request being continued.** A receiving boundary can verify what an executor presents, but it cannot guarantee what that executor did inside its own boundary. Correct executor behaviour therefore cannot itself be counted as the protocol proof of correct authority-to-execution attribution.
+**4. Protocol closure is property-specific.** For the property examined here, a protocol is closed when a receiving boundary can decide whether authority is a valid continuation from the evidence and rules required by that protocol, without treating the predecessor's discretionary assertion of correct purpose or context selection as proof. Closure for authority continuity does not imply control over every local action or every other security property.
 
-For the acceptance property examined here, the cause does not change the classification. A call accepted with authority outside the applicable context is a violation of the stated model whether it results from malice, compromise, or an ordinary defect.
+**5. Local conduct and propagated acceptance are different questions.** No authorisation protocol executes application code or proves the semantic and physical correctness of everything an executor does inside its own boundary. The protocol question is whether one executor can cause a later conforming boundary to accept and propagate authority that is invalid for the represented continuation.
 
-> Protocols would be unnecessary if every call were legitimate. They exist for the calls that are not.
+> A protocol guarantee consists of what its model represents and what a conforming receiver verifies. Everything else is either an explicit assumption, a separate control, or outside the guarantee.
 
-**3. A protocol is only as sound as what it represents.** Three things are not the same: what it enforces and can prove, what it assumes and states openly, and what it silently depends on. The first is a stated guarantee. The second is an explicit dependency that can be evaluated against the threat model. The third is an undocumented dependency and must not be represented as a proved property.
+## Threat model
 
-**4. Protocol scope and system requirements must be distinguished.** Every protocol has legitimate boundaries. When a security property required by the surrounding system falls outside those boundaries, the property becomes an external assumption or system-level responsibility. That dependency should be stated explicitly and evaluated against the adopted threat model.
+The threat model is defined for this article. It is not presented as the only valid model for every distributed system.
 
-> A protocol guarantee should be evaluated together with its declared scope, external assumptions, and the requirements of the system in which it is used.
+An executor is treated as untrusted when the security argument is not permitted to assume that its internal behaviour will preserve correct request-to-authority attribution. This may include defects, compromise, non-deterministic authority selection, retained state, or execution across boundaries that do not themselves prove which request an authority state belongs to. This classification concerns what the proof may assume; it is not an allegation about any particular executor or implementation.
 
-**Reality still applies.** No protocol is perfect and every design has an implementation limit, and that is worth stating rather than arguing away. But the comparison holds in a narrower form: the more of the adopted threat model a protocol demonstrably covers, the fewer security-relevant properties remain dependent on external assumptions. And since the subject is security, that assessment has to be formal and methodological, not rhetorical.
+The minimum model contains five elements:
 
-Protocols are also not neatly nested: one is rarely a superset of another, covering the same perimeter plus more. Coverage overlaps unevenly, each protocol stronger somewhere and thinner elsewhere. So the comparison needs an anchor — the **threat model**. Application type and requirements define it, and it becomes the reference perimeter.
-
-## Threat model for distributed systems
-
-**Security classification follows the accepted effect, not an attribution of motive.** Within this article's model, an authority use outside the applicable context is a violation regardless of whether it results from malice, compromise, non-deterministic selection, or an ordinary defect. These conditions are threat-model assumptions, not accusations about a particular executor or implementation.
-
-For the purposes of this article, an executor is treated as untrusted when the adopted threat model includes one or more of the following conditions:
-
-- implementation defects or exploitable behaviour are in scope;
-- internal action or authority selection may be non-deterministic and is not accepted as proof of execution attribution;
-- executor compromise is in scope;
-- execution crosses process, host, workload, service, or network boundaries that are not assumed to preserve request-to-authority attribution.
-
-These conditions do not assert that every executor is compromised, defective, or incapable of preserving internal separation. They state which behaviours the receiving security argument is not permitted to assume away.
-
-Under those conditions, a security argument that relies on correct executor behaviour must identify that reliance as an assumption or show how another mechanism establishes the required property.
-
-PIC, capability, and token constructions may depend on trust anchors whose scope, compromise consequences, and operational role must be stated explicitly. This article does not compare security mechanisms solely by counting their trust anchors.
-
-Two further problems belong to this threat model. Both concern the executor at position `n+1`, the step that comes next, and they are distinct enough to be worth naming separately.
-
-**The N+1 Unidentified Successor Problem.** When authority is originated, the concrete successor occurrence need not be known or individually enumerable. There may be no successor, one successor, or several, possibly in parallel. A concrete successor may not yet exist and therefore need not yet have an identity, key, channel, or runtime instance to which authority can be pre-bound. Eligibility conditions may be defined in advance; the concrete successor can be evaluated when it materialises.
-
-**The N+1 Invalid Authority-State Problem.** An executor may hold authority associated with several independent executions and may also attempt to alter the authority it received. A receiving boundary must not accept a successor state that either carries authority outside its authenticated predecessor context or presents authority from one execution as a valid continuation of another. Subjective intent need not be inferred; the question is whether the successor state satisfies the required acceptance predicate.
-
-For the purposes of this article, the following is the **minimum threat model adopted for the class of networked distributed systems being analysed**:
-
-| Element | Why it holds |
-|---|---|
-| **Transport is untrusted** | Channel location, routing, or possession of an authority artefact does not by itself establish which execution the authority belongs to. |
-| **Execution is untrusted and has no global mediator** | The executor's internal behaviour is not accepted as the proof of correct attribution, and no separate globally trusted component is assumed to separate every execution step. Correct local verification and enforcement may still be required. |
-| **Execution is concurrent** | Independent requests and authority contexts may coexist and progress at the same time. |
-| **The N+1 Unidentified Successor Problem** | A concrete successor occurrence may not exist or be identifiable when authority is originated. Eligibility conditions may be defined in advance, while the concrete successor is evaluated when it materialises. |
-| **The N+1 Invalid Authority-State Problem** | A receiving boundary must reject a successor state that expands the authenticated predecessor authority context or presents authority associated with one execution as the continuation of another. The executor's own authority selection is not the proof of that attribution. |
-
-The individual assumptions above are commonly considered in security and distributed-systems analysis, but their particular combination, definitions, and application to authority continuity are specific to this article. This article does not claim that there is one universally accepted threat model for every distributed system, nor that every system must adopt all of these assumptions. Their relevance must be evaluated against the architecture and operational environment under examination.
-
-## Threat model for an AI agent
-
-For conventional software, assumptions about reviewed code, controlled deployment, network boundaries, and deterministic execution may sometimes support a narrower trust model. They cannot automatically be transferred to the class considered here: long-running autonomous agents that may serve overlapping requests, retain authority across time, and select later calls at runtime. For that class, the agent's own internal authority selection cannot itself serve as the protocol proof of correct authority-to-execution attribution.
-
-> The relevant question is not whether the agent is expected to behave correctly, but whether a receiving execution boundary can verify the presented authority state independently.
-
-The general model above still holds in full. Same elements, only sharper:
-
-| Element | With the class of AI agent examined here |
+| Element | Meaning in this article |
 | --- | --- |
-| **Transport is untrusted** | If the agent can copy, persist, forward, or place an authority artefact on another channel, channel location alone cannot establish which execution the authority belongs to. |
-| **Execution is untrusted and has no global mediator** | Non-deterministic action selection, possible compromise, and the absence of a globally trusted separator mean that the agent's internal authority choice cannot itself serve as proof of correct attribution. Local trusted verification and enforcement may still be required. |
-| **Execution is concurrent** | The class examined here may serve overlapping requests and retain authority associated with more than one execution at the same time. The threat model does not assume that one executor correctly preserves the internal request-to-authority separation among those execution occurrences. Such separation may be supplied by the implementation, but it is not itself the receiver-verifiable proof of execution attribution. |
-| **The N+1 Unidentified Successor Problem** | Later tools, workloads, services, or agents may be selected at runtime. A concrete successor occurrence may not exist or be identifiable when authority is originated. |
-| **The N+1 Invalid Authority-State Problem** | The agent may present authentic authority associated with one execution as part of another, substitute one execution's authority state for another, or attempt to expand the authority received. The receiving boundary must evaluate the resulting authority state independently rather than relying on the agent's internal request routing, retained state, or authority selection. |
+| **Transport is untrusted** | Channel location, routing, or possession of an artefact is not proof that the authority belongs to the execution being continued. |
+| **Execution is untrusted and has no required global mediator** | The executor's internal choice is not accepted as proof of correct attribution, and the model does not require a separate globally trusted component to separate every execution step. A conforming receiving boundary still performs trusted protocol verification and enforcement. |
+| **Execution may overlap or retain state** | Independent requests and authority contexts may coexist, interleave, or remain available after an earlier step. Concurrency is the principal operational case, but retained state can create the same attribution question sequentially. |
+| **The N+1 Unidentified Successor Problem** | A concrete successor occurrence may not exist or be identifiable when authority is originated. Eligibility may be defined in advance; the concrete successor is evaluated when it materialises. |
+| **The N+1 Invalid Authority-State Problem** | A receiver must reject a successor state that expands the authenticated predecessor context or presents authority from one execution as a valid continuation of another. The executor's own selection is not the proof of that attribution. |
+
+These elements define the perimeter against which a protocol is evaluated. A protocol may legitimately address a different perimeter. The present comparison asks whether the required property is internal to the examined acceptance construction or is delegated to assumptions outside it.
+
+## Application to long-running AI agents
+
+The same model becomes especially visible for a long-running agent that can serve overlapping requests, retain authority across time, and select later tools, workloads, services, or agents at runtime.
+
+The agent may correctly preserve request-local separation. The threat model simply refuses to use that internal correctness as the proof presented to the next execution boundary. The receiving boundary must independently evaluate the authority state it is asked to accept.
+
+> The relevant question is not whether the agent is expected to choose correctly. It is whether the receiver can verify that the presented authority belongs to the execution being continued.
 
 ### Execution-context non-mixing
 
-The five threat-model elements above imply a narrower operational requirement for the AI-agent class examined here. One executor may host several independent execution occurrences at the same time. Those occurrences may have the same principal, the same executor identity, and overlapping or identical privileges while still continuing different requests.
+One executor may host several distinct execution occurrences. They may have the same principal, the same executor identity, and overlapping or identical privilege sets while continuing different requests.
 
-The threat model does not assume that the executor's internal scheduler, memory, request routing, retained state, or authority-selection logic correctly preserves that distinction. A concrete implementation may preserve it through request-scoped state, isolation, sequencing, non-transferable references, explicit lineage identifiers, trusted mediation, or another mechanism. The executor's correct use of those mechanisms, however, is not by itself a receiver-verifiable protocol property.
-
-The required property is therefore execution-context non-mixing at the receiving boundary.
-
-When an authority state is presented as the continuation of Execution A, the receiving boundary may accept it only when the state is validly attributable to that concrete execution occurrence.
-
-A state that is valid for Execution B does not become valid for Execution A merely because:
+Let `Execution A` and `Execution B` be two such occurrences. Authority valid for `Execution B` does not become valid for `Execution A` merely because:
 
 - the same executor possesses it;
 - both executions belong to the same principal;
 - both executions concern the same resource;
 - both executions carry the same privileges;
-- the authority artefact is authentic;
-- the authority was validly delegated in some other context.
+- the artefact is authentic;
+- the authority was validly delegated in another context.
 
-Authenticity and possession remain relevant where required by the applicable mechanism. They do not, by themselves, establish which execution the authority state validly continues.
+The required receiving property is **execution-context non-mixing**:
 
-In ordinary language:
-
-> Authority valid for one execution must not be accepted as the continuation of another execution unless its relationship to that second execution is independently verifiable.
+> Authority presented as the continuation of one execution may be accepted only when its relationship to that concrete execution occurrence is valid under the applicable receiving predicate.
 
 <blockquote class="callout-math">
 
-<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive claim. Readers following the narrative may skip this box; formal and technical reviewers should inspect it.</p>
+<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the substantive requirement.</p>
 
-<p style="color: var(--text-primary);">Let \(X_A\) be one concrete execution occurrence and let \(S\) be the authority state presented as its continuation. Execution-context non-mixing requires:</p>
+<p style="color: var(--text-primary);">Let \(X_A\) be one concrete execution occurrence and let \(S\) be the authority state presented as its continuation:</p>
 
 \[
 \operatorname{Accept}(X_A,S)
@@ -201,87 +133,35 @@ In ordinary language:
 \operatorname{ValidContinuationOf}(S_B,X_B).
 \]
 
-<p style="color: var(--text-primary);">That fact does not imply:</p>
+<p style="color: var(--text-primary);">That does not imply:</p>
 
 \[
 \operatorname{ValidContinuationOf}(S_B,X_A).
 \]
 
-<p style="color: var(--text-primary);">The distinction remains necessary when \(X_A\) and \(X_B\) belong to the same principal or project to the same resource and privilege set.</p>
+<p style="color: var(--text-primary);">The distinction remains necessary when \(X_A\) and \(X_B\) project to the same principal, resource, operation, or privilege set.</p>
 
 </blockquote>
 
-Execution-context non-mixing is not a sixth threat-model element. It is a derived acceptance requirement arising from untrusted execution, concurrent or retained execution state, and the N+1 Invalid Authority-State Problem.
+Execution-context non-mixing is not an additional threat-model element. It is the receiving requirement derived from untrusted execution, overlapping or retained authority state, and the N+1 Invalid Authority-State Problem.
 
-A second failure sits next to that one and must not be confused with it. Selecting authority from the wrong execution is one problem; executing something other than the authorised operation is another. An authorisation protocol may bind operation, target, tenant, parameters, or digests where its specification requires them, but it cannot by itself prove the semantic or physical correctness of what an executor ultimately does inside its own boundary.
-
-On transport, one design consequence: assume varied and less secure transports from the outset, accepting that some physical limits cannot be engineered away.
-
-**For an authority-bearing AI-agent decision, two questions must be separated.** One is what the protocol can verify; the other is what remains dependent on local interpretation.
-
-- **The protocol-verifiable part is explicit.** A receiving execution boundary must reject a propagated authority state that exceeds, or is misattributed relative to, the authenticated predecessor execution.
-- **The interpretive part is not converted into proof.** Semantic intent remains outside the authority-continuity guarantee and must not be represented as protocol-verified.
-
-This also creates a usability constraint: systems should minimise the decisions that require fresh human confirmation without treating unattended agent interpretation as proof of correct authority attribution.
-
-> The goal for an AI agent is to operate under an untrusted-execution threat model, with a human in the loop only where that is strictly unavoidable — and on an authorisation protocol whose guarantee is formal under stated assumptions: inside a correctly attributed execution lineage, a confused deputy is not representable. Outside those assumptions the failure is not eliminated, only inherited.
-
-## Applicability of the threat model
-
-This article does not claim that every AI-agent deployment or every distributed system must adopt this threat model. It applies to systems in which execution is long-running or concurrent, authority may be retained from independent requests, later calls or concrete successor occurrences may be selected at runtime, and the executor's own internal authority selection is not accepted as the proof of correct execution attribution.
-
-The same analysis applies to distributed execution architectures in which authority crosses independently verified process, workload, service, broker, queue, host, or administrative boundaries; concurrent authority contexts may coexist; and no globally trusted mediator preserves the authority-to-execution binding for every step. Whether a particular architecture or deployment has these characteristics requires a separate system-specific assessment.
-
-## The threat model, distilled
-
-The two tables above overlap. Distilled to remove the redundancy, the threat model reduces to five elements — the call graph row folds into the first N+1 problem, and the invalid-transition and intent-selection rows fold into the second:
-
-| Element | What it means |
-| --- | --- |
-| **Transport is untrusted** | Channel location, routing, or possession of a copied artefact is not itself proof that the authority belongs to the execution being continued. |
-| **Execution is untrusted and has no global mediator** | The executor's internal behaviour is not the proof of correct attribution, and no separate globally trusted component is assumed to separate every execution step. Local trusted verification and enforcement may still be required. |
-| **Execution is concurrent** | Independent requests and authority contexts may coexist and progress at the same time. |
-| **The N+1 Unidentified Successor Problem** | A concrete successor occurrence need not exist or be identifiable when authority is originated. Eligibility conditions may be defined in advance; conformance is evaluated when the successor materialises. |
-| **The N+1 Invalid Authority-State Problem** | A successor state must not be accepted if it expands the authenticated predecessor authority context or attributes authority from one execution to the continuation of another. |
-
-## The property required by this threat model
-
-The required property is receiver-verifiable execution attribution, including execution-context non-mixing. A receiving execution boundary must be able to decide, without relying on the predecessor's discretionary assertion of correct purpose selection or correct internal context management, whether the presented authority state is a valid continuation of one concrete predecessor execution and request.
-
-This is not merely authority authenticity or possession. An authority artefact may be genuine, correctly signed, and genuinely possessed while still belonging to a different execution. The property therefore requires that:
-
-- authority associated with execution A not be accepted as a continuation of execution B;
-- authority states associated with A and B not be accepted as one ordinary continuation merely because the same executor possesses both;
-- no accepted successor carry authority outside the applicable authenticated predecessor context;
-- attribution remain verifiable where A and B have the same principal, executor, resource, or privilege set.
-
-The requirement is occurrence-sensitive rather than merely privilege-set-sensitive.
-
-Two independent executions may legitimately carry exactly the same authority. Equality of their authority sets does not make the executions themselves identical. They may still continue different requests, have different predecessors, and require different authorisation decisions.
-
-What must remain distinguishable is the concrete execution occurrence and predecessor relationship under which the authority is presented.
-
-<blockquote class="callout-math">
-
-<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive claim. Readers following the narrative may skip this box; formal and technical reviewers should inspect it.</p>
-
-<p style="color: var(--text-primary);">Equality of the authority contexts:</p>
+The requirement is occurrence-sensitive rather than merely privilege-set-sensitive. Two executions may carry exactly the same authority context without becoming the same execution:
 
 \[
 C_A=C_B
-\]
-
-<p style="color: var(--text-primary);">does not imply equality of the execution occurrences:</p>
-
-\[
+\not\Longrightarrow
 X_A=X_B.
 \]
 
-</blockquote>
+Their principal, executor, operation, resource, and privilege set may all coincide while their predecessor relationships and requests remain different. Non-expansion alone therefore cannot distinguish every cross-execution substitution; the complete receiving predicate must also verify the applicable predecessor, request, lineage, relationship, integrity, and freshness conditions.
 
-This property does not establish subjective intention, bug-free code, physical causation, semantic correctness of generated content, scheduler correctness, internal memory isolation, or correct local execution inside an executor. It governs whether the receiving boundary accepts and propagates the presented authority as belonging to the represented execution.
+For the authority-continuity property, PIC internalises this requirement in the protocol construction: the receiver checks the represented predecessor, the concrete request binding, the execution contract, the relationship evidence, integrity and freshness conditions, and authority non-expansion. It does not require the receiver to infer subjective intent or trust an unverified claim that the executor selected the correct internal context.
 
-## Defining the problem: a vulnerability, not a bug
+In this limited sense, PIC makes execution lineage a causal or temporal coordinate of authorisation. “Temporal” refers to the represented succession of execution steps and their predecessor relationships, not merely to wall-clock time.
+
+This property remains narrower than correct execution. Selecting authority from the wrong execution and performing an operation incorrectly are different failures. PIC governs whether propagated authority is accepted as a valid continuation; it does not prove semantic intent, physical effects, or correct local application behaviour.
+
+## Defining the model-relative failure condition
 
 **The classical case.** Norm Hardy described it in 1988, and the deputy was a compiler. It ran on behalf of whoever invoked it, writing output to a path the caller supplied, and it also held authority of its own over files it maintained for its own purposes. Name one of those files as the output path and the compiler writes there.
 
@@ -385,9 +265,7 @@ This condition remains relevant where:
 - both states contain overlapping or identical privileges;
 - the executor acts without malicious intent.
 
-A concrete implementation may establish this separation through request-scoped isolation, sequencing, non-transferable references, explicit lineage state, trusted mediation, PIC, or another equivalent mechanism. The diagram does not claim otherwise.
-
-**What is not being claimed.** Nothing here says an AI agent cannot receive capabilities as arguments alongside the request. The statement is narrower: under the threat model adopted by this article, the agent's internal behaviour cannot be relied upon to preserve a protocol-verifiable request-to-authority binding across long-running and concurrent executions. An implementation may introduce request-scoped state, synchronisation, isolation, sequencing, lineage identifiers, or non-transferable references, and those mechanisms may prevent particular interleavings. The question is whether the binding between authority and execution is a verifiable property of the protocol or an assumption of the implementation.
+A system may preserve this separation through PIC or through another construction that represents and verifies an equivalent per-execution relationship. Under the evaluation method stated above, the question is whether the relationship is part of the receiving acceptance predicate or remains an external implementation assumption.
 
 **The article-defined Temporal Confused Deputy condition.** For the purposes of this article, *Temporal Confused Deputy* names the cross-execution authority/causality mismatch defined here. It describes a temporal and multi-step instance of the general mismatch exemplified by the classical Confused Deputy Problem. The term is introduced by this article and is not attributed to Hardy.
 
@@ -399,13 +277,7 @@ Every authority involved may be genuine, correctly signed, really delegated, and
 
 > Validity of the authority is not the same as validity of its attribution to the current execution.
 
-The label applies only when the stated threat-model conditions and acceptance assumptions are satisfied. It does not imply that every long-running agent, concurrent system, distributed system, or capability implementation admits such an execution.
-
-**A vulnerability rather than necessarily a bug.** A transition satisfying the article-defined Temporal Confused Deputy condition is a security violation within the adopted threat model because authority associated with one execution is accepted as part of another execution's continuation without the required verified relationship.
-
-The failure requires neither forged authority nor malicious conduct. It follows from a model in which authority from concurrent executions may enter shared state without a protocol-verifiable execution binding. Whether that state-sharing design constitutes an implementation defect depends on the requirements of the concrete system. Premise 1 covers the other situation, where an executor diverges from what it was asked; this one requires no divergence at all. What is absent is a verifiable representation distinguishing authority that belongs to Request A from authority that belongs to Request B.
-
-Calling the condition a vulnerability does not assert that every concrete system contains it. The classification applies where the system adopts the stated threat model and its acceptance rule permits the invalid cross-execution attribution.
+The label applies only to an accepted transition satisfying the stated model and acceptance conditions. Within that model, the security failure is cross-execution authority misattribution: authority associated with one occurrence is accepted as part of another occurrence's continuation without the required verified relationship. Forgery, malicious intent, or an increase in the underlying privilege set is not required.
 
 **Execution as a third coordinate.** In the classical Confused Deputy, the capability makes resource designation and authority inseparable at invocation. The problem examined here adds one coordinate: the concrete execution lineage in which that authority may be exercised. The execution does not replace the resource — operation and resource remain relevant. It is the additional coordinate that determines where otherwise valid authority may continue.
 
@@ -429,11 +301,7 @@ The classical capability answer binds designation and authority at invocation. T
 
 Capabilities address the classical Confused Deputy Problem by having the client supply, with the request, the capability that both designates the target resource and conveys the authority to be exercised. The additional question examined here is whether the deputy's selection among all authority it holds remains attributable to the execution being continued.
 
-Within the deliberately minimal model and assumptions stated below, an execution satisfying this article's definition of the **Temporal Confused Deputy** condition is reachable. This means only that the stated countermodel admits cross-execution authority misattribution under its deliberately minimal acceptance rule. Whether a concrete capability implementation or deployment admits an equivalent execution requires a separate system-specific analysis.
-
-To see the failure under the stated assumptions, take a deliberately minimal setup. Alice is the only user of the agent, so every authority the agent holds comes from Alice, and the model uses a shared possession-based accumulator that composes capabilities as they arrive.
-
-**Scope of the example.** This example assumes that the accumulator provides no protocol-verifiable binding between authority and execution lineage, that concurrent scheduling does not preserve lineage separation, and that no external synchronisation or request-scoped isolation mechanism prevents the illustrated interleaving. It does not purport to describe every capability implementation. An implementation may prevent this particular execution through request-scoped state, explicit lineage identifiers, synchronisation, isolation, sequencing, or other mechanisms. The narrower question examined here is whether the relevant authority-to-execution binding follows from the protocol property being analysed under the stated threat model, or depends on additional implementation mechanisms and assumptions.
+The following deliberately minimal countermodel tests the defined acceptance property. Alice is the only user of the agent, every authority involved comes from Alice, and a shared possession-based accumulator composes capabilities as they arrive. The countermodel intentionally contains no represented execution-lineage binding and no separately modelled mechanism that prevents the illustrated interleaving. Its purpose is to determine what follows from that acceptance rule, not to characterise an implementation category.
 
 For this countermodel, `C_A` and `C_B` are the authority contexts carried by `capA` and `capB`. Each context is a set of operation-and-resource privilege pairs.
 
@@ -544,7 +412,7 @@ C_{\mathrm{shared}}=C_A\cup C_B.
 
 </blockquote>
 
-**Relationship to existing implementations.** This article does not claim that every existing capability-based implementation exhibits this runtime behaviour. Implementations may include request-scoped state, lineage identifiers, synchronisation, isolation, sequencing, non-transferable references, or other mechanisms that prevent particular forms of cross-request authority composition. The question addressed here is whether authority continuity is established as a protocol property under the stated threat model, or supplied by additional implementation mechanisms and assumptions.
+**Interpretation.** A construction that represents and verifies an equivalent per-execution binding may prevent this transition. Under the article's method, that property must be demonstrated by the construction's acceptance rules or identified as an external assumption.
 
 This result follows from the structure of the minimal model under the stated concurrency assumptions and does not require malicious conduct. Whether the stated shared-state construction would constitute an implementation defect depends on the requirements of the concrete system. A buggy or compromised executor creates additional risks, but the example isolates a narrower issue: valid authority from independent executions is composed without a protocol-verifiable representation of execution lineage. Three consequences follow within that model:
 
@@ -630,7 +498,7 @@ The discriminator theorem therefore does not show that capabilities lack discrim
 
 The trade-off theorem further establishes, under its stated definitions, that lineage-invariant authorisation, authority-mixing-capable delegation, and confused-deputy safety cannot all be retained simultaneously. The comparison below therefore concerns where the discriminator is represented, who verifies it, and whether the local one-hop binding composes as a receiver-verifiable invariant across multiple execution steps.
 
-This article does not classify the cited capability construction as possession-only authorisation, does not apply a theorem whose hypotheses it does not satisfy, and does not claim that an equivalent capability-based construction is impossible.
+The formal comparison below applies only where the stated hypotheses hold, particularly where the receiving decision is invariant under execution lineage.
 
 ### Point 1 — the two proposed solution categories
 
@@ -661,7 +529,7 @@ This article does not classify the cited capability construction as possession-o
 </tr>
 <tr class="not-satisfied">
 <th scope="row">Comparison under this article's threat model</th>
-<td>The cited result is conditional on the deputy not substituting its own authority for the authority delegated by the client. The passage does not itself establish the additional receiver-verifiable execution-attribution property defined here.<br><br><em>This comparison does not establish impossibility, insecurity of capability systems generally, or a defect in the cited result.</em></td>
+<td>The cited result is conditional on the deputy not substituting its own authority for the authority delegated by the client. The passage does not itself establish the additional receiver-verifiable execution-attribution property defined here.</td>
 </tr>
 <tr>
 <th scope="row">Under PIC</th>
@@ -704,7 +572,7 @@ This article does not classify the cited capability construction as possession-o
 </tr>
 <tr class="not-satisfied">
 <th scope="row">Comparison under this article's threat model</th>
-<td>For the <em>Check Who's Asking</em> approach, exact client or intention attribution is not established by the cited passage. The additional receiver-verifiable execution-attribution property therefore does not follow from this approach as described.<br><br><em>This comparison does not establish impossibility, insecurity of capability systems generally, or a defect in the cited result.</em></td>
+<td>For the <em>Check Who's Asking</em> approach, exact client or intention attribution is not established by the cited passage. The additional receiver-verifiable execution-attribution property therefore does not follow from this approach as described.</td>
 </tr>
 <tr>
 <th scope="row">Under PIC</th>
@@ -717,9 +585,11 @@ This article does not classify the cited capability construction as possession-o
 
 PIC is closer to the attribution question raised by *Who is asking?* than to an attempt to infer the deputy's psychology. It preserves the need for attribution but changes its object: from identifying a caller or client in a delegation chain to verifying the concrete predecessor execution that the presented authority state continues.
 
-PIC does not restore stack walking, identify a human caller, or infer subjective intention. The receiving boundary instead asks whether the presented state is a contract-conforming, non-expansive continuation of one authenticated predecessor and concrete request.
+PIC does not adopt the mechanism described under Spiessens's *Approach 1: Check Who's Asking*. It does not restore stack walking, identify a human caller, inspect a delegation chain to decide whom the deputy serves, or infer subjective intention. The theoretical and practical difficulties identified for that approach are therefore not treated here as defects to be corrected in the cited work.
 
-The question changes from *which client is the deputy working for?* to *which authenticated execution is this authority state validly continuing?*
+PIC instead takes the underlying attribution question in a different direction. It replaces *who is asking, and what does the deputy intend?* with a receiver-verifiable predicate: whether the presented state is a contract-conforming, non-expansive continuation of one authenticated predecessor execution and concrete request.
+
+The question changes from *which client is the deputy working for?* to *which authenticated execution is this authority state validly continuing?* In that sense, PIC formalises execution continuity as the object of attribution rather than attempting to recover client identity or intention.
 
 This does not establish subjective intention or physical causation; it establishes only the continuation predicate defined by the PIC model.
 
@@ -748,7 +618,7 @@ This does not establish subjective intention or physical causation; it establish
 </tr>
 <tr class="not-satisfied">
 <th scope="row">Comparison under this article's threat model</th>
-<td>The cited stack-walking approach is outside the parallel and distributed execution scope adopted here. Separately, deputy cooperation is not accepted as the proof of execution attribution under this article's threat model.<br><br><em>No broader conclusion about capability systems follows from the stack-walking scope limitation.</em></td>
+<td>The cited stack-walking approach is outside the parallel and distributed execution scope adopted here. Separately, deputy cooperation is not accepted as the proof of execution attribution under this article's threat model.</td>
 </tr>
 <tr>
 <th scope="row">Under PIC</th>
@@ -782,7 +652,7 @@ This does not establish subjective intention or physical causation; it establish
 </tr>
 <tr class="not-satisfied">
 <th scope="row">Comparison under this article's threat model</th>
-<td>The cited passage assigns correct-purpose authority use to the deputy. It does not itself establish the additional receiver-verifiable multi-hop execution-attribution property defined here. The passage does not establish or refute whether another mediator, capability construction, or additional mechanism could provide that property.<br><br><em>This comparison does not establish impossibility, insecurity of capability systems generally, or a defect in the cited result.</em></td>
+<td>The cited passage assigns correct-purpose authority use to the deputy. It does not itself establish the additional receiver-verifiable multi-hop execution-attribution property defined here. The passage does not establish or refute whether another mediator, capability construction, or additional mechanism could provide that property.</td>
 </tr>
 <tr>
 <th scope="row">Under PIC</th>
@@ -808,7 +678,7 @@ An implementation may preserve attribution across hops through request-scoped st
 
 Under the threat model adopted by this article, an intermediate executor's internal association between a request and the authority it holds cannot itself serve as the receiving boundary's proof of execution attribution. If that association is neither represented nor independently verified, correct attribution remains an assumption of the implementation rather than a property established by the examined protocol rule.
 
-The discussion above does not establish an impossibility result for capability systems generally or a defect in the cited result. It identifies the additional property that must be established. The narrower formal consequence below applies only to authorisation decisions that remain invariant under execution lineage.
+The narrower formal consequence below applies only to authorisation decisions that remain invariant under execution lineage.
 
 ### Formal consequence — lineage-invariant propagation cannot establish execution-context non-mixing
 
@@ -817,6 +687,40 @@ This section applies the companion paper's occurrence-individuation and trade-of
 In the terminology defined above, a **Temporal Confused Deputy** execution is an accepted authority-use occurrence that is valid with respect to the projected operation and resource but is not validly attributable to the execution lineage under which it is accepted. The formal argument below concerns that article-defined condition. It does not rename Hardy's historical problem or attribute the temporal formulation to him.
 
 ### The argument in ordinary language
+
+#### Why portable delegation creates the trade-off
+
+Portable authority is intended to be held, transferred, delegated, attenuated, and, where the applicable construction permits it, composed. None of those operations is itself a security failure, and this article does not claim that every capability construction permits arbitrary union or ignores execution context.
+
+The impossibility arises only when three conditions are required together:
+
+1. the receiving authorisation decision remains invariant under execution lineage;
+2. one executor may hold, select, or combine authority associated with independent execution contexts;
+3. the system requires receiver-verifiable execution-context non-mixing.
+
+Under those conditions, the receiver sees the operation and resource but not the execution occurrence that makes one use valid and the other invalid. Preventing the crossed use then requires at least one of three changes:
+
+- restrict the relevant coexistence, transfer, selection, or composition operation;
+- rely on a separator such as isolation, sequencing, non-transferable references, trusted mediation, or request-scoped state;
+- make the receiving decision sensitive to a verified execution- or lineage-specific relationship.
+
+#### Fresh delegation is a cooperation dependency
+
+When a construction requires each successor to receive a fresh discretionary delegation from the current authority holder, that holder becomes a necessary participant in both the safety and liveness of the continuation. The next hop can proceed only if the holder remains available, remains authorised, selects the correct successor, and delegates authority belonging to the correct execution. Under the untrusted-execution threat model adopted here, those conditions cannot themselves serve as the receiving proof that the continuation is valid.
+
+If the current holder is unavailable or has been revoked, the chain stops unless another mechanism can reissue, escrow, mediate, or otherwise preserve the still-authorised execution. If the holder is compromised or confuses concurrent contexts, it may transfer authentic authority associated with the wrong execution. Portable delegation alone therefore does not establish authority continuity in this construction: the required property is supplied either by the holder's continuing cooperation or by an additional mechanism and its assumptions.
+
+This is a limitation of holder-to-holder portable delegation under the stated threat model, not an impossibility result for capability-based constructions generally. A capability-based system may remove the dependency through an equivalent represented and verified continuation mechanism. Once its receiving decision verifies that execution-sensitive relationship, the decision is no longer lineage-invariant in the sense used by the theorem.
+
+The first option narrows the delegation or composition semantics available at that boundary. The second can be a valid security construction, but when it is outside the analysed protocol acceptance rule its correctness remains an external assumption rather than a property established by that rule. The third changes the represented basis of acceptance: authority is no longer evaluated only as a privilege set in \(O\times R\), but as authority presented within a specific represented execution continuation.
+
+In ordinary terms, the receiver must decide not only whether the authority permits the operation, but also whether that authority belongs to the execution now being continued.
+
+PIC takes the third path for ordinary continuation. The authority context \(C_i\subseteq O\times R\) is carried inside a represented execution lineage, and each ordinary successor continues exactly one predecessor under request binding, relationship evidence, contract conformance, and non-expansion. Independent lineages may participate through an explicitly defined multi-lineage construction, but their remaining authority is not thereby merged into one ordinary successor lineage.
+
+This is the precise sense in which PIC codifies a temporal dimension: it makes causal succession between execution steps part of the represented state and receiving decision. It does not claim that capability portability is incorrect, and it does not prohibit capability-based constructions from adding and verifying an equivalent execution-sensitive relationship.
+
+Applied to a capability-based construction, the boundary is direct. If its receiving rule remains lineage-invariant while independent authority contexts may coexist, the construction falls within the impossibility result and cannot establish execution-context non-mixing as defined here. If it adds and verifies an execution-sensitive relationship, it may satisfy the requirement; its receiving rule has then left the lineage-invariant class considered by the theorem. This is a classification of acceptance semantics, not a statement that the construction ceases to be capability-based.
 
 An authority-use occurrence has three relevant coordinates:
 
@@ -836,7 +740,7 @@ The conclusion is limited:
 
 Any policy that distinguishes the two occurrences must read and verify some execution- or lineage-sensitive discriminator. The argument does not prescribe where that discriminator is stored or which implementation family supplies it.
 
-It is therefore not an impossibility result for capability systems generally. A capability-based construction may satisfy the requirement by introducing and verifying an equivalent lineage-sensitive binding.
+A construction is not excluded by this impossibility result when its receiving decision introduces and verifies an execution- or lineage-sensitive discriminator. Establishing authority continuity additionally requires the complete authenticated binding and validation predicate described below, irrespective of the construction's implementation family.
 
 <div class="math-block">
 
@@ -966,6 +870,8 @@ The representation of \(g\) is not fixed by this argument. It may be carried alo
 
 The relevant question is whether the receiving authorisation decision reads and verifies the discriminator. Its storage location or implementation category does not alter the formal requirement.
 
+The condition \(g(\ell_A)\neq g(\ell_B)\) is necessary for occurrence individuation, but it is not sufficient by itself to establish authority continuity. The receiver must also authenticate and verify the relationship among the discriminator, the exact predecessor, the concrete request, the presented authority state, the applicable execution contract, the required integrity and freshness conditions, and the non-expansion relation. PIC supplies one model-relative construction for those combined checks; another construction may establish an equivalent predicate under comparable assumptions.
+
 </div>
 
 ### Relation to authority coexistence and delegation
@@ -1033,7 +939,7 @@ If the PIC construction or proof contains an error, the appropriate conclusion m
 
 ## PIC assumptions and the formal model
 
-The five elements of the distilled threat model are properties of the environment, not defects to be repaired inside an executor. PIC does not remove them. It removes the need for them to be false. Each is addressed below with its mechanism and, where one exists, its boundary.
+The five threat-model elements describe the environment rather than defects attributed to an executor. For the authority-continuity acceptance property, PIC does not require those environmental conditions to be absent. It represents the required relationship and makes it part of the receiving protocol decision. Each element is addressed below together with the applicable implementation and trust boundary.
 
 <div class="table-tip">
 
@@ -1078,6 +984,40 @@ The point is not that authentic authority becomes invalid or that an executor ca
 ## Consequences: from possession to continuity
 
 **Time is treated here as a distinct dimension of authority propagation.** In the systems and work examined by this article, temporal continuity may otherwise be represented indirectly through possession, transaction scope, sequencing, state isolation, or related mechanisms. Under the definitions and assumptions of the PIC model, possession alone does not establish the authority-continuity property defined here.
+
+### A continuity example: the post-office hand-off
+
+A valid ordinary authority lineage can be pictured as a river. At every accepted continuation, the authority carried downstream is bounded by the authority immediately upstream:
+
+\[
+C_{i+1}\subseteq C_i.
+\]
+
+The flow may be attenuated, but an ordinary successor cannot introduce authority from outside its represented predecessor. A new origin, a sound cross-domain translation, or an explicitly defined multi-lineage construction is a separate operation; it is not ordinary downstream continuation. Authority from another lineage cannot simply be poured into the first and accepted as the same ordinary flow.
+
+The metaphor concerns continuity, not automatic execution. Every receiving hop still requires conforming verification and enforcement, and the applicable revocation state must be checked. The stronger and narrower property is that, for any finite sequence of conforming successors, continuation need not depend on a specific earlier executor remaining available and issuing a fresh discretionary delegation at every hand-off.
+
+Consider a hypothetical post office. Alice authorises one execution: send a parcel. Bob is the employee handling the first step. In a holder-to-holder portable-delegation construction, the next courier may receive authority because Bob transfers or delegates the relevant capability. That can work correctly while Bob remains authorised and available.
+
+The important dependency is not merely that Bob possesses a capability. If continuation requires Bob to perform the next discretionary delegation, then Bob's continuing availability, authorisation, correct successor selection, and correct association between authority and execution become premises of the next hand-off. Bob is not only a prior executor; his cooperation is part of the mechanism by which the chain advances. Under the threat model used here, that cooperation cannot itself be treated as receiver-verifiable proof of continuity.
+
+Before pickup, Bob's employer determines that his future access must be terminated and revokes the local employment authority that would permit him to act further. Carol replaces him. Assume that this does not revoke Alice's parcel lineage or invalidate the already accepted predecessor state, and that Alice is temporarily unavailable. If Carol can continue only after Bob performs a fresh delegation, the hand-off is blocked for a sound reason: Bob is no longer permitted to act. Portability alone does not determine whether Carol is a valid replacement for the still-authorised execution.
+
+This is the precise continuity limit illustrated by the example. Alice's parcel authorisation may remain valid, yet the execution cannot advance because that construction requires a new act by an intermediate holder who is no longer an admissible participant. If Bob were compromised rather than revoked, the corresponding safety dependency would remain: he could select a successor incorrectly or transfer authentic authority associated with another execution. Fresh holder-to-holder delegation therefore makes both continued progress and correct execution attribution depend on the intermediate holder, unless another verified mechanism removes that dependency.
+
+This does not establish a defect in capability systems. A capability-based design may solve the hand-off through revocable indirection, escrow, role authority, a trusted organisational mediator, reissuance, non-transferable references, or another verified construction. The point is classificatory: the continuity guarantee then depends on that additional construction and its assumptions, not on holder-to-holder portability alone.
+
+PIC frames the same case differently. Alice originates an execution under authority \(C_0\). Bob may perform one valid step, but he is not the continuing source of Alice's authority. Carol need not have been identified when Alice originated the execution. If Bob is no longer eligible to execute future steps while the parcel lineage and its accepted predecessor remain valid, Carol may continue only by presenting evidence that she is a conforming successor of the represented execution under its request, execution contract, her applicable attestation, revocation state, relationship evidence, and non-expansion rules. Bob need not remain available to confer a new discretionary delegation. If the lineage or relevant grant has itself been revoked, Carol cannot continue, which is the required result.
+
+The receiving question is therefore not merely:
+
+> Who handed Carol a portable authority artefact?
+
+It is:
+
+> Can Carol prove that this still-authorised execution may validly continue through her?
+
+This is the practical significance of modelling execution as a coordinate of authority. It allows protocol operations to be defined over continuation itself: originate, continue, attenuate, revoke, branch where the applicable profile permits it, or participate in an explicitly guarded multi-lineage operation. PIC Sandboxed Execution extends this idea by representing the guardrail as an outer enforcement lineage that validates participating lineages and enforces permit or deny. Correct guardrail implementation and enforcement remain necessary; the guardrail is not converted into an assumption-free mechanism.
 
 ### Why local validity does not automatically compose
 
@@ -1263,35 +1203,39 @@ Composition, attenuation, and related operations must be evaluated over the exec
 
 All are Draft 0.2 and, as their own status notes state, public drafts rather than standards. The project's own attribution separates two roles, and this article follows it: the **PIC Model** — its definitions, invariants, and foundational proofs — is the work of **Nicola Gallo**, while the **PIC specifications** are published and maintained by **Nitro Agility S.r.l.** as Specification Steward.
 
-The results established in the cited work remain applicable within their stated definitions, assumptions, and formal model.
+The comparison yields one property-specific result. Local capability invocation provides a valid designation–authority binding at that invocation. Under the adopted threat model, multi-hop authority continuity additionally requires the final receiving decision to verify an execution- or lineage-sensitive relationship connecting the presented state to the represented predecessor execution and request.
 
-If the analysis presented in this article is correct, it identifies an additional property required to obtain the authority-to-execution guarantee defined here under a threat model involving concurrent, long-running, and untrusted execution: authority continuity across an execution lineage.
-
-The local capability input remains valid at the invocation where its designation–authority binding is established. What the examined local property does not itself establish is that successive invocation-level bindings compose transitively into a relationship that the final receiver can verify against the originating execution.
-
-Under the adopted threat model, relying on the intermediate deputy's internal association between its inputs, retained authorities, and later requests leaves that association as a behaviour restriction on a relied-upon subject. It does not make the association part of the receiving acceptance predicate.
-
-The formal consequence above narrows the result. A construction whose receiving authorisation decision remains lineage-invariant cannot distinguish two occurrences that have the same operation and resource but require different decisions because they belong to different execution lineages.
-
-An implementation may establish the missing relationship through PIC or through an equivalent capability-based, runtime, mediation, isolation, or deployment-specific construction. Such a construction must introduce and verify an execution- or lineage-sensitive discriminator. The comparison concerns which property is represented and verified, not which implementation category is universally capable of providing it.
+A receiving rule that remains invariant under lineage cannot distinguish occurrences that share the same operation and resource but require different decisions because they belong to different executions. PIC addresses that requirement within its protocol state, transition construction, and receiving checks. Another construction may do so through an equivalent verified discriminator. The comparison is therefore between acceptance properties, not between labels or implementation families.
 
 ## Conditional result of the comparison
 
-For the system class defined here, execution-context non-mixing is part of the required receiver-verifiable property. A single executor may legitimately host several authentic authority contexts. The security condition is that a receiving boundary not accept authority associated with one execution as the continuation of another solely because the executor possesses both or internally associates them with the current request.
+For the system class defined here, execution-context non-mixing is part of the required receiver-verifiable property. A single executor may legitimately host several authentic authority contexts; the receiving boundary must not accept authority associated with one execution as the continuation of another merely because the executor possesses both or internally associates one with the current request.
 
-An accepted transition violating that condition is what this article calls a **Temporal Confused Deputy** execution. The name refers only to the article-defined cross-execution authority/causality mismatch. It does not imply that every concurrent, long-running, multi-hop, or capability-based system is vulnerable.
+An accepted transition violating that condition is what this article calls a **Temporal Confused Deputy** execution. The classification is model-relative: it applies when the defined threat model and acceptance predicate admit cross-execution authority misattribution.
 
-The threat model does not claim that an executor inevitably confuses those contexts. It removes correct internal separation from the assumptions that may, by themselves, establish the protocol guarantee. The separation must instead be represented and verified by PIC or by another construction shown to establish an equivalent property.
+The cited capability work establishes the local designation–authority binding and the delegation and safety properties stated in its model. The additional question considered here is multi-hop execution attribution when correct internal context selection is not admitted as the proof. PIC answers that question by requiring the receiver to validate a contract-conforming, non-expansive continuation of one represented predecessor and concrete request.
 
-The cited work identifies the attribution problem and, for the approaches examined, assigns an important role to the deputy's cooperation and correct-purpose selection. Within the execution model of that work, this is a coherent part of the proposed solution.
+A holder-to-holder propagation rule that requires a fresh delegation at every hand-off also inherits the current holder's availability, continued authorisation, correct successor selection, and correct execution-context selection as prerequisites. Under the adopted threat model, those prerequisites remain external dependencies unless the receiving construction represents and verifies an equivalent continuation relationship. The limitation is therefore not portability itself, but reliance on fresh discretionary delegation as the mechanism that proves and advances continuity.
 
-Under the threat model adopted here, however, that behavioural dependency does not itself establish a receiver-verifiable authority-to-execution binding. The reason is limited and structural: the conduct of the executor is not accepted as the premise that proves which execution the presented authority belongs to.
+Under PIC's definitions, assumptions, and applicable verification profile, authority continuity is a protocol acceptance property rather than a conclusion delegated to the predecessor's discretionary context selection. An equivalent construction remains possible whenever it represents and verifies the same property under comparable assumptions and proof obligations.
 
-PIC revisits the attribution question without attempting to infer the deputy's subjective intention. The receiving execution boundary instead evaluates whether the presented authority state is a contract-conforming, non-expansive continuation of one authenticated predecessor and concrete request. The question changes from *what did the deputy mean?* to *is this a valid continuation under the model's acceptance predicate?*
+The formal relationship is property-specific. Under PIC's stated definitions and assumptions:
 
-For the class of long-running, autonomous, concurrent agents and distributed execution architectures defined above, the cited capability work establishes strong delegation and safety properties, including local designation–authority binding. The examined results do not themselves establish the additional receiver-verifiable multi-hop authority-continuity property required by the adopted threat model. Under its own definitions, assumptions, and verification rules, PIC establishes that property.
+\[
+\mathrm{PIC}
+\models
+P_{\mathrm{continuity}}.
+\]
 
-This is a difference in the property formally established. It is not proof that an equivalent capability-based, protocol-based, or deployment-specific construction is impossible. PIC is not presented as a correction of Spiessens's results, but as a temporal refinement and a different system construction whose guarantees must be judged on its own definitions, assumptions, proof, and deployment correspondence.
+For the class covered by the impossibility result, under the adopted threat-model hypotheses:
+
+\[
+\mathrm{LineageInvariantPropagation}
+\not\models
+P_{\mathrm{continuity}}.
+\]
+
+In prose, PIC establishes a strictly stronger receiving-acceptance guarantee on the authority-continuity axis than a propagation rule whose decision remains invariant under execution lineage. This is not a universal ranking of security systems and does not exclude an equivalent capability-based, runtime, mediated, isolation-based, or deployment-specific construction.
 
 Before drawing any conclusion from the above, please read the [Research and use disclaimer](#research-and-use-disclaimer) below.
 
