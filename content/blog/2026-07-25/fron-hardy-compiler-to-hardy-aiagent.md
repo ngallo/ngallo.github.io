@@ -29,7 +29,7 @@ The additional authority-continuity problem begins when progression to the next 
 
 Under the untrusted-execution threat model adopted here, the current actor's discretionary choice cannot itself serve as the proof that the correct execution is being continued. The actor may behave correctly, make an error, confuse concurrent or retained contexts, use stale state, be compromised, or act maliciously. The receiving rule must preserve the defined authority-continuity property without assuming which of those internal cases occurred.
 
-At the authority-propagation boundary, PIC changes the object of the receiving question. It does not ask the receiver to infer:
+At the authority-propagation boundary, Provenance Identity Continuity (PIC) changes the object of the receiving question. It does not ask the receiver to infer:
 
 > *Whom did the predecessor intend to select or delegate to?*
 
@@ -43,7 +43,7 @@ This is the conceptual shift examined here: within authority propagation, from r
 
 > **When authority is being propagated, the question changes from “Who chose the next actor?” to “Can this execution validly continue through this actor?”**
 
-Authentication and the creation of initial authority are presupposed. A principal may authenticate through OIDC, and initial authority may be established through OAuth or another authorisation mechanism. The analysis begins when that authority must continue through later, potentially long-running, concurrent, or untrusted execution.
+Authentication and the creation of initial authority are presupposed. A principal may authenticate through OpenID Connect (OIDC), and initial authority may be established through OAuth or another authorisation mechanism. One possible PIC integration path is an OAuth 2.0 Token Exchange profile that exchanges an OAuth access token for `PCA₀`, the origin PIC Context of Authority. This is a proposed integration direction, not a capability defined by the current PIC specification set or an existing interoperability guarantee. The analysis begins when that authority must continue through later, potentially long-running, concurrent, or untrusted execution.
 
 Capabilities already solve the classical designation–authority mismatch at invocation by combining designation with permission. This article accepts that result. It asks a different question: whether the local request-to-authority binding remains receiver-verifiable when authority is propagated through several execution steps and when one executor may retain authority associated with more than one execution.
 
@@ -51,7 +51,7 @@ PIC is presented as a temporal refinement of that local binding. For the authori
 
 > **The article's central distinction:** capabilities bind designation and authority at invocation; PIC makes the continued authority-to-execution relationship represented and receiver-verifiable across an execution lineage.
 
-Identity and token delegation are evaluated under the same rule. A valid actor, holder, or token chain may establish who delegated or acted, but it establishes execution continuity only when the receiving semantics independently bind that chain to the exact predecessor execution and request. Where each hop depends instead on a fresh discretionary choice by an untrusted intermediary, continuity remains conditional on that intermediary's cooperation.
+OAuth access-token propagation is evaluated under the same rule. A valid subject, holder, or token history may establish who acted or delegated, but it establishes execution continuity only when the receiving semantics independently bind that authority use to the exact predecessor execution and request. Where each hop depends instead on a fresh discretionary choice by an untrusted intermediary, continuity remains conditional on that intermediary's cooperation.
 
 <blockquote class="callout-tip">
 
@@ -75,11 +75,11 @@ This article examines the cited capability material closely rather than attempti
 
 The capability comparison does not assume in advance that portable authority lacks continuity. It tests the cited model and passages against the receiver-verifiable multi-hop property defined here. If another work represents, verifies, and proves an execution-sensitive continuation property under comparable definitions, assumptions, threat model, and acceptance predicates, it should be assessed directly and may narrow, qualify, or require revision of the comparison made here. The author expressly welcomes such counterexamples, alternative constructions, and formal results.
 
-The token comparison is similarly bounded. It examines the base bearer-token usage model, OAuth 2.0 Token Exchange, and the supplied Transaction Tokens draft only for the property defined here; it is not a systematic survey of every OAuth profile, security-token format, trust framework, or deployment. The comparison is not premised on a literature-wide absence claim. The mechanism-neutral impossibility result is applied first, and the source analysis then asks whether the receiving semantics required by each examined specification fall within its hypotheses. The base OAuth bearer-token specifications and RFC 8693 do not, by themselves, require a receiver-verifiable predecessor-specific execution relationship. The supplied Transaction Tokens draft includes transaction-sensitive state and must not be presumed lineage-invariant; the narrower conclusion is that the draft alone does not define or prove the complete predecessor-specific continuation predicate used here. A profile or deployment that represents and verifies an equivalent relation leaves the lineage-invariant class and must be evaluated as a complete construction.
+The OAuth access-token comparison is similarly bounded. It examines only the base OAuth access-token and bearer-token usage model for the property defined here; it is not a systematic survey of every OAuth profile, security-token format, trust framework, implementation, or deployment. This article does not claim that OAuth access tokens fail, are insecure, or are unsuitable for their intended purposes. It asks only whether the base receiving semantics establish the additional predecessor-specific, receiver-verifiable execution-continuity property under the threat model adopted here. A profile, implementation, or deployment may supply that property through additional execution-sensitive state or controls; when it does, the complete construction must be assessed on its own terms. (The same mechanism-neutral reasoning may apply in general to transaction-oriented token constructions when the stated hypotheses hold, but no specific such construction is evaluated here.)
 
 No statement in this article is a finding that a named product, project, organisation, implementation, or deployment is defective, insecure, or vulnerable. The examples are abstract or hypothetical. Applying the analysis to a concrete system would require a separate system-specific assessment of its complete architecture, acceptance rules, implementation, and operational controls.
 
-PIC is not claimed to replace capabilities, to be the only possible construction, or to establish every property relevant to secure execution. A capability-based, transaction-context, runtime, mediated, isolation-based, or deployment-specific construction may establish an equivalent property if its receiving decision represents and verifies an equivalent execution-sensitive relationship. Equivalence requires comparable definitions, assumptions, threat model, acceptance predicate, and proof obligations; it is not inferred from terminology or implementation category alone.
+PIC is not claimed to replace capabilities, to be the only possible construction, or to establish every property relevant to secure execution. A capability-based, runtime, mediated, isolation-based, or deployment-specific construction may establish an equivalent property if its receiving decision represents and verifies an equivalent execution-sensitive relationship. Equivalence requires comparable definitions, assumptions, threat model, acceptance predicate, and proof obligations; it is not inferred from terminology or implementation category alone.
 
 The PIC claim is conditional on the model's definitions and assumptions, the sound correspondence between concrete verification and the abstract relation, and correct implementation of the selected profile. It does not establish subjective intention, physical or counterfactual causation, semantic correctness, scheduler correctness, internal memory isolation, bug-free local execution, certification, regulatory conformity, or suitability for a particular deployment.
 
@@ -103,7 +103,7 @@ PIC is published for critical inspection. Its definitions, assumptions, model co
 
 The analysis follows five premises.
 
-**1. Authority already exists; the subject is propagation.** The user has authenticated and an initial authority state has been created. Whether an identity provider issues a propagatable artefact directly or an OAuth authority artefact is exchanged for a `PCA₀` is outside the present construction. The question begins when authority crosses a later execution boundary.
+**1. Authority already exists; the subject is propagation.** The user has authenticated and an initial authority state has been created. How that initial authority is issued or mapped into PIC's origin state is outside the present construction. The question begins when authority crosses a later execution boundary.
 
 <figure class="post-banner">
   <img src="/images/2026-07-25/authority-propagation.png" alt="Authority Propagation." loading="lazy">
@@ -193,7 +193,7 @@ The required receiving property is **execution-context non-mixing**:
 
 Execution-context non-mixing is not an additional threat-model element. It is the receiving requirement derived from untrusted execution, overlapping or retained authority state, and the N+1 Invalid Authority-State Problem.
 
-The requirement is occurrence-sensitive rather than merely privilege-set-sensitive. Two executions may carry exactly the same authority context without becoming the same execution. In ordinary language, equality of privilege sets does not establish identity of execution occurrences.
+The requirement is occurrence-sensitive rather than merely privilege-set-sensitive. Two executions may carry exactly the same authority context without becoming the same execution. In ordinary language, equality of privilege sets does not establish identity of execution occurrences. Let \(C_A\) and \(C_B\) denote the operation-and-resource authority contexts carried by execution occurrences \(X_A\) and \(X_B\), respectively.
 
 <blockquote class="callout-math">
 
@@ -263,6 +263,8 @@ AI Agent
 Yet the agent holds authority for Request A, for Request B, for internal tools, for memory, and for cached operations at the same time. Coming from the same person does not make them belong to the same execution.
 
 ### One untrusted executor, several execution occurrences
+
+In the diagram, \(X_A\) and \(X_B\) denote the two execution occurrences, while \(S_A\) and \(S_B\) denote their respective authority states.
 
 ```text
 SAME PRINCIPAL: HARDY
@@ -357,7 +359,7 @@ Capabilities address the classical Confused Deputy Problem by having the client 
 
 The following deliberately minimal countermodel tests the defined acceptance property. Alice is the only user of the agent, every authority involved comes from Alice, and a shared possession-based accumulator composes capabilities as they arrive. The countermodel intentionally contains no represented execution-lineage binding and no separately modelled mechanism that prevents the illustrated interleaving. Its purpose is to determine what follows from that acceptance rule, not to characterise an implementation category.
 
-For this countermodel, `C_A` and `C_B` are the authority contexts carried by `capA` and `capB`. Each context is a set of operation-and-resource privilege pairs.
+For this countermodel, `capA` and `capB` denote the two input capabilities. `C_A` and `C_B` are the authority contexts they carry. Each context is a set of operation-and-resource privilege pairs.
 
 Neither context contains all the authority of the other. Context A therefore contains at least one privilege that Context B lacks, and Context B contains at least one privilege that Context A lacks.
 
@@ -389,10 +391,10 @@ b \in C_B \setminus C_A.
 C_{\varnothing}=\varnothing.
 \]
 
-<p style="color: var(--text-primary);">Composition in this countermodel is set union:</p>
+<p style="color: var(--text-primary);">Composition in this countermodel is set union. For authority-context sets \(U\) and \(V\):</p>
 
 \[
-\operatorname{compose}(X,Y)=X\cup Y.
+\operatorname{compose}(U,V)=U\cup V.
 \]
 
 </blockquote>
@@ -478,25 +480,25 @@ This result follows from the structure of the minimal model under the stated con
 
 > Under this threat model, continuity cannot be established solely through the deputy's cooperation. It must be represented and independently verified at the receiving boundary, whether through PIC or through another construction shown to establish an equivalent property.
 
-## Bearer token assumptions
+## OAuth access-token assumptions
 
-“Bearer” describes presentation and use semantics, not an encoding and not the complete security properties of every token profile. A bearer artefact is usable by a party that possesses and presents it, subject to the receiving system's validation rules.
+“Bearer” describes presentation and use semantics, not an encoding and not the complete security properties of every OAuth access-token profile. A bearer access token is usable by a party that possesses and presents it, subject to the receiving system's validation rules.
 
-Copyability or presentability alone does not determine whether an artefact will be accepted. The relevant comparison is the complete receiving acceptance predicate: token validity, issuer, audience, holder binding where applicable, transaction conditions, request binding, predecessor binding, execution-contract conformance, non-expansion, and any lineage or continuity evidence required by the mechanism.
+Copyability or presentability alone does not determine whether an artefact will be accepted. The relevant comparison is the complete receiving acceptance predicate: token validity, issuer, audience, holder binding where applicable, profile-specific conditions, request binding, predecessor binding, execution-contract conformance, non-expansion, and any lineage or continuity evidence required by the mechanism.
 
-**What is in question, and what is not.** This article concerns authority propagation across execution boundaries. Authentication and the creation of initial authority are outside its scope. OIDC and OAuth are mentioned only as examples of mechanisms that may participate before the propagation stage; this article makes no claim that either mechanism is universally sufficient, settled, or appropriate for every deployment. The question begins once authority has reached a workload, system, or agent and must be propagated or resumed under the threat model defined here.
+**What is in question, and what is not.** This article concerns authority propagation across execution boundaries. Authentication, OIDC, and the initial issuance of an OAuth access token are outside its scope. It does not claim that OAuth access tokens are defective, insecure, or generally unsuitable. The question begins only after authority has reached a workload, system, or agent and must be propagated or resumed under the threat model defined here. Implementations may preserve the required relationship through additional mechanisms; those mechanisms are respected as part of the complete construction but are not attributed to the base access-token semantics.
 
 <blockquote class="callout-tip">
 
-<p style="color: var(--text-primary);">This article does not evaluate OIDC or the initial creation of an OAuth access token. <span style="color: var(--green); font-weight: 600;">It examines whether the authority artefact and the receiving acceptance predicate preserve the required authority-to-execution binding when authority is propagated further.</span> An OAuth 2.0 Token Exchange profile for deriving a <code>PCA₀</code> is a proposed future integration direction. It is not defined by the current PIC specification set and is not presented here as an existing interoperability guarantee.</p>
+<p style="color: var(--text-primary);">This article does not evaluate OIDC or the initial creation of an OAuth access token. <span style="color: var(--green); font-weight: 600;">It examines whether the authority artefact and the receiving acceptance predicate preserve the required authority-to-execution binding when authority is propagated further.</span> No claim is made here about which initial integration mechanism should create a <code>PCA₀</code>, and no existing interoperability guarantee is asserted.</p>
 
 </blockquote>
 
-**This is not a defect claim.** Token mechanisms may correctly address the threat models for which they were designed. The comparison here uses a narrower criterion: what the receiving execution boundary is required to verify before propagated authority may be exercised.
+**This is not a defect claim.** OAuth access tokens may correctly and securely address the purposes and threat models for which their applicable specifications, profiles, and deployments are designed. The comparison here uses a narrower criterion: what the receiving execution boundary is required to verify before propagated authority may be exercised.
 
 ### Transport protection and execution attribution are different properties
 
-The threat-model statement *transport is untrusted* does not mean that a conforming deployment omits transport protection. RFC 6750 requires TLS for bearer-token use and identifies disclosure, redirect, and replay as security threats. A bearer token intentionally sent over an unprotected channel would therefore fall outside the protected usage model described by that specification.
+The threat-model statement *transport is untrusted* does not mean that a conforming deployment omits transport protection. RFC 6750 requires Transport Layer Security (TLS) for bearer-token use and identifies disclosure, redirect, and replay as security threats. A bearer token intentionally sent over an unprotected channel would therefore fall outside the protected usage model described by that specification.
 
 The threat model makes a different point: channel security, routing, or successful delivery is not accepted as proof that the token belongs to the execution being continued. TLS can protect confidentiality and integrity in transit and can substantially reduce on-path capture and replay. It cannot, by itself, determine whether an authentic token delivered over that channel came from the correct concurrent, retried, recovered, or predecessor execution. A secure channel can transport the wrong valid token just as reliably as the right one.
 
@@ -512,7 +514,7 @@ If the deployment merely retrieves an authentic artefact and treats possession o
 
 <p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive point.</p>
 
-<p style="color: var(--text-primary);">Protecting the confidentiality and integrity of an authority artefact does not, by itself, establish its continuation relationship to a concrete execution:</p>
+<p style="color: var(--text-primary);">Let \(A\) denote a stored authority artefact and \(X\) a concrete execution occurrence. Protecting the confidentiality and integrity of \(A\) does not, by itself, establish its continuation relationship to \(X\):</p>
 
 \[
 \operatorname{SecureStorage}(A)
@@ -520,15 +522,15 @@ If the deployment merely retrieves an authentic artefact and treats possession o
 \operatorname{ValidContinuationOf}(A,X).
 \]
 
-<p style="color: var(--text-primary);">Here, \(A\) may be an access token, Transaction Token, capability, workflow credential, or PIC PCA. The implication expresses insufficiency, not incompatibility: any of these artefacts may be stored and later presented. Under PIC, a stored PCA may participate in a valid continuation when the receiving boundary also verifies the complete applicable PIC continuation predicate, including predecessor and request binding, relationship evidence, execution-contract conformance, integrity and freshness conditions, revocation state, and authority non-expansion. The acceptance property comes from those checks, not from storage alone.</p>
+<p style="color: var(--text-primary);">Here, \(A\) may be an OAuth access token, capability, workflow credential, or PIC Context of Authority (PCA). The implication expresses insufficiency, not incompatibility: any of these artefacts may be stored and later presented. Under PIC, a stored PCA may participate in a valid continuation when the receiving boundary also verifies the complete applicable PIC continuation predicate, including predecessor and request binding, relationship evidence, execution-contract conformance, integrity and freshness conditions, revocation state, and authority non-expansion. The acceptance property comes from those checks, not from storage alone.</p>
 
 </blockquote>
 
 The security-relevant object is therefore not only the stored artefact. It is the complete relation among that artefact, the represented predecessor, the concrete request, the recovery event, the eligible successor, and the receiving decision. When that relation is outside the artefact's or protocol's receiving semantics, it remains an additional mechanism and part of the deployment's attack and failure surface. That does not make the mechanism invalid; it means the continuity property must be attributed to and assessed against the complete construction rather than to storage alone. This statement applies equally to PIC: storage can preserve a PCA across restart or hand-off, but storage neither invalidates the PCA nor proves the successor transition.
 
-## Unified identity and token evaluation: the lineage-sensitive receiving criterion
+## OAuth access-token evaluation: the lineage-sensitive receiving criterion
 
-The criterion used in this article is independent of mechanism names. A capability, access token, exchanged token, actor chain, transaction token, runtime object, durable workflow record, or mediated credential may contribute to authority continuity. The relevant question is whether the final receiving decision represents and verifies the relationship between the presented authority and the concrete execution being continued.
+The criterion used in this article is independent of implementation labels. A capability, OAuth access token, runtime object, durable workflow record, or mediated credential may contribute to authority continuity. The relevant question is whether the final receiving decision represents and verifies the relationship between the presented authority and the concrete execution being continued.
 
 The same logical test is applied to every mechanism family:
 
@@ -536,41 +538,43 @@ The same logical test is applied to every mechanism family:
 
 This is a test of receiving semantics, not a ranking based on names. A mechanism avoids the lineage-invariant impossibility boundary only when its complete acceptance construction reads and verifies an adequately discriminating execution-sensitive relationship.
 
-### Identity chains are not automatically execution lineages
+### Token-visible identity and delegation are not automatically execution lineages
 
-A chain of identities or delegations can establish who acted, who delegated to whom, which key presented a credential, or which subject and actor are represented. Those are substantive security properties. They do not, by themselves, answer the occurrence-sensitive question required here: *which concrete predecessor execution and request does this authority use validly continue?*
+An OAuth access token or related token-visible history can establish which subject, holder, key, issuer, audience, scope, or delegation information is represented. Those are substantive security properties. They do not, by themselves, answer the occurrence-sensitive question required here: *which concrete predecessor execution and request does this authority use validly continue?*
 
-Several executions may involve the same principal, actors, holder keys, audiences, scopes, transaction labels, and resources while requiring different continuation decisions. A valid delegation from identity A to identity B therefore does not automatically establish that B is continuing the same execution occurrence rather than another authentic occurrence involving the same identities.
+Several executions may involve the same principal, holder keys, issuer, audience, scope, token-visible labels, and resources while requiring different continuation decisions. A valid token or delegation record therefore does not automatically establish that the presented authority continues one particular execution occurrence rather than another authentic occurrence with the same visible attributes.
 
 <blockquote class="callout-math">
 
 <p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive point.</p>
 
-<p style="color: var(--text-primary);">Where a delegation predicate verifies identities or actors but does not include the execution-continuation relation:</p>
+<p style="color: var(--text-primary);">Let \(h_i\) and \(h_{i+1}\) denote successive token holders or represented actors, and let \(X_i\) and \(X_{i+1}\) denote the corresponding execution occurrences. Where token validity or delegation is verified without the execution-continuation relation:</p>
 
 \[
-\operatorname{ValidDelegation}(h_i,h_{i+1})
+\operatorname{ValidTokenStep}(h_i,h_{i+1})
 \not\Longrightarrow
 \operatorname{ValidContinuation}(X_{i+1},X_i).
 \]
 
 </blockquote>
 
-### Fresh identity or token delegation is a cooperation dependency
+### Fresh token issuance is a cooperation dependency
 
-When every hop requires the current actor to select a successor and request, approve, exchange, or issue fresh authority for that successor, the current actor becomes a necessary participant in both safety and liveness. Progress depends on that actor remaining available and authorised. Correct attribution depends on that actor selecting the intended request, transaction, authority context, and successor.
+When every hop requires the current actor or service to select a successor and request and to obtain or issue fresh access-token authority for that successor, that participant becomes necessary to both safety and liveness. Progress depends on it remaining available and authorised. Correct attribution depends on it selecting the intended request, authority context, and successor.
 
-Under the untrusted-execution threat model adopted here, the actor's cooperation cannot itself be the proof that those choices were correct. A compromised or confused actor may create a cryptographically valid delegation chain for the wrong execution context. An unavailable, crashed, or revoked actor may be unable to advance a still-authorised execution. The resulting chain can therefore be valid as an identity-delegation history while still failing to prove the execution-continuation property defined here.
+Under the untrusted-execution threat model adopted here, that cooperation cannot itself be the proof that those choices were correct. A compromised or confused participant may obtain or issue a cryptographically valid token for the wrong execution context. An unavailable, crashed, or revoked participant may be unable to advance a still-authorised execution. The resulting token sequence can therefore be valid under its applicable issuance and validation rules while still failing to prove the execution-continuation property defined here.
 
-This is not a universal impossibility result for identity or token protocols. An authorisation service, transaction-token service, durable workflow authority, receiver, or other construction may independently validate a represented predecessor and request relation. When it does, the continuity property is supplied by that complete verified construction. It is not supplied merely by the fact that each identity delegated to the next identity.
+This is not a universal impossibility result for OAuth access-token protocols. An authorisation service, durable workflow authority, receiver, or other construction may independently validate a represented predecessor and request relation. When it does, the continuity property is supplied by that complete verified construction. It is not supplied merely by the validity of each token step.
 
 <blockquote style="border-left: 3px solid #e6edf3;">
 
-<p style="color: var(--text-primary);"><strong>Token materials examined.</strong> The comparison in this section is tied to <a href="https://www.rfc-editor.org/rfc/rfc6749.html" target="_blank" rel="noopener noreferrer">OAuth 2.0 (RFC 6749)</a>, <a href="https://www.rfc-editor.org/rfc/rfc6750.html" target="_blank" rel="noopener noreferrer">Bearer Token Usage (RFC 6750)</a>, <a href="https://www.rfc-editor.org/rfc/rfc8693.html" target="_blank" rel="noopener noreferrer">OAuth 2.0 Token Exchange (RFC 8693)</a>, and the supplied <a href="https://www.ietf.org/archive/id/draft-ietf-oauth-transaction-tokens-09.html" target="_blank" rel="noopener noreferrer">Transaction Tokens draft-09</a>. The last document is an Internet-Draft and is cited as work in progress rather than as a final standard.</p>
+<p style="color: var(--text-primary);"><strong>Token materials examined.</strong> The source-specific comparison in this section is limited to <a href="https://www.rfc-editor.org/rfc/rfc6749.html" target="_blank" rel="noopener noreferrer">OAuth 2.0 (RFC 6749)</a> and <a href="https://www.rfc-editor.org/rfc/rfc6750.html" target="_blank" rel="noopener noreferrer">Bearer Token Usage (RFC 6750)</a>.</p>
 
 </blockquote>
 
 ### OAuth access tokens
+
+This section does not claim that OAuth access tokens “do not work.” It evaluates one additional property under one stated threat model. OAuth access tokens may be valid, secure, and suitable within their intended specifications, profiles, and deployments; implementations may also provide execution binding through controls outside the base token semantics.
 
 The base OAuth access-token specification defines an access token as representing an authorisation, while RFC 6750 defines bearer presentation and the transport and handling protections required for that usage. The exact token syntax, claims, validation data, sender constraint, and deployment trust model depend on the applicable profile. Those base specifications do not require the receiver-verifiable predecessor-specific execution-continuity predicate used in this article.
 
@@ -578,67 +582,29 @@ The property-specific conclusion is therefore affirmative but limited: **the bas
 
 Sender constraint can prove possession of a designated key and can materially reduce token theft and replay. Secure transport and protected storage can preserve confidentiality and integrity. None of those properties, by itself, proves which concurrent, retried, recovered, or retained execution occurrence the use continues. A profile that also verifies the required execution relationship may establish the property; the guarantee then comes from that additional profile and its complete receiving predicate.
 
-### OAuth 2.0 Token Exchange
+### Scope of the OAuth access-token conclusion
 
-OAuth 2.0 Token Exchange, RFC 8693, defines an STS-style request-and-response protocol that supports impersonation and delegation semantics. It can represent a subject, a current actor, and, for applicable JWT constructions, a nested history of prior actors. These are substantive properties and must not be reduced to ordinary bearer possession.
-
-The RFC nevertheless distinguishes actor history from access-control semantics: prior actors in nested `act` claims are informational, while the token's top-level claims and current actor drive the consumer's access-control decision. The nested actor history therefore does not, by itself, constitute a normative proof that the current use is the continuation of one exact predecessor execution and request.
-
-RFC 8693 also leaves the specific syntax, semantics, and security characteristics of the input and output tokens, and the deployment trust model, to token types, profiles, policy, and implementation. The property-specific conclusion is therefore: **RFC 8693 token exchange or an `act` chain, without an additional predecessor- and request-sensitive profile, does not establish the execution-continuity property defined here.** Repeated exchange can produce a cryptographically valid identity/delegation history while leaving the occurrence-sensitive predecessor relationship unrepresented in downstream acceptance.
-
-A conforming profile may add the missing relationship. If it binds the issued state to the exact represented predecessor and request, constrains authority non-expansively, and makes those conditions part of downstream acceptance, it may establish an equivalent property. In that case the guarantee comes from the complete profile and its proof obligations, not from identity delegation or the exchange grant in isolation.
-
-Fresh exchange at every hop may also introduce a dependency on the availability, policy, and correctness of the authorisation server or security-token service. That can be a valid and deliberately trusted architecture. It is not automatically a vulnerability or a failure of OAuth. Under this article's method, its role and assumptions must be included in the evaluated acceptance construction rather than treated as proof supplied by an untrusted intermediary.
-
-### Transaction Tokens
-
-The supplied `draft-ietf-oauth-transaction-tokens-09` is materially different from a conventional OAuth access token. It defines short-lived signed tokens associated with a transaction inside a Trust Domain; carries a required unique `txn` identifier together with identity, authorisation, request, and transaction context; calls for independent verification by workloads; and constrains replacement-token processing and scope expansion. Transaction Tokens are therefore transaction-sensitive and must not be classified categorically as ordinary lineage-invariant bearer mechanisms.
-
-The draft also states important boundaries relevant to the comparison:
-
-- Transaction Tokens are not resistant to replay merely because they are signed; short lifetimes reduce the exposure, and a receiver can use transaction state to detect or reject repeated use, but the draft notes that strict single-use enforcement may be difficult where workload instances lack shared state;
-- how a workload determines whether a valid Transaction Token authorises the requested activity is outside the specification's scope;
-- for replacement Transaction Tokens, the transaction identifier, subject, and audience must be preserved, scope must not expand, and the Call Chain must be maintained, while the mechanism for maintaining that Call Chain is outside the specification's scope.
-
-These features make Transaction Tokens a plausible component of an equivalent continuity construction, but the draft alone does not define or prove the stronger predecessor-specific property used here. A unique transaction identifier and immutable transaction context can distinguish transactions; they do not automatically prove that the current workload occurrence is the valid immediate continuation of the represented predecessor occurrence. That stronger conclusion depends on the complete issuance, workload authentication, authorisation, Call Chain maintenance, replay state, recovery state, and receiving rules.
-
-The boundary is consequently precise:
-
-- if the Transaction Token, transaction state, Call Chain, workload authentication, and receiving policy are bound to the exact transaction occurrence and predecessor transition and independently verified, the complete construction may establish an equivalent lineage-sensitive property;
-- if the receiver merely accepts a valid token for the transaction, while successor selection, Call Chain maintenance, replay state, or recovery association depends on an untrusted intermediary whose choice is not independently checked, the cooperation or storage dependency remains;
-- if two execution occurrences remain decision-equivalent under every Transaction Token field and check actually used by the receiver, the receiving rule cannot distinguish them merely because their actual predecessor histories differ.
-
-No formal proof was identified in the supplied draft establishing equivalence to the predecessor-specific continuation predicate defined in this article under comparable untrusted-execution, recovery, replay, and collusion assumptions. This is a limited result after the technical comparison, not the premise of the impossibility argument and not a claim that no equivalent Transaction Token profile or deployment can exist.
-
-### Source-specific conclusions under the unified criterion
-
-| Examined source or construction | What it substantively represents | Property-specific conclusion under this article's threat model |
-| --- | --- | --- |
-| **Base OAuth access-token and bearer-token specifications** | An authorisation artefact, bearer presentation, and required handling and transport protections | The base specifications alone do not establish predecessor-specific, receiver-verifiable multi-hop execution continuity. An additional execution-sensitive profile may. |
-| **OAuth 2.0 Token Exchange, RFC 8693** | Subject, current actor, delegation or impersonation semantics, and an optional nested actor history | The exchange and actor history alone do not establish that the current use continues one exact predecessor execution and request. An additional profile may. |
-| **Transaction Tokens draft-09** | A transaction identifier, identity and authorisation context, transaction context, independent token verification, and constrained replacement processing | The draft is transaction-sensitive and is not categorically lineage-invariant. The draft alone does not define or prove the complete predecessor-specific continuation predicate used here; a complete profile or deployment may provide it. |
-
-The standard is therefore uniform even though the source-specific conclusions are not identical. Base OAuth bearer usage and RFC 8693 do not, in isolation, entail the property. Transaction Tokens represent substantially more occurrence-sensitive state, but equivalence to the stronger property remains dependent on the complete rules and proof of the deployment.
+The conclusion above is limited to the base access-token and bearer-token semantics examined here. It does not classify every OAuth profile, workflow system, or deployment. A complete construction may establish an equivalent property if its receiving decision independently represents and verifies the exact predecessor execution and request. In that case, the guarantee belongs to that complete construction, and the receiving rule is no longer lineage-invariant for the relevant occurrences.
 
 ### Application of the impossibility boundary
 
-The impossibility result applies to token constructions when its hypotheses actually hold. A token-based receiving rule falls within the lineage-invariant class when, for the occurrences being compared, all represented and verified token, storage, recovery, profile, and policy inputs are equal or decision-equivalent while the rule does not read a discriminator capable of distinguishing their execution lineages. If the required security property nevertheless demands different decisions, that rule cannot establish execution-context non-mixing.
+The impossibility result applies to OAuth access-token constructions when its hypotheses actually hold. An OAuth access-token receiving rule falls within the lineage-invariant class when, for the occurrences being compared, all represented and verified token, storage, recovery, profile, and policy inputs are equal or decision-equivalent while the rule does not read a discriminator capable of distinguishing their execution lineages. If the required security property nevertheless demands different decisions, that rule cannot establish execution-context non-mixing.
 
 <blockquote class="callout-math">
 
 <p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive claim.</p>
 
-<p style="color: var(--text-primary);">Let \(T\) denote all token, storage, recovery, and profile inputs read and verified by a receiving rule. If acceptance is invariant under execution lineage:</p>
+<p style="color: var(--text-primary);">Let \(T\) denote all access-token, storage, recovery, profile, and policy inputs read and verified by a receiving rule; let \(\ell\) denote the execution lineage; and let \(\bar A_{\mathrm{OAuth}}\) denote a decision function that is independent of lineage. If the OAuth receiving rule is lineage-invariant:</p>
 
 \[
-A_{\mathrm{token}}(T,\ell)=\bar A(T),
+A_{\mathrm{OAuth}}(T,\ell)=\bar A_{\mathrm{OAuth}}(T),
 \]
 
 <p style="color: var(--text-primary);">then two occurrences with the same decision-relevant \(T\) receive the same result. The rule cannot satisfy a property that requires one to be accepted and the other rejected solely because their execution lineages differ.</p>
 
 </blockquote>
 
-This is not a theorem that all OAuth, token-exchange, actor-chain, or Transaction Token systems are lineage-invariant. It is an application rule: **identity delegation, actor chaining, holder binding, transaction labelling, secure storage, or token replacement is sufficient only when the complete receiving semantics turn the represented data into an authenticated and adequately discriminating continuation relation.**
+This is not a theorem that all OAuth access-token profiles are lineage-invariant. It is an application rule: **token validity, audience restriction, holder binding, token labelling, secure storage, or replacement processing establishes this property only when the complete receiving semantics turn the represented data into an authenticated and adequately discriminating continuation relation.**
 
 ### Transport, replay, storage, and recovery
 
@@ -648,9 +614,9 @@ Where that artefact is bearer-usable, possession can become the operational brid
 
 Protected storage has the same separation of concerns. Encryption, integrity protection, hardware-backed keys, access control, and auditing may make storage robust. They do not prove that the retrieval key, workflow record, or selected token corresponds to the correct predecessor execution. If a trusted storage or workflow component verifies that association, it becomes part of the complete continuity construction. If the association is supplied only by an untrusted executor, possession of a securely stored token remains insufficient under the adopted threat model.
 
-Replay controls also introduce explicit state assumptions. Short expiry, sender constraint, audience restriction, unique transaction identifiers, and single-use records can reduce or detect replay. A replay cache or shared transaction store may be a valid control, but its consistency, availability, rollback resistance, and cross-instance coordination are part of the assurance argument. They should not be treated as properties supplied by token validity alone.
+Replay controls also introduce explicit state assumptions. Short expiry, sender constraint, audience restriction, unique token or request identifiers, and single-use records can reduce or detect replay. A replay cache or shared replay store may be a valid control, but its consistency, availability, rollback resistance, and cross-instance coordination are part of the assurance argument. They should not be treated as properties supplied by token validity alone.
 
-In the post-office example, a token naming Alice, Bob, Carol, a delivery scope, a nested actor chain, or a transaction identifier may be valuable. The decisive point is not the presence or secure storage of those labels alone. It is whether the receiving post-office boundary can verify that Carol's presented state is a valid continuation of the exact parcel execution and predecessor state at issue, rather than another authentic execution involving the same parties, token fields, stored artefacts, or permissions.
+In the post-office example, a token naming Alice or Carol, a delivery scope, an audience, or another token-visible label may be valuable. The decisive point is not the presence or secure storage of those labels alone. It is whether the receiving post-office boundary can verify that Carol's presented state is a valid continuation of the exact parcel execution and predecessor state at issue, rather than another authentic execution involving the same subject, holder, audience, scope, stored artefacts, or permissions.
 
 ## Capability assumptions
 
@@ -672,7 +638,7 @@ This section compares specific passages from the cited work with the additional 
 
 The cited work establishes substantive security properties that this article accepts within their stated model. Capabilities combine designation and access permission, allowing the client to provide the authority the deputy is expected to exercise. This closes the classical designation–authority gap addressed by the Confused Deputy example.
 
-The model also supports dynamic creation, parenthood, endowment, and authority propagation through interaction. Its KBM safety analysis uses a fixed finite set of abstract subjects for tractability, while potentially unbounded concrete runtime entities may be represented through aggregation. The resulting analysis is conditional on the safety and representativeness of that abstraction.
+The model also supports dynamic creation, parenthood, endowment, and authority propagation through interaction. Its Knowledge Behavior Model (KBM) safety analysis uses a fixed finite set of abstract subjects for tractability, while potentially unbounded concrete runtime entities may be represented through aggregation. The resulting analysis is conditional on the safety and representativeness of that abstraction.
 
 Stack walking and capability delegation are separate approaches. The parallel and distributed limitation quoted below applies to the stack-based approach, not automatically to the capability construction.
 
@@ -810,7 +776,7 @@ This does not establish subjective intention or physical causation; it establish
 </tr>
 <tr>
 <th scope="row">Under PIC</th>
-<td><strong>Mechanism.</strong> Acceptance does not depend on trusting the predecessor's discretionary assertion that it selected the correct authority. The receiving boundary validates the continuation evidence required by the applicable PIC profile. The chain representation is not limited to a local call stack and may cross process, thread, host, and network boundaries.<br><br><strong>Boundary.</strong> Correct verification and enforcement remain trusted at every receiving execution boundary. The foundational formal chain is linear; separation of independent concurrent lineages through single-predecessor binding and non-expansion is not itself a proof over every arbitrary fork, join, DAG, or general concurrency semantics. The assurance and collusion assumptions also differ among incremental, full-chain, snapshot, and other deployment profiles.</td>
+<td><strong>Mechanism.</strong> Acceptance does not depend on trusting the predecessor's discretionary assertion that it selected the correct authority. The receiving boundary validates the continuation evidence required by the applicable PIC profile. The chain representation is not limited to a local call stack and may cross process, thread, host, and network boundaries.<br><br><strong>Boundary.</strong> Correct verification and enforcement remain trusted at every receiving execution boundary. The foundational formal chain is linear; separation of independent concurrent lineages through single-predecessor binding and non-expansion is not itself a proof over every arbitrary fork, join, directed acyclic graph (DAG), or general concurrency semantics. The assurance and collusion assumptions also differ among incremental, full-chain, snapshot, and other deployment profiles.</td>
 </tr>
 </tbody>
 </table>
@@ -900,9 +866,9 @@ When a construction requires each successor to receive a fresh discretionary del
 
 If the current holder is unavailable or has been revoked, the chain stops unless another mechanism can reissue, escrow, mediate, or otherwise preserve the still-authorised execution. If the holder is compromised or confuses concurrent contexts, and the receiver does not verify an equivalent execution-sensitive binding, the holder may transfer authentic authority associated with the wrong execution. Portable delegation alone therefore does not establish authority continuity in this construction: the required property is supplied either by the holder's continuing cooperation or by an additional mechanism and its assumptions.
 
-The same dependency appears when the hand-off is expressed as a fresh identity delegation, actor-chain extension, token exchange, or replacement token. A valid next-hop credential can prove that a recognised actor delegated or obtained authority. Unless its receiving semantics independently bind that act to the exact predecessor execution and request, it does not prove that the actor selected the correct execution occurrence. The mechanism may mitigate this dependency through an independently validating issuer, durable workflow authority, trusted mediator, or equivalent construction; the continuity guarantee then rests on that construction and its stated assumptions.
+The same dependency may appear when the hand-off is expressed through fresh OAuth access-token issuance or replacement. A valid next-hop token can prove that authority was issued or obtained under the applicable rules. Unless its receiving semantics independently bind that step to the exact predecessor execution and request, it does not prove that the correct execution occurrence was selected. The mechanism may mitigate this dependency through an independently validating issuer, durable workflow authority, trusted mediator, or equivalent construction; the continuity guarantee then rests on that construction and its stated assumptions.
 
-This is a limitation of fresh holder- or actor-mediated delegation under the stated threat model, not an impossibility result for capability- or token-based constructions generally. A construction may remove the dependency through an equivalent represented and verified continuation mechanism. Once its receiving decision verifies that execution-sensitive relationship, the decision is no longer lineage-invariant in the sense used by the theorem.
+This is a limitation of fresh holder- or actor-mediated delegation under the stated threat model, not an impossibility result for capability or OAuth access-token constructions generally. A construction may remove the dependency through an equivalent represented and verified continuation mechanism. Once its receiving decision verifies that execution-sensitive relationship, the decision is no longer lineage-invariant in the sense used by the theorem.
 
 The first option narrows the delegation or composition semantics available at that boundary. The second can be a valid security construction, but when it is outside the analysed protocol acceptance rule its correctness remains an external assumption rather than a property established by that rule. The third changes the represented basis of acceptance: authority is no longer evaluated only as a privilege set in \(O\times R\), but as authority presented within a specific represented execution continuation.
 
@@ -950,7 +916,7 @@ be the set of authority-use occurrences, where:
 - \(R\) is the set of resources;
 - \(L\) is the set of execution lineages.
 
-An event:
+An authority-use occurrence:
 
 \[
 e=(o,r,\ell)\in E
@@ -1046,10 +1012,10 @@ It follows that a lineage-invariant authorisation policy cannot establish execut
 
 This conclusion is an application of the companion paper's Theorems 3 and 4. Theorem 3 establishes that a lineage-invariant policy cannot individuate occurrences whose projections are equal. Theorem 4 establishes that a policy distinguishing those occurrences must read some lineage-sensitive discriminator.
 
-Formally, the receiving decision must depend on a function:
+Formally, the receiving decision must depend on a discriminator function from the lineage set \(L\) to a set \(D\) of discriminator values:
 
 \[
-g:L\rightarrow X
+g:L\rightarrow D
 \]
 
 such that:
@@ -1161,13 +1127,13 @@ The point is not that authentic authority becomes invalid or that an executor ca
 
 **And its boundaries, stated rather than assumed.** Premises 3 and 4 apply to PIC as much as to anything else, so the assumptions the guarantee rests on are named here:
 
-- **Cryptographic unforgeability is assumed.** The relationship evidence is taken as unforgeable, and a break of the underlying cryptography falls outside the model — as it does for capability and token systems alike.
+- **Cryptographic unforgeability is assumed.** The relationship evidence is taken as unforgeable, and a break of the underlying cryptography falls outside the model — as it does for capability and OAuth access-token systems alike.
 - **Executor behaviour stays outside the guarantee.** No authorisation model can establish that an application is free of bugs. What this one bounds is whether a local fault can propagate as valid authority.
 - **Deployment profiles are not equivalent.** The invariants are identical whether a chain is validated fully decentralised or with the help of a trusted snapshot component, but the concrete assurance and trust assumptions differ by profile. Incremental validation does not provide the same full-prefix assurance as full-chain validation against consecutive colluding hops; any such claim must remain profile-specific.
 - **The guarantee does not come from transport.** A compromised channel may read, copy, delay, reorder, or drop messages. Under the stated cryptographic, freshness, verification, and enforcement assumptions, channel control alone does not allow a forged, altered, or expanded PCA to be accepted as a valid continuation. Confidentiality and availability are separate properties and are not claimed here.
 - **Verifier and enforcement correctness are assumed.** The ordered checks, canonicalisation, hashing, signature validation, attestation validation, and enforcement decision must be implemented correctly.
 - **Concrete-to-abstract correspondence remains an assumption.** The formal refinement relies on the stated correspondence between concrete verifier acceptance and the abstract Proof-of-Relationship relation. The model does not prove that correspondence for every implementation.
-- **Origination remains a trust boundary.** The continuity invariant does not establish that a `PCA0` was semantically correct or that its originator was entitled to originate the requested authority.
+- **Origination remains a trust boundary.** The continuity invariant does not establish that a `PCA₀` was semantically correct or that its originator was entitled to originate the requested authority.
 - **Attestation assumptions remain profile-specific.** The trust placed in attestation issuers, evidence, and execution characteristics depends on the applicable deployment profile.
 - **Heterogeneous propagation requires translation soundness.** Where authority is translated across domains, the result is bounded by the soundness and monotonicity of the translation rather than by a literal identity between the initial and final authority representations.
 - **The foundational lineage model is linear.** Fan-out is addressed by the branch-capable revocation profiles, and joint participation of independent lineages by the Sandboxed Execution profile. General fork, join, fan-in, and DAG-shaped composition is identified as future work in the companion paper and must not be represented as proved by the linear-chain theorem.
@@ -1175,7 +1141,7 @@ The point is not that authentic authority becomes invalid or that an executor ca
 
 ## Consequences: from possession to continuity
 
-**Time is treated here as a distinct dimension of authority propagation.** In the systems and work examined by this article, temporal continuity may otherwise be represented indirectly through possession, transaction scope, sequencing, state isolation, or related mechanisms. Under the definitions and assumptions of the PIC model, possession alone does not establish the authority-continuity property defined here.
+**Time is treated here as a distinct dimension of authority propagation.** In the systems and work examined by this article, temporal continuity may otherwise be represented indirectly through possession, request scope, sequencing, state isolation, or related mechanisms. Under the definitions and assumptions of the PIC model, possession alone does not establish the authority-continuity property defined here.
 
 ### Continuity as a resilience requirement
 
@@ -1183,7 +1149,7 @@ Long-running distributed and asynchronous executions may outlive one process, su
 
 This article does not claim that an authorisation protocol guarantees availability or task completion. Durable storage, replication, scheduling, recovery, consensus, and operational failover remain separate system properties. The narrower continuity requirement is a closure property: executor replacement must not, by itself, destroy an otherwise valid authorisation lineage or force the security argument to trust the unavailable predecessor's new decision.
 
-A system may satisfy this requirement through durable workflow state, a trusted orchestration service, a transaction authority, a verified token profile, a capability construction, PIC, or another mechanism. Under this article's method, the mechanism must be represented in the acceptance construction and its failure and trust assumptions must be stated. If recovery instead depends only on retaining a bearer artefact or asking the previous executor to delegate again, the deployment has coupled resilience to possession or cooperation rather than established receiver-verifiable execution continuity.
+A system may satisfy this requirement through durable workflow state, a trusted orchestration service, a workflow authority, a verified OAuth access-token profile, a capability construction, PIC, or another mechanism. Under this article's method, the mechanism must be represented in the acceptance construction and its failure and trust assumptions must be stated. If recovery instead depends only on retaining a bearer artefact or asking the previous executor to delegate again, the deployment has coupled resilience to possession or cooperation rather than established receiver-verifiable execution continuity.
 
 Secure storage can preserve an artefact across a crash, but the recovery system must still prove which execution the artefact resumes and whether the new executor is an eligible successor. The token-to-workflow index, checkpoint, replay state, and recovery transition are therefore security-relevant state rather than neutral plumbing. A trusted and verified durable workflow service may legitimately provide that state; if so, it is part of the protocol-level assurance construction being evaluated. If the association is selected only by the recovering untrusted executor, protected storage has preserved the token without proving its correct execution attribution.
 
@@ -1213,17 +1179,13 @@ Before pickup, Bob's employer determines that his future access must be terminat
 
 This is the precise continuity limit illustrated by the example. Alice's parcel authorisation may remain valid, yet the execution cannot advance because that construction requires a new act by an intermediate holder who is no longer an admissible participant. If Bob were compromised rather than revoked, the corresponding safety dependency would remain: he could select a successor incorrectly or transfer authentic authority associated with another execution. Fresh holder-to-holder delegation therefore makes both continued progress and correct execution attribution depend on the intermediate holder, unless another verified mechanism removes that dependency.
 
-Changing the hand-off from a capability transfer to an identity or token chain does not, by itself, remove the dependency. The conclusions differ by mechanism, but the receiving question remains the same.
+Changing the hand-off from a capability transfer to an OAuth access-token hand-off does not, by itself, remove the dependency. The conclusions differ by mechanism, but the receiving question remains the same.
 
-With a base OAuth access token, Carol may present an authentic, unexpired token representing Alice's authority and a `delivery:parcel` scope. That can establish a valid authorisation under the applicable resource-server policy. The base token does not, without an additional profile, identify the exact parcel execution or prove that Carol is continuing the accepted predecessor state rather than another authentic parcel execution covered by the same authority.
+With a base OAuth access token, Carol may present an authentic, unexpired token representing Alice's authority and a `delivery:parcel` scope. That can establish a valid authorisation under the applicable resource-server policy. The base token does not, without an additional profile or mechanism, identify the exact parcel execution or prove that Carol is continuing the accepted predecessor state rather than another authentic parcel execution covered by the same authority.
 
-With OAuth 2.0 Token Exchange, an issued token may identify Alice as subject, Carol as current actor, and Bob as a prior actor. That is meaningful delegation history. RFC 8693 nevertheless treats prior nested actors as informational for access-control purposes. The actor chain therefore does not, by itself, prove that Bob selected the correct parcel occurrence or that Carol is the valid successor of the represented predecessor execution. A profile that verifies that relationship may solve the problem; the base exchange and identity history alone do not.
+Placing either a capability or an OAuth access token in secure storage does not change that distinction. The store may preserve confidentiality, integrity, and availability, but the record that associates one stored token with this parcel execution becomes security-critical. If a verified workflow or storage authority maintains and proves the association, it is part of the solution. If an untrusted executor merely retrieves and presents a genuine token, the receiver still needs proof that it is the right token for the right predecessor execution.
 
-A Transaction Token is stronger for this example. A unique `txn` identifier and immutable parcel context may distinguish Alice's parcel transaction from another transaction, and independent verification may protect that context from modification. Those features can form part of a continuity construction. The remaining question is whether Carol's use is accepted as the valid successor of the represented predecessor transition, rather than merely as a valid use of a token associated with the transaction. If the Transaction Token Service, Call Chain mechanism, workload-authentication policy, durable transaction state, replay state, and receiver jointly verify that relation, the complete construction may satisfy the property. If successor selection or recovery association is supplied only by Bob or another untrusted intermediary, the cooperation dependency remains.
-
-Placing any of these artefacts in secure storage does not change that distinction. The store may preserve confidentiality, integrity, and availability, but the record that associates one stored token with this parcel execution becomes security-critical. If a verified workflow or storage authority maintains and proves the association, it is part of the solution. If an untrusted executor merely retrieves and presents a genuine token, the receiver still needs proof that it is the right token for the right predecessor execution.
-
-This does not establish a defect in capability or token systems. A design may solve the hand-off through revocable indirection, escrow, role authority, a trusted organisational mediator, independently validated transaction state, reissuance, non-transferable references, a verified token profile, or another construction. The point is classificatory: the continuity guarantee then depends on that complete construction and its assumptions, not on holder-to-holder portability, actor identity, token validity, secure storage, or stepwise issuance alone.
+This does not establish a defect in capability systems or OAuth access-token deployments. A design may solve the hand-off through revocable indirection, escrow, role authority, a trusted organisational mediator, independently validated workflow state, reissuance, non-transferable references, a verified OAuth access-token profile, or another construction. The point is classificatory: the continuity guarantee then depends on that complete construction and its assumptions, not on holder-to-holder portability, token validity, secure storage, or stepwise issuance alone.
 
 PIC frames the same case differently. Alice originates an execution under authority \(C_0\). Bob may perform one valid step, but he is not the continuing source of Alice's authority. Carol need not have been identified when Alice originated the execution. If Bob is no longer eligible to execute future steps while the parcel lineage and its accepted predecessor remain valid, Carol may continue only by presenting evidence that she is a conforming successor of the represented execution under its request, execution contract, her applicable attestation, revocation state, relationship evidence, and non-expansion rules. Bob need not remain available to confer a new discretionary delegation. If the lineage or relevant grant has itself been revoked, Carol cannot continue, which is the required result.
 
@@ -1435,9 +1397,9 @@ The cited capability work establishes the local designation–authority binding 
 
 A holder-to-holder propagation rule that requires a fresh delegation at every hand-off also inherits the current holder's availability, continued authorisation, correct successor selection, and correct execution-context selection as prerequisites. Under the adopted threat model, those prerequisites remain external dependencies unless the receiving construction represents and verifies an equivalent continuation relationship. The limitation is therefore not portability itself, but reliance on fresh discretionary delegation as the mechanism that proves and advances continuity.
 
-The same criterion applies to identity and token mechanisms, with source-specific conclusions. The base OAuth access-token and bearer-token specifications do not, without an additional execution-sensitive profile, establish the predecessor-specific multi-hop continuity property defined here. RFC 8693 can represent delegation and actor history, but the exchange and actor chain alone do not establish that the current use continues one exact predecessor execution and request. The supplied Transaction Tokens draft represents materially stronger transaction-sensitive state and is not classified as lineage-invariant; nevertheless, the draft alone does not define or prove the complete predecessor-specific continuation predicate under the untrusted-execution, recovery, replay, and collusion assumptions used here. A complete token, transaction, workflow, storage, or mediated construction may establish an equivalent property when its receiver independently verifies the required relationship.
+The same criterion applies to OAuth access tokens. The base OAuth access-token and bearer-token specifications do not, without an additional execution-sensitive profile or mechanism, establish the predecessor-specific multi-hop continuity property defined here. This is not a conclusion that OAuth access tokens are defective, insecure, or unsuitable for their intended purposes. A complete profile, workflow, storage, runtime, or mediated construction may establish an equivalent property when its receiver independently verifies the required relationship.
 
-Secure transport, sender constraint, short lifetime, protected storage, replay caches, and transaction identifiers remain valuable controls. They address disclosure, possession, replay, availability, and transaction separation. They establish authority continuity only when the complete receiving construction also verifies that the presented state belongs to the exact execution occurrence and predecessor transition being continued. If the receiving rule remains decision-equivalent across lineages that require different outcomes, the construction falls within the impossibility result regardless of whether its artefact is called a capability, access token, exchanged token, transaction token, or workflow credential.
+Secure transport, sender constraint, short lifetime, protected storage, replay caches, and token or request identifiers remain valuable controls. They address disclosure, possession, replay, availability, and request separation. They establish authority continuity only when the complete receiving construction also verifies that the presented state belongs to the exact execution occurrence and predecessor transition being continued. If the receiving rule remains decision-equivalent across lineages that require different outcomes, the construction falls within the impossibility result regardless of whether its artefact is called a capability, OAuth access token, or workflow credential.
 
 Under PIC's definitions, assumptions, and applicable verification profile, authority continuity is a protocol acceptance property rather than a conclusion delegated to the predecessor's discretionary context selection. An equivalent construction remains possible whenever it represents and verifies the same property under comparable assumptions and proof obligations.
 
@@ -1483,7 +1445,7 @@ The specifications, the formal model, and the current status of the project are 
 
 PIC adds execution lineage as a coordinate of propagated authority. **Possession remains relevant, but possession alone does not establish that an authority use validly continues the execution for which the authority was propagated.** In the PIC model, the spatial operation-resource component is therefore evaluated together with the causal or temporal continuity component.
 
-Readers and automated systems may otherwise map PIC onto familiar OAuth, object-capability, RBAC, or ABAC concepts and omit the lineage-sensitive acceptance requirement. The project context pack is intended to reduce that form of unsupported reinterpretation.
+Readers and automated systems may otherwise map PIC onto familiar OAuth, object-capability, role-based access control (RBAC), or attribute-based access control (ABAC) concepts and omit the lineage-sensitive acceptance requirement. The project context pack is intended to reduce that form of unsupported reinterpretation.
 
 For that reason the project publishes a context pack at <a href="https://www.pic-protocol.org/ask-your-llm" target="_blank" rel="noopener noreferrer">www.pic-protocol.org/ask-your-llm</a>. It assembles into a single copyable text the specifications, formal model, machine-checked proof summary, and interpretation rules intended to reduce unsupported assumptions. The live page may reflect the current repository state. For scientific reproducibility, the claims in this article must be tied to the exact specification revision reviewed for publication, identified through an immutable release, tag, or commit reference together with the retrieval date. Nothing in this article automatically applies to later changes on `main`.
 
