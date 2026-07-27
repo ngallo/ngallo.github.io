@@ -15,6 +15,34 @@ tags = ["confused deputy problem", "ai agents", "threat-model", "security", "age
 
 **The question.** This article examines one narrowly defined security property: whether authority propagated across time and multiple execution boundaries remains verifiably attributable to the concrete execution and request for which it was granted.
 
+### The change of question in authority propagation: from actor selection to execution continuity
+
+One scope condition should be kept in mind throughout this article: the following discussion of *who* concerns only the propagation of authority after initial authentication and authority origination. It addresses what happens when already-established authority is handed off, exchanged, resumed, attenuated, or otherwise continued across a later execution boundary. It does not claim that identity is unnecessary for authentication, initial authorisation, eligibility, accountability, revocation, or other security properties.
+
+When authority is being propagated, many constructions naturally express security through questions about an actor or holder:
+
+> *Who is calling me? Who may use this propagated authority at the next step? Who delegated to that actor? Whom may that actor call? To whom may authority be delegated next?*
+
+These are meaningful security questions. Their answers may establish authentication, identity, holder binding, eligibility, delegation history, accountability, organisational authority, or possession of a designated key. The word *who* may be represented by an identity, identifier, subject, actor, holder, workload, key, role, or another security principal. None of those properties is dismissed by this article.
+
+The additional authority-continuity problem begins when progression to the next execution step depends on the current actor selecting the successor, request, transaction, stored artefact, or authority context. Unless the receiving boundary independently verifies that selection, its correctness remains part of the security argument. A valid identity or delegation chain can show who acted or delegated; it does not, by itself, prove that the actor selected the correct execution occurrence.
+
+Under the untrusted-execution threat model adopted here, the current actor's discretionary choice cannot itself serve as the proof that the correct execution is being continued. The actor may behave correctly, make an error, confuse concurrent or retained contexts, use stale state, be compromised, or act maliciously. The receiving rule must preserve the defined authority-continuity property without assuming which of those internal cases occurred.
+
+At the authority-propagation boundary, PIC changes the object of the receiving question. It does not ask the receiver to infer:
+
+> *Whom did the predecessor intend to select or delegate to?*
+
+It asks:
+
+> **May this represented execution validly continue through this successor under the applicable execution contract?**
+
+A conforming receiver answers that question by verifying the represented predecessor, the concrete request, execution-contract conformance, Proof of Relationship, integrity, applicable freshness and revocation conditions, and authority non-expansion. Identity, authentication, attestation, and successor eligibility may remain necessary inputs. What is not accepted as proof is the predecessor's unverified assertion, subjective intention, or discretionary selection of the execution context.
+
+This is the conceptual shift examined here: within authority propagation, from relying on an actor to choose the correct continuation, to requiring the receiving boundary to verify whether the presented continuation is valid. Security mechanisms are intended to reject prohibited transitions whether they arise from error, confusion, compromise, or malicious conduct. For the property defined in this article, **Authority Continuity makes the represented execution itself a coordinate of authorisation.** This reframing is limited to the propagation property examined here; it does not replace identity-based questions outside that stage.
+
+> **When authority is being propagated, the question changes from “Who chose the next actor?” to “Can this execution validly continue through this actor?”**
+
 Authentication and the creation of initial authority are presupposed. A principal may authenticate through OIDC, and initial authority may be established through OAuth or another authorisation mechanism. The analysis begins when that authority must continue through later, potentially long-running, concurrent, or untrusted execution.
 
 Capabilities already solve the classical designation–authority mismatch at invocation by combining designation with permission. This article accepts that result. It asks a different question: whether the local request-to-authority binding remains receiver-verifiable when authority is propagated through several execution steps and when one executor may retain authority associated with more than one execution.
