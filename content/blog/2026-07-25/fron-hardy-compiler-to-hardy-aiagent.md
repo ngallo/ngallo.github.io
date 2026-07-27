@@ -29,6 +29,8 @@ The following conditions govern the whole article and are not repeated unless a 
 
 This article does not dispute capability-based security, claim that prior work is incorrect, or attribute error, fault, motive, competence, conduct, or opinion to any cited author. The results established by Spiessens and the other cited works are treated as valid within their stated definitions, assumptions, and formal models. The comparison concerns only which security property follows under the threat model adopted here.
 
+This article examines the cited capability material closely rather than attempting a systematic survey of the full capability-security literature. In the capability literature and formal material examined for this article, no proof was identified that portable authority alone establishes receiver-verifiable, multi-hop execution continuity under the threat model defined here. This does not imply that no equivalent capability-based construction or proof exists elsewhere, particularly where a receiving decision represents and verifies an execution-sensitive relationship.
+
 No statement in this article is a finding that a named product, project, organisation, implementation, or deployment is defective, insecure, or vulnerable. The examples are abstract or hypothetical. Applying the analysis to a concrete system would require a separate system-specific assessment of its complete architecture, acceptance rules, implementation, and operational controls.
 
 PIC is not claimed to replace capabilities, to be the only possible construction, or to establish every property relevant to secure execution. A capability-based, transaction-context, runtime, mediated, isolation-based, or deployment-specific construction may establish an equivalent property if its receiving decision represents and verifies an equivalent execution-sensitive relationship. Equivalence requires comparable definitions, assumptions, threat model, acceptance predicate, and proof obligations; it is not inferred from terminology or implementation category alone.
@@ -297,7 +299,7 @@ The label applies only to an accepted transition satisfying the stated model and
 
 The classical capability answer binds designation and authority at invocation. The additional requirement examined here is to preserve that binding as authority continues across time, concurrency, and not-yet-known successors. Possession or invocation alone does not establish the authority-continuity property defined by this article, unless the system additionally represents and verifies the relevant execution binding.
 
-## The vulnerability at runtime
+## A runtime countermodel
 
 Capabilities address the classical Confused Deputy Problem by having the client supply, with the request, the capability that both designates the target resource and conveys the authority to be exercised. The additional question examined here is whether the deputy's selection among all authority it holds remains attributable to the execution being continued.
 
@@ -695,7 +697,7 @@ Portable authority is intended to be held, transferred, delegated, attenuated, a
 The impossibility arises only when three conditions are required together:
 
 1. the receiving authorisation decision remains invariant under execution lineage;
-2. one executor may hold, select, or combine authority associated with independent execution contexts;
+2. independent authority contexts may coexist, and the construction permits their selection, application, or composition without verifying the execution lineage to which each authority use belongs;
 3. the system requires receiver-verifiable execution-context non-mixing.
 
 Under those conditions, the receiver sees the operation and resource but not the execution occurrence that makes one use valid and the other invalid. Preventing the crossed use then requires at least one of three changes:
@@ -708,7 +710,7 @@ Under those conditions, the receiver sees the operation and resource but not the
 
 When a construction requires each successor to receive a fresh discretionary delegation from the current authority holder, that holder becomes a necessary participant in both the safety and liveness of the continuation. The next hop can proceed only if the holder remains available, remains authorised, selects the correct successor, and delegates authority belonging to the correct execution. Under the untrusted-execution threat model adopted here, those conditions cannot themselves serve as the receiving proof that the continuation is valid.
 
-If the current holder is unavailable or has been revoked, the chain stops unless another mechanism can reissue, escrow, mediate, or otherwise preserve the still-authorised execution. If the holder is compromised or confuses concurrent contexts, it may transfer authentic authority associated with the wrong execution. Portable delegation alone therefore does not establish authority continuity in this construction: the required property is supplied either by the holder's continuing cooperation or by an additional mechanism and its assumptions.
+If the current holder is unavailable or has been revoked, the chain stops unless another mechanism can reissue, escrow, mediate, or otherwise preserve the still-authorised execution. If the holder is compromised or confuses concurrent contexts, and the receiver does not verify an equivalent execution-sensitive binding, the holder may transfer authentic authority associated with the wrong execution. Portable delegation alone therefore does not establish authority continuity in this construction: the required property is supplied either by the holder's continuing cooperation or by an additional mechanism and its assumptions.
 
 This is a limitation of holder-to-holder portable delegation under the stated threat model, not an impossibility result for capability-based constructions generally. A capability-based system may remove the dependency through an equivalent represented and verified continuation mechanism. Once its receiving decision verifies that execution-sensitive relationship, the decision is no longer lineage-invariant in the sense used by the theorem.
 
@@ -888,7 +890,7 @@ An executor may legitimately hold:
 The impossibility concerns the simultaneous retention of these three properties:
 
 1. the authorisation decision remains lineage-invariant;
-2. the executor may hold or select authority associated with independent contexts;
+2. independent authority contexts may coexist and may be selected or applied without a verified lineage-sensitive receiving rule;
 3. the system requires confused-deputy safety and execution-context non-mixing.
 
 This is the trade-off formalised by Theorem 5 of the companion paper.
@@ -1130,7 +1132,7 @@ LINEAGE A
 LINEAGE B
 ```
 
-Every constituent authority item in \(C^{*}\) may be genuine, correctly delegated, and correctly integrity-protected. The defect illustrated here is not invalid input. It is missing execution attribution.
+Every constituent authority item in \(C^{*}\) may be genuine, correctly delegated, and correctly integrity-protected. The failure condition illustrated here is not invalid input. It is missing execution attribution.
 
 If \(C^{*}\) is accepted as one continuation under the conditions defined here, the resulting transition is an instance of what this article calls the **Temporal Confused Deputy** condition: spatially valid authority is accepted under the wrong or unrepresented execution continuation.
 
@@ -1219,7 +1221,7 @@ A holder-to-holder propagation rule that requires a fresh delegation at every ha
 
 Under PIC's definitions, assumptions, and applicable verification profile, authority continuity is a protocol acceptance property rather than a conclusion delegated to the predecessor's discretionary context selection. An equivalent construction remains possible whenever it represents and verifies the same property under comparable assumptions and proof obligations.
 
-The formal relationship is property-specific. Under PIC's stated definitions and assumptions:
+Let \(P_{\mathrm{continuity}}\) denote the receiver-verifiable authority-continuity property defined in this article, including execution-context non-mixing under the adopted threat model. The formal relationship is property-specific. Under PIC's stated definitions and assumptions:
 
 \[
 \mathrm{PIC}
