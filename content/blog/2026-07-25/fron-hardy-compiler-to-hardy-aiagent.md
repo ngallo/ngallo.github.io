@@ -474,27 +474,29 @@ The threat model makes a different point: channel security, routing, or successf
 
 ### Secure storage protects an artefact; it does not create its execution relationship
 
-Durable or protected token storage can be necessary for recovery and can materially reduce disclosure, tampering, or accidental loss. Those are substantive benefits. Storage security alone, however, does not establish which execution occurrence a stored artefact is authorised to resume.
+Durable or protected storage of an authority artefact can be necessary for recovery and can materially reduce disclosure, tampering, or accidental loss. Those are substantive benefits. Storage security alone, however, does not establish which execution occurrence a stored artefact is authorised to resume.
 
-If a vault, database, workflow engine, scheduler, or recovery service stores a token under an execution-specific record and the receiving boundary independently verifies that record and its transition, that component may supply part of an equivalent continuity construction. Its correctness, availability, access control, rollback resistance, freshness, and token-to-execution association then become explicit trust and proof obligations.
+If a vault, database, workflow engine, scheduler, or recovery service stores an authority artefact under an execution-specific record and the receiving boundary independently verifies that record and its transition, that component may supply part of an equivalent continuity construction. Its correctness, availability, access control, rollback resistance, freshness, and artefact-to-execution association then become explicit trust and proof obligations.
 
-If the deployment merely retrieves an authentic token and treats possession of the retrieved bytes as sufficient, the missing relationship has not been created. A compromised selector, stale index, rollback, substitution, or cross-context lookup may return a genuine token belonging to another execution. Encrypting or integrity-protecting each stored token does not prevent a valid token from being associated with or selected for the wrong execution.
+If the deployment merely retrieves an authentic artefact and treats possession of the retrieved bytes as sufficient, the missing relationship has not been created. A compromised selector, stale index, rollback, substitution, or cross-context lookup may return a genuine artefact belonging to another execution. Encrypting or integrity-protecting each stored artefact does not prevent a valid artefact from being associated with or selected for the wrong execution.
 
 <blockquote class="callout-math">
 
 <p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive point.</p>
 
-<p style="color: var(--text-primary);">Protecting the confidentiality and integrity of a token does not, by itself, establish its continuation relationship to a concrete execution:</p>
+<p style="color: var(--text-primary);">Protecting the confidentiality and integrity of an authority artefact does not, by itself, establish its continuation relationship to a concrete execution:</p>
 
 \[
-\operatorname{SecureStorage}(T)
+\operatorname{SecureStorage}(A)
 \not\Longrightarrow
-\operatorname{ValidContinuationOf}(T,X).
+\operatorname{ValidContinuationOf}(A,X).
 \]
+
+<p style="color: var(--text-primary);">Here, \(A\) may be an access token, Transaction Token, capability, workflow credential, or PIC PCA. The implication expresses insufficiency, not incompatibility: any of these artefacts may be stored and later presented. Under PIC, a stored PCA may participate in a valid continuation when the receiving boundary also verifies the complete applicable PIC continuation predicate, including predecessor and request binding, relationship evidence, execution-contract conformance, integrity and freshness conditions, revocation state, and authority non-expansion. The acceptance property comes from those checks, not from storage alone.</p>
 
 </blockquote>
 
-The security-relevant object is therefore not only the stored token. It is the complete relation among the stored artefact, the represented predecessor, the concrete request, the recovery event, the eligible successor, and the receiving decision. When that relation is outside the token's specified receiving semantics, it remains an additional mechanism and part of the deployment's attack and failure surface. That does not make the mechanism invalid; it means the continuity property must be attributed to and assessed against the complete construction rather than to token storage alone.
+The security-relevant object is therefore not only the stored artefact. It is the complete relation among that artefact, the represented predecessor, the concrete request, the recovery event, the eligible successor, and the receiving decision. When that relation is outside the artefact's or protocol's receiving semantics, it remains an additional mechanism and part of the deployment's attack and failure surface. That does not make the mechanism invalid; it means the continuity property must be attributed to and assessed against the complete construction rather than to storage alone. This statement applies equally to PIC: storage can preserve a PCA across restart or hand-off, but storage neither invalidates the PCA nor proves the successor transition.
 
 ## Unified identity and token evaluation: the lineage-sensitive receiving criterion
 
@@ -1389,7 +1391,7 @@ Composition, attenuation, and related operations must be evaluated over the exec
 - <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-lineage-guardrail-spec.html" target="_blank" rel="noopener noreferrer">PIC Sandboxed Execution</a> — Lineage and Multi-Lineage Executions, and the guardrails that validate participating PCAs and enforce permit or deny
 - <a href="https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-architecture-deployment-spec.html" target="_blank" rel="noopener noreferrer">PIC Architecture and Deployment Specification</a> — centralised and decentralised architectures, hybrid topologies, and interoperability with existing token infrastructures
 
-All are Draft 0.2 and, as their own status notes state, public drafts rather than standards. The project's own attribution separates two roles, and this article follows it: the **PIC Model** — its definitions, invariants, and foundational proofs — is the work of **Nicola Gallo**, while the **PIC specifications** are published and maintained by **Nitro Agility S.r.l.** as Specification Steward.
+All are Draft 0.2 and, as their own status notes state, public drafts rather than standards. This article evaluates the Draft 0.2 materials supplied for review and retrieved on 27 July 2026. The repository links above are discovery links to the maintained project and may change; no conclusion in this article should be projected automatically onto later revisions. A scientific or conformance citation should identify the exact release, tag, or commit actually evaluated when an immutable reference is available. The project's own attribution separates two roles, and this article follows it: the **PIC Model** — its definitions, invariants, and foundational proofs — is the work of **Nicola Gallo**, while the **PIC specifications** are published and maintained by **Nitro Agility S.r.l.** as Specification Steward.
 
 The comparison yields one property-specific result. Local capability invocation provides a valid designation–authority binding at that invocation. Under the adopted threat model, multi-hop authority continuity additionally requires the final receiving decision to verify an execution- or lineage-sensitive relationship connecting the presented state to the represented predecessor execution and request.
 
@@ -1416,6 +1418,8 @@ The relationship is property-specific. In prose, under PIC's stated definitions 
 <blockquote class="callout-math">
 
 <p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> The prose above states the complete substantive conclusion.</p>
+
+<p style="color: var(--text-primary);">All satisfaction claims in this box are relative to the formal definitions, assumptions, abstract-to-concrete correspondence, and applicable validation profile stated in the companion paper and this article. Correct implementation, verification, and enforcement remain assumptions.</p>
 
 <p style="color: var(--text-primary);">Let \(P_{\mathrm{continuity}}\) denote the receiver-verifiable authority-continuity property defined in this article.</p>
 
