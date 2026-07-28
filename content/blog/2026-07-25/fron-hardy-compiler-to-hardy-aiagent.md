@@ -1030,6 +1030,84 @@ The condition \(g(\ell_A)\neq g(\ell_B)\) is necessary for occurrence individuat
 
 </blockquote>
 
+### Corollary — Temporal impossibility of lineage-invariant capability composition
+
+The general result has the following capability-specific consequence. A composed capability state cannot receive different authorisation decisions across execution lineages when the receiving rule is lineage-invariant.
+
+Here, **temporal** refers to distinct causal execution lineages, not merely to different wall-clock times. The impossibility arises when the same composed capability state, operation, and resource must be accepted in one execution lineage and rejected in another, while the receiving rule does not evaluate the lineage that distinguishes them.
+
+<blockquote class="callout-math">
+
+<p style="color: var(--text-primary);"><strong>Formal notation — optional for narrative reading.</strong> This corollary applies the preceding lineage-indistinguishability result to capability composition.</p>
+
+Let \(\mathcal{C}\) be the set of capability states, and let capability composition be:
+
+\[
+\operatorname{compose}:\mathcal{C}\times\mathcal{C}\rightarrow\mathcal{C}.
+\]
+
+For:
+
+\[
+cap_A,cap_B\in\mathcal{C},
+\]
+
+define:
+
+\[
+C^{*}=\operatorname{compose}(cap_A,cap_B)\in\mathcal{C}.
+\]
+
+Let the receiving authorisation decision be:
+
+\[
+A:\mathcal{C}\times O\times R\times L\rightarrow\{0,1\}.
+\]
+
+Consider two distinct execution lineages:
+
+\[
+\ell_A,\ell_B\in L,
+\qquad
+\ell_A\neq\ell_B.
+\]
+
+If \(A\) is lineage-invariant, then:
+
+\[
+A(C^{*},o,r,\ell_A)=A(C^{*},o,r,\ell_B).
+\]
+
+Therefore, the simultaneous requirements:
+
+\[
+A(C^{*},o,r,\ell_A)=1
+\]
+
+and:
+
+\[
+A(C^{*},o,r,\ell_B)=0
+\]
+
+are inconsistent under lineage invariance.
+
+Hence, accepting the same composed capability state in one execution lineage while rejecting it in another requires the receiving decision to read and verify a lineage-sensitive discriminator:
+
+\[
+g:L\rightarrow D,
+\qquad
+g(\ell_A)\neq g(\ell_B).
+\]
+
+This is the temporal impossibility: when two authority-use occurrences differ only in the causal execution lineage relevant to their validity, a lineage-invariant receiving rule cannot distinguish them.
+
+This does not prohibit capability composition. It establishes only that different acceptance decisions across execution lineages cannot follow from a receiving rule that treats the same composed capability state, operation, and resource as decision-equivalent.
+
+</blockquote>
+
+By contrast, under PIC's stated definitions and assumptions, the temporal distinction is represented by the execution lineage and made decision-relevant by the receiving predicate. The receiver verifies the applicable predecessor, concrete request, relationship evidence, execution contract, integrity, freshness, and authority non-expansion conditions. Composition, attenuation, and other authority operations are therefore evaluated within the represented execution context rather than over the capability state alone.
+
 ### Relation to authority coexistence and delegation
 
 The result does not prohibit capability composition, attenuation, delegation, or the legitimate coexistence of several authority sources.
