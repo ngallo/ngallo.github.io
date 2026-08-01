@@ -19,7 +19,7 @@ http://127.0.0.1:5556/pic-x/.well-known/pic-x-configuration
 
 The document exposes public endpoints and supported protocol capabilities. Internal Exchange Profiles are not exposed.
 
-## Complete Configuration
+## PIC-X Discovery Document
 
 ```json
 {
