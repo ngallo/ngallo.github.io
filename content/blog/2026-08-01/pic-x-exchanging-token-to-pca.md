@@ -47,7 +47,7 @@ decision = applicationPdp.evaluate(...)
 
 pcaNext = picX.exchange(
     pcaInitial,
-    proofOfRequest
+    proofOfRelationship
 )
 ```
 
@@ -65,7 +65,7 @@ PCA initial
         ├── application PDP evaluation
         │
         ▼
-picX.exchange(pca, proofOfRequest)
+picX.exchange(pca, proofOfRelationship)
         │
         ▼
 PCA next
@@ -737,7 +737,7 @@ PCA0
         ▼
 Application
 │
-└── application authorization and picX.exchange(pca, proofOfRequest)
+└── application authorization and picX.exchange(pca, proofOfRelationship)
         │
         ▼
 PIC-X
