@@ -1,4 +1,4 @@
-+++
+<!-- +++
 author = "Nicola Gallo"
 title = "Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration"
 date = "2026-08-01T11:00:00+02:00"
@@ -9,4 +9,4 @@ tags = ["pic", "pic-x", ".well-known", "configuration", "security", "authorizati
 <figure class="post-banner">
   <img src="/images/2026-08-01/pic-x-well-known-config.png" alt="Designing PIC-X: Exposing Configuration through .well-known/pic-configuration." loading="lazy">
   <figcaption>Designing PIC-X. Exposing Configuration through .well-known/pic-configuration.</figcaption>
-</figure>
+</figure> -->

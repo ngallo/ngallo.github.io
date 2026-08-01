@@ -123,16 +123,18 @@ PIC-X validates the token before using any claim.
 
 ## 2. Exchange Profile
 
-The Exchange Profile defines how scopes are converted into PIC privileges.
+When PIC-X starts, it loads one or more Exchange Profiles. Each profile defines how tokens from a specific identity provider are validated and mapped into PIC authority. Multiple profiles may therefore coexist, allowing PIC-X to integrate with different IdPs while exposing a single PIC-X exchange interface.
 
-Two scope forms are accepted:
+An Exchange Profile defines how the scopes issued by its identity provider are converted into PIC privileges.
+
+In this simple example, two scope formats are supported:
 
 ```text
 <resource-type>:<operation>
 <resource-type>:<operation>:<resource-id>
 ```
 
-Examples:
+For example:
 
 ```text
 documents:read
@@ -140,7 +142,7 @@ documents:write
 documents:read:document-42
 ```
 
-Configuration:
+Below is the Exchange Profile configuration for a specific identity provider:
 
 ```yaml
 exchangeProfile:
@@ -189,7 +191,7 @@ exchangeProfile:
         pattern: '^(?<resourceType>[a-z][a-z0-9_-]*):(?<operation>[a-z][a-z0-9_-]*):(?<resourceId>[a-zA-Z0-9_-]+)$'
 
         emit:
-          scope: '${rawScope}'
+          scope: '${raw}'
           operation: '${operation}'
           resourceType: '${resourceType}'
           resourceId: '${resourceId}'
@@ -199,7 +201,7 @@ exchangeProfile:
         pattern: '^(?<resourceType>[a-z][a-z0-9_-]*):(?<operation>[a-z][a-z0-9_-]*)$'
 
         emit:
-          scope: '${rawScope}'
+          scope: '${raw}'
           operation: '${operation}'
           resourceType: '${resourceType}'
           resourceId: '*'
@@ -207,7 +209,7 @@ exchangeProfile:
   onUnmatchedScope: reject
 ```
 
-`rawScope` is the original scope string matched by the rule.
+`raw` is the original scope string matched by the rule.
 
 Rules are evaluated from priority `10` to priority `1`.
 
@@ -232,14 +234,14 @@ resource-collection → priority 1
 Rules with the same priority are evaluated in an unspecified order. Profiles should therefore avoid equal priorities when rules can match overlapping inputs.
 
 ```text
-rawScope = documents:write
+raw = documents:write
 ```
 
 The Exchange Profile validates and maps the access token. The execution contract is supplied separately as an input to `picX.exchange`.
 
 ## 3. Normalized Exchange Result
 
-The Exchange Profile returns:
+For the sample token, the Exchange Profile produces the following normalized result:
 
 ```json
 {
@@ -290,6 +292,8 @@ privilege = (scope, operation, resourceType, resourceId)
 ```
 
 ## 4. Initial PCA
+
+Below is an example of an initial PCA:
 
 ```json
 {
@@ -475,7 +479,7 @@ The application declares the scope required for the operation:
 requiredScope = "documents:write"
 ```
 
-PIC treats principal and privilege selection as black boxes:
+A developer might use code as simple as the following:
 
 ```text
 principal = selectPrincipal(pca)
@@ -539,7 +543,7 @@ Derived resource:
 
 ## 7. Mapping to AuthZEN
 
-Pseudocode:
+Once the authority has selected the privilege, the application can invoke the PDP interface:
 
 ```text
 principal = selectPrincipal(pca)
@@ -564,7 +568,7 @@ decision = pdp.authzen.evaluate(
 )
 ```
 
-AuthZEN request:
+Here a sample AuthZEN request:
 
 ```http
 POST /access/v1/evaluation HTTP/1.1
@@ -608,6 +612,8 @@ X-Request-ID: bfe9eb29-ab87-4ca3-be83-a1d5d8305716
   }
 }
 ```
+
+> **Info:** PIC does not depend on AuthZEN. The following section only shows one possible integration with an application PDP exposed through the AuthZEN interface.
 
 The mapping is direct:
 
@@ -655,13 +661,13 @@ when {
 };
 ```
 
-For a resource-specific scope:
+The application may require access to a specific resource:
 
 ```text
 requiredScope = "documents:read:document-42"
 ```
 
-Selected privilege:
+The corresponding execution invariant is selected:
 
 ```json
 {
@@ -672,7 +678,7 @@ Selected privilege:
 }
 ```
 
-AuthZEN values:
+The application PDP can evaluate a policy for that specific resource:
 
 ```json
 {
@@ -690,7 +696,7 @@ AuthZEN values:
 }
 ```
 
-Cedar policy:
+Here a sample Cedar policy:
 
 ```cedar
 permit (
