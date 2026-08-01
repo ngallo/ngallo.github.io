@@ -1,0 +1,14 @@
+{{- /*
+  Cedar policy language.
+
+  Chroma has no `cedar` lexer: left alone, ```cedar falls through to the
+  `fallback` lexer, which produces no colouring and makes code-copy.js print
+  "fallback" as the tab label. Cedar is instead highlighted client-side by
+  highlight.js with the official cedar-policy definition (static/js/hljs-languages.js).
+
+  So this hook emits the same wrapper Chroma would emit — .highlight > pre.chroma >
+  code[data-lang], which the copy button, the language badge and the wrap toggle
+  all key off — but with the code left untokenised for highlight.js to claim.
+  {{ .Inner }} is a plain string, so Go's contextual escaping handles the markup.
+*/ -}}
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cedar" data-lang="cedar">{{ .Inner }}</code></pre></div>

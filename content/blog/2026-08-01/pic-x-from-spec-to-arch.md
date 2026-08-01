@@ -1,13 +1,13 @@
 +++
 author = "Nicola Gallo"
 title = "Designing PIC-X: From Specification to Architecture to Code"
-date = "2026-08-01"
+date = "2026-08-01T09:00:00+02:00"
 description = "PIC has reached the point where people are asking how they can use and test it. This article introduces PIC-X, the first open-source implementation component in a broader PIC software ecosystem, and begins Designing PIC-X: a practical series following the project from specification to architecture and code."
 tags = ["pic", "pic-x", "security", "authorization", "ai", "software engineering", "design"]
 +++
 
 <figure class="post-banner">
-  <img src="/images/2026-08-01/from-spec-to-arch.png" alt="Designing PIC-X: From Specification to Architecture to Code." loading="lazy">
+  <img src="/images/2026-08-01/pic-x-from-spec-to-arch.png" alt="Designing PIC-X: From Specification to Architecture to Code." loading="lazy">
   <figcaption>Designing PIC-X. From Specification to Architecture to Code.</figcaption>
 </figure>
 
@@ -63,4 +63,4 @@ The latest implementation will show how PIC-X currently works. The complete seri
 - [PIC Sandboxed Execution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-lineage-guardrail-spec.html)
 - [PIC Architecture and Deployment Specification](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-architecture-deployment-spec.html)
 
-The next article will examine the first PIC-X flow: exchanging an OAuth access token for $PCA_0$, the origin PIC Context of Authority, and the design decisions required to make that conversion explicit and verifiable.
+The next article will examine the first PIC-X flow: exchanging an OAuth access token for $\mathsf{PCA}_0$, the origin PIC Context of Authority, and the design decisions required to make that conversion explicit and verifiable.
