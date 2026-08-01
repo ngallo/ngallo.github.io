@@ -11,7 +11,7 @@ tags = ["pic", "pic-x", "oauth", "token exchange", "exchange profile", "configur
   <figcaption>Designing PIC-X. Exchanging an OAuth Access Token for an Initial PCA.</figcaption>
 </figure>
 
-PIC-X can use a validated OAuth access token as the authority source for a new PIC lineage.
+PIC-X receives an OAuth access token, validates it, and converts it into the initial PCA from which the PIC lineage begins.
 
 ```text
 OAuth access token
@@ -74,10 +74,14 @@ PCA next
 
 The application developer does not need to implement token validation, scope parsing, PCA construction, invariant selection, or lineage verification.
 
+> **Info:** The exchange can also be performed by an API gateway, service mesh, or another infrastructure component. In that model, PIC-X remains transparent to the application: the application receives the PCA and the authorization result without implementing the exchange flow.
+
 > **Warning:** The following example uses an application PDP through AuthZEN. It must not be confused with PIC Trusted Anchors such as Guardrail. Trusted Anchors are protocol-level trust policy engines: they evaluate granted scopes, verify signatures, and enforce non-repudiation and other PIC trust rules. They are part of the PIC protocol flow, not the application authorization flow shown here. Trusted Anchors and Guardrail will be described in a separate article.
 
 
 The remaining sections explain how PIC-X performs the first exchange.
+
+The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile will define how an OAuth access token is exchanged for an initial PCA and will be developed in the next articles.
 
 ## 1. Incoming OAuth Access Token
 
@@ -116,15 +120,6 @@ This example uses a signed JWT access token.
 ```
 
 PIC-X validates the token before using any claim.
-
-```text
-signature
-issuer
-audience
-expiration
-allowed algorithm
-trusted verification key
-```
 
 ## 2. Exchange Profile
 
@@ -190,6 +185,7 @@ exchangeProfile:
 
     rules:
       - name: resource-instance
+        priority: 10
         pattern: '^(?<resourceType>[a-z][a-z0-9_-]*):(?<operation>[a-z][a-z0-9_-]*):(?<resourceId>[a-zA-Z0-9_-]+)$'
 
         emit:
@@ -199,6 +195,7 @@ exchangeProfile:
           resourceId: '${resourceId}'
 
       - name: resource-collection
+        priority: 1
         pattern: '^(?<resourceType>[a-z][a-z0-9_-]*):(?<operation>[a-z][a-z0-9_-]*)$'
 
         emit:
@@ -206,14 +203,33 @@ exchangeProfile:
           operation: '${operation}'
           resourceType: '${resourceType}'
           resourceId: '*'
-  output:
-    tokenType: pic-pca
-    generation: initial
 
   onUnmatchedScope: reject
 ```
 
 `rawScope` is the original scope string matched by the rule.
+
+Rules are evaluated from priority `10` to priority `1`.
+
+```text
+10 = highest priority
+1  = lowest priority
+```
+
+A more specific rule must have a higher priority than a generic rule. Otherwise, the collection rule could consume a resource-specific scope before the instance rule evaluates it.
+
+```text
+documents:read:document-42
+```
+
+For this reason:
+
+```text
+resource-instance   → priority 10
+resource-collection → priority 1
+```
+
+Rules with the same priority are evaluated in an unspecified order. Profiles should therefore avoid equal priorities when rules can match overlapping inputs.
 
 ```text
 rawScope = documents:write
@@ -318,10 +334,10 @@ privilege = (scope, operation, resourceType, resourceId)
     ],
 
     "contract": {
-      "executor": "document-service",
-      "environments": [
-        "production",
-        "staging"
+      "corporation": "acme",
+      "departments": [
+        "engineering",
+        "operations"
       ]
     }
   },
@@ -359,10 +375,10 @@ Example input:
 
 ```json
 {
-  "executor": "document-service",
-  "environments": [
-    "production",
-    "staging"
+  "corporation": "acme",
+  "departments": [
+    "engineering",
+    "operations"
   ]
 }
 ```
@@ -373,10 +389,10 @@ PIC-X places the supplied value in the initial PCA:
 {
   "execution": {
     "contract": {
-      "executor": "document-service",
-      "environments": [
-        "production",
-        "staging"
+      "corporation": "acme",
+      "departments": [
+        "engineering",
+        "operations"
       ]
     }
   }
@@ -396,22 +412,22 @@ Valid examples:
 
 ```json
 {
-  "executor": "document-service"
+  "corporation": "acme"
 }
 ```
 
 ```json
 {
-  "environments": [
-    "production",
-    "staging"
+  "departments": [
+    "engineering",
+    "operations"
   ]
 }
 ```
 
 ```json
 {
-  "executor": "document-service",
+  "corporation": "acme",
   "regions": [
     "eu-west-1",
     "eu-central-1"
@@ -427,13 +443,13 @@ Invalid examples:
 
 ```json
 {
-  "executor": ""
+  "corporation": ""
 }
 ```
 
 ```json
 {
-  "environments": []
+  "departments": []
 }
 ```
 
@@ -743,4 +759,4 @@ Application PDP
 
 ## Core Rule
 
-> The developer creates `PCA0` with `picX.exchange(accessToken, executionContract)`. The execution contract is a mandatory caller-supplied input, while the Exchange Profile validates and maps the access token. The lineage continues with `picX.exchange(pca, proofOfRequest)`.
+> The developer creates `PCA0` with `picX.exchange(accessToken, executionContract)`. The execution contract is a mandatory caller-supplied input, while the Exchange Profile validates the token and maps scopes through ordered rules evaluated from priority `10` to priority `1`. The lineage continues with `picX.exchange(pca, proofOfRequest)`.
