@@ -287,3 +287,32 @@
 .highlight pre::-webkit-scrollbar-corner {
   background: #1e1e1e;
 }
+
+/* ==========================================================================
+   highlight.js – same VS Code Dark+ palette as Chroma above
+   ==========================================================================
+   Used only for the languages Chroma lacks (see static/js/hljs-languages.js).
+   highlight.js emits .hljs-* scopes instead of Chroma's one/two-letter classes,
+   so the colours are mapped here by hand: a block highlighted client-side must
+   be indistinguishable from a server-rendered one. No upstream hljs theme is
+   loaded — it would repaint the background and fight .chroma. */
+
+.hljs-keyword          { color:#569cd6; }   /* permit, forbid, when, is, in    */
+.hljs-literal          { color:#569cd6; }   /* true, false                     */
+.hljs-variable.language_,
+.hljs-variable         { color:#9cdcfe; }   /* principal, action, resource     */
+.hljs-title.function_,
+.hljs-title            { color:#dcdcaa; }   /* ip(), decimal()                 */
+.hljs-string           { color:#ce9178; }
+.hljs-number           { color:#b5cea8; }
+.hljs-comment          { color:#6a9955; font-style:italic; }
+.hljs-operator         { color:#d4d4d4; }   /* ::, ==, &&, .contains()         */
+.hljs-punctuation      { color:#d4d4d4; }
+
+/* highlight.js stamps .hljs on the element it processes; neutralise the
+   background/colour an upstream theme would otherwise be expected to set. */
+.chroma code.hljs {
+  background: transparent;
+  color: #d4d4d4;
+  padding: 0;
+}
