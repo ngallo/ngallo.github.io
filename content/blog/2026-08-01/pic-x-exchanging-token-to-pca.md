@@ -756,7 +756,3 @@ AuthZEN adapter
 Application PDP
 └── evaluates application policy
 ```
-
-## Core Rule
-
-> The developer creates `PCA0` with `picX.exchange(accessToken, executionContract)`. The execution contract is a mandatory caller-supplied input, while the Exchange Profile validates the token and maps scopes through ordered rules evaluated from priority `10` to priority `1`. The lineage continues with `picX.exchange(pca, proofOfRequest)`.
