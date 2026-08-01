@@ -2,8 +2,8 @@
 author = "Nicola Gallo"
 title = "Designing PIC-X: Exchanging an OAuth Access Token for an Initial PCA"
 date = "2026-08-01T10:00:00+02:00"
-description = "This article defines the first PIC-X exchange flow: converting an OAuth access token into an initial PIC Context of Authority (PCA). It explains how to configure an OAuth provider connector and map token claims, scopes, audiences, and resources into the authority context and execution constraints carried by the resulting PCA."
-tags = ["pic", "pic-x", "token exchange", "configuration", "security", "authorization", "ai", "software engineering", "design"]
+description = "This article defines the first PIC-X exchange flow: deriving an initial PIC Context of Authority (PCA) from a validated OAuth access token through an Exchange Profile."
+tags = ["pic", "pic-x", "oauth", "token exchange", "exchange profile", "configuration", "security", "authorization", "software engineering", "design"]
 +++
 
 <figure class="post-banner">
@@ -11,27 +11,77 @@ tags = ["pic", "pic-x", "token exchange", "configuration", "security", "authoriz
   <figcaption>Designing PIC-X. Exchanging an OAuth Access Token for an Initial PCA.</figcaption>
 </figure>
 
-PIC-X can use a validated OAuth access token as the origin of a new PIC lineage.
+PIC-X can use a validated OAuth access token as the authority source for a new PIC lineage.
 
-The OAuth token is not copied directly into the PCA. It is first validated, then its claims are interpreted through a provider-specific mapping configuration.
+```text
+OAuth access token
+        │
+        ▼
+Exchange Profile
+├── token validation
+├── claim normalization
+├── scope parsing
+└── PCA0 construction
+        │
+        ▼
+Initial PIC lineage
+```
+
+## Developer Experience
+
+Using PIC-X requires only two exchange operations.
+
+Create the initial PCA from an OAuth access token:
+
+```text
+pcaInitial = picX.exchange(
+    accessToken,
+    executionContract
+)
+```
+
+Use the PCA during application authorization:
+
+```text
+decision = applicationPdp.evaluate(...)
+
+pcaNext = picX.exchange(
+    pcaInitial,
+    proofOfRequest
+)
+```
+
+At a glance:
+
+```text
+OAuth access token
+        │
+        ▼
+picX.exchange(accessToken, executionContract)
+        │
+        ▼
+PCA initial
+        │
+        ├── application PDP evaluation
+        │
+        ▼
+picX.exchange(pca, proofOfRequest)
+        │
+        ▼
+PCA next
+```
+
+
+The application developer does not need to implement token validation, scope parsing, PCA construction, invariant selection, or lineage verification.
+
+> **Warning:** The following example uses an application PDP through AuthZEN. It must not be confused with PIC Trusted Anchors such as Guardrail. Trusted Anchors are protocol-level trust policy engines: they evaluate granted scopes, verify signatures, and enforce non-repudiation and other PIC trust rules. They are part of the PIC protocol flow, not the application authorization flow shown here. Trusted Anchors and Guardrail will be described in a separate article.
+
+
+The remaining sections explain how PIC-X performs the first exchange.
 
 ## 1. Incoming OAuth Access Token
 
-A JWT is transmitted using the compact form:
-
-```text
-<header>.<payload>.<signature>
-```
-
-Example:
-
-```text
-eyJhbGciOiJFUzI1NiIsImtpZCI6ImlkcC1rZXktMSIsInR5cCI6ImF0K2p3dCJ9.
-eyJpc3MiOiJodHRwczovL2lkcC5leGFtcGxlLmNvbSIsInN1YiI6InVzZXItMTIzIiwiYXVkIjoicGljLXgiLCJleHAiOjE3ODU1OTAwMDAsImlhdCI6MTc4NTU4OTQwMCwibmFtZSI6Ik1hcmlvIFJvc3NpIiwiZW1haWwiOiJtYXJpb0BleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJ0ZW5hbnRfaWQiOiJ0ZW5hbnQtYSIsImVtcGxveW1lbnRfdHlwZSI6ImVtcGxveWVlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIiwic2FsYXJpZWQiXSwicm9sZXMiOlsib3JkZXItY3JlYXRvciIsImludm9pY2UtcmVhZGVyIl0sInNjb3BlIjoib3BlbmlkIHByb2ZpbGUgb3JkZXJzLnJlYWQgb3JkZXJzLmNyZWF0ZSBpbnZvaWNlcy5yZWFkIiwib3JnYW5pemF0aW9uIjoiRXhhbXBsZSBDb3JwIiwiZGVwYXJ0bWVudCI6IkVuZ2luZWVyaW5nIn0.
-<SIGNATURE>
-```
-
-Decoded representation:
+This example uses a signed JWT access token.
 
 ```json
 {
@@ -46,357 +96,651 @@ Decoded representation:
     "aud": "pic-x",
     "iat": 1785589400,
     "exp": 1785590000,
-    "name": "Mario Rossi",
-    "email": "mario@example.com",
-    "email_verified": true,
+
+    "name": "Oliver Bennett",
+    "email": "oliver.bennett@example.com",
     "tenant_id": "tenant-a",
-    "employment_type": "employee",
-    "groups": ["engineering", "salaried"],
-    "roles": ["order-creator", "invoice-reader"],
-    "scope": "openid profile orders.read orders.create invoices.read",
-    "organization": "Example Corp",
-    "department": "Engineering"
+
+    "roles": [
+      "document-manager"
+    ],
+
+    "groups": [
+      "document-management",
+      "eu-employees"
+    ],
+
+    "scope": "documents:read documents:write documents:read:document-42"
   }
 }
 ```
 
-Before using any claim, PIC-X validates at least:
+PIC-X validates the token before using any claim.
 
 ```text
 signature
 issuer
 audience
 expiration
-allowed signing algorithm
-key selected through kid
+allowed algorithm
+trusted verification key
 ```
 
-Decoding a JWT is not the same as validating it.
+## 2. Exchange Profile
 
-## 2. Provider Connector
+The Exchange Profile defines how scopes are converted into PIC privileges.
 
-Different identity providers can use different claim names and encodings:
+Two scope forms are accepted:
 
 ```text
-tenant_id or tenant
-roles as an array or a space-delimited string
-scope as a space-delimited string
-groups in a provider-specific claim
+<resource-type>:<operation>
+<resource-type>:<operation>:<resource-id>
 ```
 
-PIC-X therefore uses a provider-specific connector.
-
-The connector has two responsibilities:
+Examples:
 
 ```text
-1. Validate the provider token.
-2. Normalize the relevant claims.
+documents:read
+documents:write
+documents:read:document-42
 ```
 
-Example normalized principal context:
+Configuration:
+
+```yaml
+exchangeProfile:
+  id: corporate-oauth-to-pic
+
+  source:
+    tokenType: oauth-access-token
+    format: jwt
+    issuer: https://idp.example.com
+    audience: pic-x
+
+    validation:
+      allowedAlgorithms:
+        - ES256
+      requireExpiration: true
+      requireTokenType: at+jwt
+
+  claims:
+    principal:
+      id:
+        from: sub
+
+      roles:
+        from: roles
+        type: set
+
+      groups:
+        from: groups
+        type: set
+
+    attributes:
+      securityDomain:
+        from: tenant_id
+
+    scopes:
+      from: scope
+      encoding: space-delimited
+      type: set
+
+  privileges:
+    source: scopes
+
+    rules:
+      - name: resource-instance
+        pattern: '^(?<resourceType>[a-z][a-z0-9_-]*):(?<operation>[a-z][a-z0-9_-]*):(?<resourceId>[a-zA-Z0-9_-]+)$'
+
+        emit:
+          scope: '${rawScope}'
+          operation: '${operation}'
+          resourceType: '${resourceType}'
+          resourceId: '${resourceId}'
+
+      - name: resource-collection
+        pattern: '^(?<resourceType>[a-z][a-z0-9_-]*):(?<operation>[a-z][a-z0-9_-]*)$'
+
+        emit:
+          scope: '${rawScope}'
+          operation: '${operation}'
+          resourceType: '${resourceType}'
+          resourceId: '*'
+  output:
+    tokenType: pic-pca
+    generation: initial
+
+  onUnmatchedScope: reject
+```
+
+`rawScope` is the original scope string matched by the rule.
+
+```text
+rawScope = documents:write
+```
+
+The Exchange Profile validates and maps the access token. The execution contract is supplied separately as an input to `picX.exchange`.
+
+## 3. Normalized Exchange Result
+
+The Exchange Profile returns:
 
 ```json
 {
-  "type": "human",
-  "id": "user-123",
-  "issuer": "https://idp.example.com",
-  "displayName": "Mario Rossi",
-  "attributes": {
-    "email": "mario@example.com",
-    "emailVerified": true,
-    "tenant": "tenant-a",
-    "employmentType": "employee",
-    "organization": "Example Corp",
-    "department": "Engineering"
+  "principal": {
+    "id": "user-123",
+    "roles": [
+      "document-manager"
+    ],
+    "groups": [
+      "document-management",
+      "eu-employees"
+    ]
   },
-  "groups": ["engineering", "salaried"],
-  "roles": ["order-creator", "invoice-reader"],
-  "scopes": [
-    "openid",
-    "profile",
-    "orders.read",
-    "orders.create",
-    "invoices.read"
-  ],
-  "trustSource": "corporate-idp",
-  "attestationFormat": "oidc-jwt"
+
+  "attributes": {
+    "securityDomain": "tenant-a"
+  },
+
+  "privileges": [
+    {
+      "scope": "documents:read",
+      "operation": "read",
+      "resourceType": "documents",
+      "resourceId": "*"
+    },
+    {
+      "scope": "documents:write",
+      "operation": "write",
+      "resourceType": "documents",
+      "resourceId": "*"
+    },
+    {
+      "scope": "documents:read:document-42",
+      "operation": "read",
+      "resourceType": "documents",
+      "resourceId": "document-42"
+    }
+  ]
 }
 ```
 
-This object describes the authenticated principal.
+> **Note:** `principal` is optional. A valid exchange result must contain `principal`, `privileges`, or both.
 
-It is not yet a PCA and it is not yet the PIC authority carried by the lineage.
-
-## 3. Provider Mapping Configuration
-
-Claims must not be copied blindly into a PCA.
-
-The mapping configuration explicitly defines which PIC operations may be produced from validated claims.
-
-```yaml
-provider:
-  id: corporate-idp
-  issuer: https://idp.example.com
-  audience: pic-x
-
-claims:
-  subject: sub
-  tenant: tenant_id
-  scopes:
-    claim: scope
-    encoding: space-delimited
-  roles:
-    claim: roles
-    type: set
-  groups:
-    claim: groups
-    type: set
-
-mapping:
-  securityDomain:
-    from: tenant
-  operations:
-    - emit: orders.read
-      when:
-        scope: orders.read
-    - emit: orders.create
-      when:
-        all:
-          - scope: orders.create
-          - role: order-creator
-    - emit: invoices.read
-      when:
-        all:
-          - scope: invoices.read
-          - role: invoice-reader
-```
-
-The mapping means:
+Each privilege is one atomic authority item:
 
 ```text
-orders.read
-→ requires scope orders.read
-
-orders.create
-→ requires scope orders.create
-  and role order-creator
-
-invoices.read
-→ requires scope invoices.read
-  and role invoice-reader
+privilege = (scope, operation, resourceType, resourceId)
 ```
 
-Roles and groups are evidence used by the mapping policy. They do not automatically become PIC operations.
-
-The audience identifies the authority context in which the token is valid. The tenant restricts the resulting authority to a specific security domain.
-
-## 4. Mapping Rule
-
-Let:
-
-$$
-\begin{aligned}
-S &= \text{validated scopes} \\
-R &= \text{validated roles} \\
-G &= \text{validated groups} \\
-M &= \text{configured mapping}
-\end{aligned}
-$$
-
-The initial operation set is:
-
-$$
-O_0 = M(S, R, G)
-$$
-
-For example:
-
-$$
-\texttt{orders.create} \in O_0
-$$
-
-only when:
-
-$$
-\texttt{orders.create} \in S
-\quad \text{and} \quad
-\texttt{order-creator} \in R
-$$
-
-The mapping must not create authority that is unsupported by the validated OAuth input. Its semantic correctness is a deployment responsibility.
-
-PIC then enforces continuity and non-expansion relative to the resulting initial authority state.
-
-## 5. Initial PCA
-
-For the example token, all configured conditions succeed.
-
-PIC-X can derive the following PCA0:
+## 4. Initial PCA
 
 ```json
 {
   "profile": "https://pic-protocol.org/0.1",
-  "issuer": "pic-x:corporate-idp",
-  "executor": {
-    "type": "human",
-    "id": "user-123"
+  "issuer": "pic-x:corporate-oauth",
+
+  "principal": {
+    "id": "user-123",
+    "roles": [
+      "document-manager"
+    ],
+    "groups": [
+      "document-management",
+      "eu-employees"
+    ]
   },
-  "invariants": {
-    "authority": {
-      "audience": "pic-x",
-      "securityDomain": "tenant-a",
-      "operations": [
-        "orders.read",
-        "orders.create",
-        "invoices.read"
+
+  "attributes": {
+    "securityDomain": "tenant-a"
+  },
+
+  "execution": {
+    "invariants": [
+      {
+        "scope": "documents:read",
+        "operation": "read",
+        "resourceType": "documents",
+        "resourceId": "*"
+      },
+      {
+        "scope": "documents:write",
+        "operation": "write",
+        "resourceType": "documents",
+        "resourceId": "*"
+      },
+      {
+        "scope": "documents:read:document-42",
+        "operation": "read",
+        "resourceType": "documents",
+        "resourceId": "document-42"
+      }
+    ],
+
+    "contract": {
+      "executor": "document-service",
+      "environments": [
+        "production",
+        "staging"
       ]
-    },
-    "executionContract": {}
+    }
   },
+
   "continuation": {
     "challenge": "base64url-random-256-bit-value",
     "mode": "single-use",
     "expiresAt": "2026-08-01T14:15:00Z"
   },
+
   "issuedAt": "2026-08-01T14:00:00Z",
   "expiresAt": "2026-08-01T14:15:00Z"
 }
 ```
 
-The PCA contains the result of the mapping, not a copy of the OAuth token.
+> **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
+
+`execution.invariants` carries the authority that must be preserved or attenuated across the lineage.  
+`execution.contract` carries execution-specific constraints.
+
+## 5. Providing an Execution Contract
+
+The execution contract is a mandatory input to the initial exchange:
 
 ```text
-Validated OAuth token
-        │
-        ├── scopes
-        ├── roles
-        ├── groups
-        ├── audience
-        └── tenant
-                │
-                ▼
-        Provider connector
-                │
-                ▼
-        Declared mapping
-                │
-                ▼
-              PCA0
+pcaInitial = picX.exchange(
+    accessToken,
+    executionContract
+)
 ```
 
-From PCA0 onward, each continuation may preserve or reduce authority, but it must not expand it:
+It is provided by the caller, not by the Exchange Profile.
 
-$$
-\texttt{operations}[n+1] \subseteq \texttt{operations}[n]
-$$
-
-Operation labels such as `orders.create` have meaning only inside their declared authority domain, audience, resource model, and application profile.
-
-## 6. Policy Decision Point
-
-The application receives:
-
-```text
-validated principal context
-verified PCA authority
-requested action
-target resource
-```
-
-An adapter can construct the following Cedar authorization context:
+Example input:
 
 ```json
 {
-  "principal": {
-    "type": "Pic::Human",
-    "id": "user-123",
-    "attributes": {
-      "tenant": "tenant-a",
-      "roles": ["order-creator", "invoice-reader"],
-      "groups": ["engineering", "salaried"]
-    },
-    "pcaAuthority": {
-      "operations": [
-        "orders.read",
-        "orders.create",
-        "invoices.read"
-      ],
-      "securityDomain": "tenant-a"
+  "executor": "document-service",
+  "environments": [
+    "production",
+    "staging"
+  ]
+}
+```
+
+PIC-X places the supplied value in the initial PCA:
+
+```json
+{
+  "execution": {
+    "contract": {
+      "executor": "document-service",
+      "environments": [
+        "production",
+        "staging"
+      ]
     }
-  },
-  "action": {
-    "type": "Pic::Action",
-    "id": "CreateOrder"
-  },
-  "resource": {
-    "type": "Pic::OrderAccount",
-    "id": "account-42",
-    "tenant": "tenant-a"
   }
 }
 ```
 
-Minimal Cedar policy:
+The contract must contain at least one attribute with a non-empty value.
+
+Each attribute supports only one of these value types:
+
+```text
+non-empty string
+non-empty array of non-empty strings
+```
+
+Valid examples:
+
+```json
+{
+  "executor": "document-service"
+}
+```
+
+```json
+{
+  "environments": [
+    "production",
+    "staging"
+  ]
+}
+```
+
+```json
+{
+  "executor": "document-service",
+  "regions": [
+    "eu-west-1",
+    "eu-central-1"
+  ]
+}
+```
+
+Invalid examples:
+
+```json
+{}
+```
+
+```json
+{
+  "executor": ""
+}
+```
+
+```json
+{
+  "environments": []
+}
+```
+
+```json
+{
+  "retryCount": 3,
+  "enabled": true,
+  "limits": {
+    "cpu": "2"
+  }
+}
+```
+
+Numbers, booleans, objects, null values, empty strings, empty arrays, and arrays containing empty or non-string values are not supported.
+
+> **Warning:** `execution.contract` does not replace `principal`, `attributes`, or `execution.invariants`. It adds execution constraints to the authority already carried by the PCA.
+
+## 6. Selecting Authority by Scope
+
+The application declares the scope required for the operation:
+
+```text
+requiredScope = "documents:write"
+```
+
+PIC treats principal and privilege selection as black boxes:
+
+```text
+principal = selectPrincipal(pca)
+
+privilege = selectInvariantByScope(
+    pca,
+    "documents:write"
+)
+```
+
+Selected principal:
+
+```json
+{
+  "id": "user-123",
+  "roles": [
+    "document-manager"
+  ],
+  "groups": [
+    "document-management",
+    "eu-employees"
+  ]
+}
+```
+
+Selected privilege:
+
+```json
+{
+  "scope": "documents:write",
+  "operation": "write",
+  "resourceType": "documents",
+  "resourceId": "*"
+}
+```
+
+The AuthZEN values are derived from the selected values:
+
+```text
+subject  = toAuthZenSubject(principal)
+action   = selectOperation(privilege)
+resource = selectResource(privilege)
+```
+
+Derived action:
+
+```json
+{
+  "name": "write"
+}
+```
+
+Derived resource:
+
+```json
+{
+  "type": "documents",
+  "id": "*"
+}
+```
+
+## 7. Mapping to AuthZEN
+
+Pseudocode:
+
+```text
+principal = selectPrincipal(pca)
+
+privilege = selectInvariantByScope(
+    pca,
+    "documents:write"
+)
+
+subject = toAuthZenSubject(principal)
+action = selectOperation(privilege)
+resource = selectResource(privilege)
+
+decision = pdp.authzen.evaluate(
+    subject,
+    action,
+    resource,
+    {
+        scope: privilege.scope,
+        securityDomain: pca.attributes.securityDomain
+    }
+)
+```
+
+AuthZEN request:
+
+```http
+POST /access/v1/evaluation HTTP/1.1
+Host: pdp.example.com
+Authorization: Bearer <pdp-client-token>
+Content-Type: application/json
+X-Request-ID: bfe9eb29-ab87-4ca3-be83-a1d5d8305716
+```
+
+```json
+{
+  "subject": {
+    "type": "user",
+    "id": "user-123",
+    "properties": {
+      "roles": [
+        "document-manager"
+      ],
+      "groups": [
+        "document-management",
+        "eu-employees"
+      ]
+    }
+  },
+
+  "resource": {
+    "type": "documents",
+    "id": "*",
+    "properties": {
+      "securityDomain": "tenant-a"
+    }
+  },
+
+  "action": {
+    "name": "write"
+  },
+
+  "context": {
+    "scope": "documents:write",
+    "securityDomain": "tenant-a"
+  }
+}
+```
+
+The mapping is direct:
+
+```text
+principal.id           → subject.id
+principal.roles        → subject.properties.roles
+principal.groups       → subject.properties.groups
+privilege.operation    → action.name
+privilege.resourceType → resource.type
+privilege.resourceId   → resource.id
+privilege.scope        → context.scope
+securityDomain         → context.securityDomain
+```
+
+## 8. Cedar Policy
+
+The PDP receives a normal AuthZEN request.
+
+Cedar evaluates the policy that matches the selected action and resource:
 
 ```cedar
 permit (
-    principal is Pic::Human,
-    action == Pic::Action::"CreateOrder",
-    resource is Pic::OrderAccount
+    principal is User,
+    action == Action::"write",
+    resource is Document
 )
 when {
-    principal.pcaAuthority.operations.contains("orders.create") &&
-    principal.pcaAuthority.securityDomain == resource.tenant
+    context.scope == "documents:write" &&
+    context.securityDomain == resource.securityDomain
 };
 ```
 
-The decision requires both:
+A policy may also use principal attributes:
 
-```text
-the PCA authorizes orders.create
-and
-the PCA security domain matches the resource tenant
+```cedar
+permit (
+    principal is User,
+    action == Action::"write",
+    resource is Document
+)
+when {
+    context.scope == "documents:write" &&
+    context.securityDomain == resource.securityDomain &&
+    principal.roles.contains("document-manager")
+};
 ```
 
-The PDP should not reinterpret the original JWT directly. It should evaluate the authority already validated and translated by PIC-X.
+For a resource-specific scope:
+
+```text
+requiredScope = "documents:read:document-42"
+```
+
+Selected privilege:
+
+```json
+{
+  "scope": "documents:read:document-42",
+  "operation": "read",
+  "resourceType": "documents",
+  "resourceId": "document-42"
+}
+```
+
+AuthZEN values:
+
+```json
+{
+  "action": {
+    "name": "read"
+  },
+  "resource": {
+    "type": "documents",
+    "id": "document-42"
+  },
+  "context": {
+    "scope": "documents:read:document-42",
+    "securityDomain": "tenant-a"
+  }
+}
+```
+
+Cedar policy:
+
+```cedar
+permit (
+    principal is User,
+    action == Action::"read",
+    resource == Document::"document-42"
+)
+when {
+    context.scope == "documents:read:document-42"
+};
+```
+
 
 ## End-to-End Flow
 
 ```text
-OAuth JWT
+OAuth JWT + executionContract
 │
-├── identity
-├── scopes
-├── roles
-├── groups
-└── tenant
-        │
         ▼
-Provider connector
-├── validates the token
-└── normalizes claims
-        │
+picX.exchange(accessToken, executionContract)
+│
         ▼
-Provider mapping
-├── scopes → candidate operations
-├── roles/groups → mapping conditions
-└── tenant → security domain
+Exchange Profile
+├── parses each scope
+└── emits:
+    ├── scope
+    ├── operation
+    ├── resourceType
+    └── resourceId
         │
         ▼
 PCA0
-├── initial authority
-├── invariants
-└── continuation challenge
+├── optional principal
+├── optional attributes
+├── execution invariants
+└── mandatory execution contract
+        │
+        ▼
+Application
+│
+└── application authorization and picX.exchange(pca, proofOfRequest)
+        │
+        ▼
+PIC-X
+├── selectPrincipal(pca)
+└── selectInvariantByScope(pca, requiredScope)
+        │
+        ▼
+Selected invariant
+├── operation
+├── resourceType
+└── resourceId
+        │
+        ▼
+AuthZEN adapter
+├── principal → subject
+├── operation → action
+├── resourceType → resource.type
+├── resourceId → resource.id
+└── scope → context.scope
         │
         ▼
 Application PDP
-└── authorizes the concrete request
+└── evaluates application policy
 ```
 
 ## Core Rule
 
-> The OAuth JWT provides external origin authority.  
-> The provider connector validates it.  
-> The mapping translates it.  
-> PCA0 fixes the initial authority of the PIC lineage.  
-> The application PDP decides whether that authority permits the concrete request.
+> The developer creates `PCA0` with `picX.exchange(accessToken, executionContract)`. The execution contract is a mandatory caller-supplied input, while the Exchange Profile validates and maps the access token. The lineage continues with `picX.exchange(pca, proofOfRequest)`.
