@@ -236,6 +236,8 @@ centralized
 → the lineage is managed by the PIC-X server
 
 snapshot-based-subchain
-→ the subchain produces local lineage entries
-→ the central PIC-X service periodically anchors or refreshes the snapshot
+→ local nodes extend the subchain
+→ snapshots must be produced within a configured maximum interval
+→ shorter intervals are allowed
+→ the maximum interval limits the exposure to colluding compromised nodes
 ```
