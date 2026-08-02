@@ -43,7 +43,7 @@ The application developer does not need to implement token validation, scope par
 
 > **Info:** The exchange can also be performed by an API gateway, service mesh, or another infrastructure component. In that model, PIC-X remains transparent to the application: the application receives the PIC Continuity Token and can read its current PCA without implementing the exchange flow.
 
-> **Warning:** The following example uses an application PDP through AuthZEN. It must not be confused with PIC Trusted Anchors such as Guardrail. Trusted Anchors are protocol-level trust policy engines: they evaluate granted scopes, verify Continuity Transition signatures, and enforce non-repudiation and other PIC trust rules. They are part of the PIC protocol flow, not the application authorization flow shown here. Trusted Anchors and Guardrail will be described in a separate article.
+> **Warning:** The following example uses an application PDP through [AuthZEN](https://openid.net/wg/authzen/specifications/). AuthZEN is an OpenID Foundation authorization interoperability specification that defines a standard API between a Policy Enforcement Point (PEP) and a Policy Decision Point (PDP). It must not be confused with PIC Trusted Anchors such as Guardrail. Trusted Anchors are protocol-level trust policy engines: they evaluate granted scopes, verify Continuity Transition signatures, and enforce non-repudiation and other PIC trust rules. They are part of the PIC protocol flow, not the application authorization flow shown here.
 
 
 The remaining sections explain how PIC-X performs the first exchange.
@@ -543,7 +543,7 @@ Selected privilege:
 }
 ```
 
-The AuthZEN values are derived from the selected values:
+The [AuthZEN](https://openid.net/wg/authzen/specifications/) request values are derived from the selected PCA values:
 
 ```text
 subject  = toAuthZenSubject(principal)
@@ -568,7 +568,12 @@ Derived resource:
 }
 ```
 
-## 7. Mapping to AuthZEN
+## 7. Mapping to [AuthZEN](https://openid.net/wg/authzen/specifications/)
+
+[AuthZEN](https://openid.net/wg/authzen/specifications/) is an OpenID Foundation specification for authorization interoperability. It standardizes how a Policy Enforcement Point asks a Policy Decision Point for an authorization decision, without requiring either component to know the other's internal policy language or implementation.
+
+In this article, PIC supplies the current authority context, while AuthZEN is used only as the application-facing request and response interface to the PDP.
+
 
 Once the authority has selected the privilege, the application can invoke the PDP interface:
 
@@ -595,7 +600,7 @@ decision = pdp.authzen.evaluate(
 )
 ```
 
-Here a sample AuthZEN request:
+Here is a sample [AuthZEN](https://openid.net/wg/authzen/specifications/) authorization request:
 
 ```http
 POST /access/v1/evaluation HTTP/1.1
@@ -640,7 +645,7 @@ X-Request-ID: bfe9eb29-ab87-4ca3-be83-a1d5d8305716
 }
 ```
 
-> **Info:** PIC does not depend on AuthZEN. The following section only shows one possible integration with an application PDP exposed through the AuthZEN interface.
+> **Info:** PIC does not depend on [AuthZEN](https://openid.net/wg/authzen/specifications/). AuthZEN is used here only as one possible standardized interface between the application Policy Enforcement Point and its Policy Decision Point.
 
 The mapping is direct:
 
@@ -657,7 +662,7 @@ securityDomain         → context.securityDomain
 
 ## 8. Cedar Policy
 
-The PDP receives a normal AuthZEN request.
+The PDP receives a standard [AuthZEN](https://openid.net/wg/authzen/specifications/) authorization request.
 
 Cedar evaluates the policy that matches the selected action and resource:
 
@@ -787,3 +792,7 @@ PIC-X
         v
 PIC Continuity Token N+1
 ```
+
+## References
+
+- [OpenID Foundation AuthZEN specifications](https://openid.net/wg/authzen/specifications/) — authorization interoperability specifications for communication between Policy Enforcement Points and Policy Decision Points.
