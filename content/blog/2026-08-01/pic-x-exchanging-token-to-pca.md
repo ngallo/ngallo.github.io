@@ -63,24 +63,29 @@ PCA
 → not signed independently
 ```
 
-A **Continuity Transition** is the signed object that binds two continuity positions:
+A **Continuity Transition** is the object that binds two continuity positions and is then serialized as the payload of a signed JWT:
 
 ```text
+chained transition
++
 previous PCA
 +
 current PCA
 +
-transition metadata
+cryptographic continuity evidence
 =
-signed Continuity Transition
+Continuity Transition payload
+→ signed JWT
 ```
 
-For initialization there is no previous PCA:
+For initialization there is no previous transition and no previous PCA:
 
 ```text
 Continuity Transition 0
-├── previous PCA: null
-└── current PCA: PCA 0
+├── chainedTransition: null
+├── previousPca: null
+├── currentPca: PCA 0
+└── continuity: initial cryptographic continuity evidence
 ```
 
 The cryptographic signature is applied to the Continuity Transition, not to the individual PCA.
@@ -295,7 +300,7 @@ Each privilege is one atomic authority item:
 privilege = (scope, operation, resourceType, resourceId)
 ```
 
-## 4. Initial PIC Context of Authority
+## 4. Initial PCA (PIC Context of Authority)
 
 Below is an example of PCA 0, the initial PIC Context of Authority. This object is plain JSON and has no independent signature:
 
@@ -360,30 +365,50 @@ After constructing PCA 0, PIC-X creates the initial Continuity Transition:
 ```json
 {
   "profile": "https://pic-protocol.org/0.2",
-  "issuer": "pic-x:corporate-oauth",
-  "sequence": 0,
+  "issuer": "https://pic-x.example.com",
+  "chainedTransition": null,
   "previousPca": null,
   "currentPca": {
     "...": "PCA 0"
   },
-  "transitionMetadata": {
-    "createdAt": "2026-08-01T14:00:00Z"
+  "continuity": {
+    "...": "cryptographic continuity proofs"
   }
 }
 ```
 
-PIC-X signs this Continuity Transition and places it in PIC Continuity Token 0.
+PIC-X serializes this Continuity Transition as the payload of a signed JWT.
+
+```text
+JWT header
+→ identifies the signing algorithm and key
+
+JWT payload
+→ contains the Continuity Transition
+
+JWT signature
+→ protects the complete Continuity Transition
+```
+
+Conceptually:
 
 ```text
 PCA 0
 → plain JSON authority context
 
 Continuity Transition 0
-→ signed binding containing PCA 0
+→ contains chainedTransition, previousPca, currentPca, and continuity
+
+signed JWT
+→ cryptographically protects the complete Continuity Transition
 
 PIC Continuity Token 0
-→ transport artifact returned by PIC-X
+→ the signed JWT returned by PIC-X
 ```
+
+`chainedTransition` links the current transition to its predecessor. It is `null` for the initial transition.
+
+`continuity` contains the cryptographic evidence used to establish authority continuity. The exact proof structure, validation algorithm, supported proof types, and decentralized continuity model are intentionally not defined in this article and will be covered in a dedicated protocol article.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -568,7 +593,7 @@ Derived resource:
 }
 ```
 
-## 7. Mapping to [AuthZEN](https://openid.net/wg/authzen/specifications/)
+## 7. Mapping a PCA to [AuthZEN](https://openid.net/wg/authzen/specifications/)
 
 [AuthZEN](https://openid.net/wg/authzen/specifications/) is an OpenID Foundation specification for authorization interoperability. It standardizes how a Policy Enforcement Point asks a Policy Decision Point for an authorization decision, without requiring either component to know the other's internal policy language or implementation.
 
@@ -660,7 +685,7 @@ privilege.scope        → context.scope
 securityDomain         → context.securityDomain
 ```
 
-## 8. Cedar Policy
+## 8. Evaluating PCA-Derived Authorization with Cedar
 
 The PDP receives a standard [AuthZEN](https://openid.net/wg/authzen/specifications/) authorization request.
 
@@ -742,7 +767,7 @@ when {
 ```
 
 
-## End-to-End Flow
+## PCA-Derived Authorization: End-to-End Flow
 
 ```text
 OAuth JWT + executionContract
