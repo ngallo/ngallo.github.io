@@ -79,7 +79,7 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
   "pca": {
     "format": "json",
     "execution_contract_binding_methods_supported": [
-      "digest"
+      "embedded"
     ]
   },
 
@@ -492,14 +492,14 @@ Example response from the Trusted Anchors endpoint:
 
 ## 8. PCA and Continuity Capabilities
 
-Continuity Transition signing, execution contract binding, continuity-token format, and continuity modes are separate capabilities.
+Continuity Transition signing, execution contract placement or binding, continuity-token format, and continuity modes are separate capabilities.
 
 ```json
 {
   "pca": {
     "format": "json",
     "execution_contract_binding_methods_supported": [
-      "digest"
+      "embedded"
     ]
   },
 
@@ -533,7 +533,7 @@ continuity.transition_signing_alg_values_supported
 → algorithms used to sign Continuity Transitions
 
 pca.execution_contract_binding_methods_supported
-→ methods used to bind the validated execution contract to the PCA
+→ methods used to place or bind the validated execution contract in the PCA
 
 continuity_proposals.types_supported
 → proposal types accepted for initialization and continuation
@@ -547,7 +547,7 @@ continuity.formats_supported
 
 PIC Continuity Tokens are represented as signed JWTs. PCAs are plain JSON authority contexts contained in Continuity Transitions and are not signed independently. The precise signer roles, proof structures, and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
 
-With the `digest` binding method, PIC-X validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and breaks the binding.
+With the `embedded` binding method, PIC-X validates the execution contract and places the validated contract directly in the PCA under `execution.contract`. The contract is therefore protected as part of the signed Continuity Transition that contains the PCA.
 
 ### Continuity modes
 
@@ -641,10 +641,8 @@ After initialization, OAuth does not need to participate in every internal autho
 
 ```text
 effective execution authority
-=
-current PIC authority
-∩
-local policy
+→ derived from the current PIC authority
+→ restricted by local policy
 ```
 
 The PIC Continuity Token must never expand beyond the authority established by its origin and subsequent valid restrictions.

@@ -251,7 +251,7 @@ Rules with the same priority are evaluated in an unspecified order. Profiles sho
 raw = documents:write
 ```
 
-The Exchange Profile validates and maps the access token. The execution contract is supplied separately as an input to `picX.exchange`.
+The Exchange Profile validates and maps the access token. The execution contract is supplied by the caller inside the initial Continuity Proposal, not by the Exchange Profile.
 
 ## 3. Normalized Exchange Result
 
