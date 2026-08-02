@@ -3,7 +3,7 @@ author = "Nicola Gallo"
 title = "Designing PIC-X: From Specification to Architecture to Code"
 date = "2026-08-01T09:00:00+02:00"
 description = "PIC has reached the point where people are asking how they can use and test it. This article introduces PIC-X, the first open-source implementation component in a broader PIC software ecosystem, and begins Designing PIC-X: a practical series following the project from specification to architecture and code."
-tags = ["pic", "pic-x", "security", "authorization", "ai", "software engineering", "design"]
+tags = ["pic", "pic-x", "authority continuity", "security", "authorization", "ai", "software engineering", "design"]
 +++
 
 <figure class="post-banner">

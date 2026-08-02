@@ -2,8 +2,8 @@
 author = "Nicola Gallo"
 title = "Designing PIC-X: Deriving an Initial PIC Context of Authority"
 date = "2026-08-01T10:00:00+02:00"
-description = "This article defines the first PIC-X exchange flow: deriving an initial PIC Context of Authority (PCA) as plain JSON from a validated OAuth access token, then binding it into the first signed Continuity Transition."
-tags = ["pic", "pic-x", "oauth", "token exchange", "exchange profile", "configuration", "security", "authorization", "software engineering", "design"]
+description = "This article defines the centralized continuity exchange flow of PIC-X. It explains how PIC-X validates the current PIC Continuity Token and the Continuity Proposal, derives the next PIC Context of Authority (PCA), constructs the next Continuity Transition, and issues the next signed PIC Continuity Token. The article describes centralized authority propagation, execution-contract enforcement, authority non-expansion, and the complete lifecycle of a continuity exchange. The cryptographic structure of continuity proofs and decentralized continuity are intentionally deferred to dedicated protocol articles."
+tags = ["pic", "pic-x", "authority continuity", "oauth", "token exchange", "exchange profile", "configuration", "security", "authorization", "software engineering", "design"]
 +++
 
 <figure class="post-banner">
