@@ -2,8 +2,8 @@
 author = "Nicola Gallo"
 title = "Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration"
 date = "2026-08-01T11:00:00+02:00"
-description = "This article defines the PIC-X discovery document exposed through .well-known/pic-x-configuration. It explains the relationship between PIC-X and the PIC Token Service, the PIC profile of OAuth Token Exchange, PCA initialization and chain continuation, execution contract binding, supported chain modes, transport bindings, attestation services, Trusted Anchors, revocation, and transport security."
-tags = ["pic", "pic-x", "pts", "well-known", "discovery", "configuration", "metadata", "oauth", "token exchange", "pca", "subchain", "security", "software engineering", "design"]
+description = "This article defines the PIC-X discovery document exposed through .well-known/pic-x-configuration. It explains the relationship between PIC-X and the PIC Token Service, the PIC profile of OAuth Token Exchange, PCA initialization and continuity propagation, execution contract binding, supported continuity modes, transport bindings, attestation services, Trusted Anchors, revocation, and transport security."
+tags = ["pic", "pic-x", "pts", "well-known", "discovery", "configuration", "metadata", "oauth", "token exchange", "pca", "continuity", "security", "software engineering", "design"]
 +++
 
 <figure class="post-banner">
@@ -21,19 +21,21 @@ The document exposes public PIC-X endpoints and supported protocol capabilities.
 
 ## PIC-X and the PIC Token Service
 
-PIC-X is the overall system. The PIC Token Service, or PTS, is the PIC-X component that implements the PIC profile of OAuth Token Exchange.
+PIC-X is the overall system.
+
+The PIC Token Service, or PTS, is the PIC-X component that implements the PIC profile of OAuth Token Exchange.
 
 ```text
 PIC-X
 |
 +-- PIC Token Service (PTS)
 |   +-- OAuth Token Exchange endpoint
-|   +-- PCA initialization and chain continuation
+|   +-- PCA initialization and continuity propagation
 |   +-- Execution contract validation and binding
-|   +-- Chain validation and aggregation
+|   +-- Continuity validation and aggregation
 |   +-- Revocation
 |   +-- PTS signing keys
-|   `-- Chain verification
+|   `-- Continuity verification
 |
 +-- Attestation services
 +-- Trusted Anchors
@@ -62,11 +64,11 @@ The PIC-X discovery document therefore contains both PTS endpoints and other PIC
 
   "subject_token_types_supported": [
     "urn:ietf:params:oauth:token-type:access_token",
-    "https://pic-protocol.org/token-types/chain"
+    "https://pic-protocol.org/token-types/continuity"
   ],
 
   "issued_token_types_supported": [
-    "https://pic-protocol.org/token-types/chain"
+    "https://pic-protocol.org/token-types/continuity"
   ],
 
   "token_endpoint_auth_methods_supported": [
@@ -74,27 +76,27 @@ The PIC-X discovery document therefore contains both PTS endpoints and other PIC
   ],
 
   "token_exchange_parameters_supported": [
-    "execution_contract",
-    "chain"
+    "execution_contract"
   ],
 
   "pca": {
-    "signing_alg_values_supported": [
-      "ES256"
-    ],
+    "format": "json",
     "execution_contract_binding_methods_supported": [
       "digest"
     ]
   },
 
-  "chain": {
-    "token_type": "https://pic-protocol.org/token-types/chain",
+  "continuity": {
+    "token_type": "https://pic-protocol.org/token-types/continuity",
+    "transition_signing_alg_values_supported": [
+      "ES256"
+    ],
     "formats_supported": [
       "jwt"
     ],
-    "chain_modes_supported": [
-      "centralized-chain",
-      "decentralized-subchains"
+    "continuity_modes_supported": [
+      "centralized-continuity",
+      "decentralized-continuity"
     ]
   }
 }
@@ -133,7 +135,7 @@ revocation_endpoint
 → requests revocation according to the PIC revocation specification
 
 jwks_uri
-→ publishes the keys used to verify PCA signatures
+→ publishes the keys used to verify Continuity Transition signatures
 ```
 
 The token endpoint belongs to the PTS component, while the discovery document belongs to the wider PIC-X system.
@@ -150,14 +152,32 @@ The current development profile advertises `token_endpoint_auth_methods_supporte
 
 PIC defines two token types:
 
+
+PIC uses the following concepts:
+
 ```text
-https://pic-protocol.org/token-types/pca
-https://pic-protocol.org/token-types/chain
+PIC Context of Authority (PCA)
+→ plain JSON authority context
+→ not signed independently
+
+Continuity Transition
+→ signed object binding the previous PCA to the current PCA
+→ represents one authority-propagation step
+
+PIC Continuity Token
+→ signed-JWT transport artifact containing one or more Continuity Transitions
 ```
 
-A PCA is an element of a PIC chain. It is not issued as the top-level result of the exchange.
 
-The exchange always returns a signed PIC Chain JWT:
+
+```text
+https://pic-protocol.org/token-types/pca
+https://pic-protocol.org/token-types/continuity
+```
+
+A PCA is one authority state inside the ordered continuity sequence carried by a PIC Continuity Token. It is not issued as the top-level result of the exchange.
+
+The exchange always returns a signed PIC Continuity Token represented as a JWT:
 
 ```json
 {
@@ -166,14 +186,13 @@ The exchange always returns a signed PIC Chain JWT:
   ],
   "subject_token_types_supported": [
     "urn:ietf:params:oauth:token-type:access_token",
-    "https://pic-protocol.org/token-types/chain"
+    "https://pic-protocol.org/token-types/continuity"
   ],
   "issued_token_types_supported": [
-    "https://pic-protocol.org/token-types/chain"
+    "https://pic-protocol.org/token-types/continuity"
   ],
   "token_exchange_parameters_supported": [
-    "execution_contract",
-    "chain"
+    "execution_contract"
   ]
 }
 ```
@@ -184,25 +203,25 @@ PTS exposes one exchange interface with two inputs:
 OAuth access token
 → initializes PIC execution
 → PTS creates PCA 0
-→ PTS returns PIC Chain 0
+→ PTS returns PIC Continuity Token 0
 
-PIC Chain N + proposed PCA N+1
+PIC Continuity Token N + proposed PCA N+1
 → continues PIC execution
 → PTS validates the proposed PCA
-→ PTS returns PIC Chain N+1
+→ PTS returns PIC Continuity Token N+1
 ```
 
-The returned artifact is therefore always a chain. For the first exchange, the chain has no previous chain:
+The returned artifact is therefore always a continuity token. For the first exchange, the continuity token has no previous continuity:
 
 ```text
-Chain 0.previous = null
+Continuity Token 0.previous = null
 ```
 
-The PCA created during initialization is already contained in Chain 0.
+The PCA created during initialization is already contained in Continuity Token 0 as PCA 0.
 
-## 4. Initial Exchange: OAuth Access Token to Chain 0
+## 4. Initial Exchange: OAuth Access Token to Continuity Token 0
 
-The initial exchange receives an OAuth access token and returns the first signed PIC chain.
+The initial exchange receives an OAuth access token and returns the first signed PIC continuity token.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -214,11 +233,11 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token=<oauth-access-token>
 &subject_token_type=urn:ietf:params:oauth:token-type:access_token
-&requested_token_type=https://pic-protocol.org/token-types/chain
+&requested_token_type=https://pic-protocol.org/token-types/continuity
 &execution_contract=<json-object>
 ```
 
-PTS validates the access token through the configured Exchange Profile, derives the initial PIC authority, validates the execution contract, creates PCA 0, and returns Chain 0.
+PTS validates the access token through the configured Exchange Profile, derives PCA 0 as the initial PIC Context of Authority, constructs the initial signed Continuity Transition with no predecessor, and returns Continuity Token 0.
 
 Conceptually:
 
@@ -229,24 +248,24 @@ execution contract
 +
 Exchange Profile and local policy
 =
-PCA 0 inside PIC Chain 0
+PCA 0 inside PIC Continuity Token 0
 ```
 
 Example response:
 
 ```json
 {
-  "access_token": "<signed-pic-chain-0-jwt>",
-  "issued_token_type": "https://pic-protocol.org/token-types/chain",
+  "access_token": "<signed-pic-continuity-token-0-jwt>",
+  "issued_token_type": "https://pic-protocol.org/token-types/continuity",
   "token_type": "N_A"
 }
 ```
 
-## 5. Continuation Exchange: Chain N and PCA N+1 to Chain N+1
+## 5. Continuation Exchange: Continuity Token N and PCA N+1 to Continuity Token N+1
 
-A continuation exchange receives the current signed chain as the `subject_token` and a proposed next PCA as the standard OAuth Token Exchange `actor_token`.
+A continuation exchange receives the current signed continuity as the `subject_token` and a proposed next PCA as the standard OAuth Token Exchange `actor_token`.
 
-The proposed PCA remains outside the chain until PTS validates it.
+The proposed PCA remains outside the current PIC Continuity Token until PTS validates it. After successful validation, PTS appends it as the next authority state and returns the next PIC Continuity Token.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -256,71 +275,71 @@ Content-Type: application/x-www-form-urlencoded
 
 ```text
 grant_type=urn:ietf:params:oauth:grant-type:token-exchange
-&subject_token=<signed-pic-chain-n-jwt>
-&subject_token_type=https://pic-protocol.org/token-types/chain
+&subject_token=<signed-pic-continuity-token-n-jwt>
+&subject_token_type=https://pic-protocol.org/token-types/continuity
 &actor_token=<proposed-pca-n-plus-1>
 &actor_token_type=https://pic-protocol.org/token-types/pca
-&requested_token_type=https://pic-protocol.org/token-types/chain
+&requested_token_type=https://pic-protocol.org/token-types/continuity
 ```
 
 ```text
 subject_token
-→ PIC Chain N
+→ PIC Continuity Token N
 
 actor_token
-→ proposed PCA N+1, not yet part of the chain
+→ proposed PCA N+1, not yet part of the continuity token
 
 requested_token_type
-→ PIC Chain N+1
+→ PIC Continuity Token N+1
 ```
 
-PTS validates the chain, the proposed PCA, the execution contract binding, revocation state, non-expansion of authority, and the rules of the selected chain mode.
+PTS validates the current continuity token and proposed PCA, checks the execution contract binding, revocation state, non-expansion of authority, and the selected continuity mode, then signs the new Continuity Transition.
 
 ```text
-PIC Chain N
+PIC Continuity Token N
 +
 proposed PCA N+1
 +
 PTS validation
 =
-PIC Chain N+1
+PIC Continuity Token N+1
 ```
 
 Example response:
 
 ```json
 {
-  "access_token": "<signed-pic-chain-n-plus-1-jwt>",
-  "issued_token_type": "https://pic-protocol.org/token-types/chain",
+  "access_token": "<signed-pic-continuity-token-n-plus-1-jwt>",
+  "issued_token_type": "https://pic-protocol.org/token-types/continuity",
   "token_type": "N_A"
 }
 ```
 
-The PIC-specific `chain` parameter remains advertised for chain-mode-specific extensions. The current centralized continuation flow carries the authoritative Chain N as the standard `subject_token`.
+The authoritative Continuity Token N is carried as the standard `subject_token`; no additional `continuity` parameter is required.
 
-PIC-X advertises two chain modes:
+PIC-X advertises two continuity modes:
 
 ```text
-centralized-chain
-→ PTS validates each transition and returns the next signed chain
+centralized-continuity
+→ PTS validates each transition and returns the next signed continuity
 
-decentralized-subchains
+decentralized-continuity
 → reserved capability whose detailed design is still under definition
 ```
 
 ## 6. Token Exchange Response
 
-Every successful exchange returns a signed PIC Chain JWT.
+Every successful exchange returns a signed PIC Continuity Token represented as a JWT.
 
 ```json
 {
-  "access_token": "<signed-pic-chain-jwt>",
-  "issued_token_type": "https://pic-protocol.org/token-types/chain",
+  "access_token": "<signed-pic-continuity-token-jwt>",
+  "issued_token_type": "https://pic-protocol.org/token-types/continuity",
   "token_type": "N_A"
 }
 ```
 
-`access_token` is the response field defined by OAuth Token Exchange. The returned value is a PIC Chain JWT, not an OAuth Bearer access token.
+`access_token` is the response field defined by OAuth Token Exchange. The returned value is a PIC Continuity Token represented as a signed JWT, not an OAuth Bearer access token.
 
 ## 7. Attestation and Trusted Anchors
 
@@ -409,72 +428,87 @@ Example response from the Trusted Anchors endpoint:
 }
 ```
 
-## 8. PCA and Chain Capabilities
+## 8. PCA and Continuity Capabilities
 
-PCA signing, execution contract binding, chain format, and chain modes are separate capabilities.
+Continuity Transition signing, execution contract binding, continuity-token format, and continuity modes are separate capabilities.
 
 ```json
 {
   "pca": {
-    "signing_alg_values_supported": [
-      "ES256"
-    ],
+    "format": "json",
     "execution_contract_binding_methods_supported": [
       "digest"
     ]
   },
 
-  "chain": {
-    "token_type": "https://pic-protocol.org/token-types/chain",
+  "continuity": {
+    "token_type": "https://pic-protocol.org/token-types/continuity",
+    "transition_signing_alg_values_supported": [
+      "ES256"
+    ],
     "formats_supported": [
       "jwt"
     ],
-    "chain_modes_supported": [
-      "centralized-chain",
-      "decentralized-subchains"
+    "continuity_modes_supported": [
+      "centralized-continuity",
+      "decentralized-continuity"
     ]
   }
 }
 ```
 
 ```text
-pca.signing_alg_values_supported
-→ algorithms used by PTS to sign PCA tokens
+continuity.transition_signing_alg_values_supported
+→ algorithms used to sign Continuity Transitions
 
 pca.execution_contract_binding_methods_supported
 → methods used to bind the validated execution contract to the PCA
 
-chain.token_type
-→ semantic identifier of the PIC chain artifact
+continuity.token_type
+→ semantic identifier of the PIC Continuity Token
 
-chain.formats_supported
-→ serialization formats supported for the chain artifact
+continuity.formats_supported
+→ serialization formats supported for the PIC Continuity Token
 
-All PIC artifacts described here are represented as signed JWTs. The precise signer roles and algorithm negotiation for decentralized subchains remain part of the subchain design.
+All PIC artifacts described here are represented as signed JWTs. The precise signer roles and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
 ```
 
 With the `digest` binding method, PTS validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and breaks the binding.
 
-### Chain modes
+### Continuity modes
 
 ```text
-centralized-chain
-→ PTS validates each transition
-→ PTS issues the next PCA
-→ PTS maintains the authoritative chain centrally
+centralized-continuity
+→ PTS validates each Continuity Transition
+→ PTS produces the next PIC Continuity Token
+→ PTS maintains the authoritative continuity state centrally
 → the propagated token remains bounded in size
 
-decentralized-subchains
-→ identifies support for bounded decentralized execution segments
-→ advertised as a protocol capability
+decentralized-continuity
+→ executors may produce and verify Continuity Transitions locally
+→ advertised as a reserved protocol capability
 → detailed token structure and verification rules are not defined here
 ```
 
-The PIC model may support a complete chain representation. Whether a deployment transports the full chain, stores it centrally, or uses bounded subchains is an implementation choice.
+The continuity model uses the following conceptual hierarchy:
 
-This PIC-X discovery document only advertises the supported chain modes.
+```text
+PIC Continuity Token
+`-- Continuity Segment
+    `-- Continuity Transition
+        |-- previous PCA
+        `-- current PCA
+```
 
-The detailed design of `decentralized-subchains` remains an active protocol design topic. Its chain token structure, PCA sequencing, signature model, attestation requirements, checkpoint rules, key rotation behavior, replay protection, and collusion limits are intentionally left unspecified in this document.
+A **Continuity Transition** is the signed authority-propagation step from PCA `n-1` to PCA `n`.
+
+The PCA values are plain JSON objects. The cryptographic signature is applied to the Continuity Transition that binds them together, not to each PCA independently.
+
+A **Continuity Segment** is an ordered group of one or more Continuity Transitions.
+
+The PIC model may support a complete PCA-continuity representation. Whether a deployment transports the complete continuity, stores continuity state centrally, or uses bounded decentralized segments is an implementation choice.
+
+This PIC-X discovery document advertises the supported continuity modes only. The detailed design of `decentralized-continuity` remains an active protocol-design topic. Its token structure, transition proofs, attestation requirements, checkpoint rules, key rotation behavior, replay protection, and collusion limits are intentionally left unspecified in this document.
 
 ## 9. PIC-Token Transport
 
@@ -489,7 +523,7 @@ Authorization: Bearer <oauth-access-token>
 A PIC authorization artifact is transported separately through the `PIC-Token` header:
 
 ```http
-PIC-Token: <signed-pic-chain-jwt>
+PIC-Token: <signed-pic-continuity-token-jwt>
 ```
 
 A complete HTTP request may therefore carry both:
@@ -498,7 +532,7 @@ A complete HTTP request may therefore carry both:
 POST /payments HTTP/1.1
 Host: api.example.com
 Authorization: Bearer <oauth-access-token>
-PIC-Token: <signed-pic-chain-jwt>
+PIC-Token: <signed-pic-continuity-token-jwt>
 Content-Type: application/json
 ```
 
@@ -507,7 +541,7 @@ OAuth access token
 → may authorize access to an API, gateway, or external boundary in an OAuth-based entry flow
 
 PIC-Token
-→ carries the PIC chain artifact
+→ carries the PIC Continuity Token
 → carries the current execution authority
 → binds execution constraints and authorization invariants
 → preserves verifiable continuity across the execution path
@@ -539,7 +573,7 @@ current PIC authority
 local policy
 ```
 
-The PIC chain must never expand beyond the authority established by its origin and subsequent valid restrictions.
+The PIC Continuity Token must never expand beyond the authority established by its origin and subsequent valid restrictions.
 
 The OAuth access token does not become part of the PIC lineage and does not need to be propagated through the internal execution path. PIC may also be initialized by other entry mechanisms when a future PIC profile explicitly defines them.
 
@@ -547,9 +581,9 @@ Likewise, a PCA is not an OAuth access token and must not be interpreted as one 
 
 ### PIC-Token is an HTTP binding
 
-`PIC-Token` is the HTTP transport binding for a PIC chain artifact.
+`PIC-Token` is the HTTP transport binding for a PIC continuity artifact.
 
-The underlying PCA and chain representation are transport-independent. They may be carried through:
+The underlying PCA and continuity representation are transport-independent. They may be carried through:
 
 ```text
 HTTP
@@ -562,10 +596,10 @@ workflow engines
 storage-backed execution systems
 ```
 
-For Apache Kafka, the PIC chain artifact may be placed in a record header:
+For Apache Kafka, the PIC continuity artifact may be placed in a record header:
 
 ```text
-pic-token = <signed-pic-chain-jwt>
+pic-token = <signed-pic-continuity-token-jwt>
 ```
 
 Alternatively, an application envelope may carry it explicitly:
@@ -576,7 +610,7 @@ Alternatively, an application envelope may carry it explicitly:
     "type": "payment.requested",
     "payload": {}
   },
-  "pic_token": "<signed-pic-chain-jwt>"
+  "pic_token": "<signed-pic-continuity-token-jwt>"
 }
 ```
 
@@ -593,12 +627,12 @@ TLS for HTTP
 mTLS or equivalent peer authentication where required
 broker authentication and authorization for Kafka and messaging systems
 revocation validation
-execution-contract and chain validation
+execution-contract and continuity validation
 audience or execution-domain restrictions when defined
 proof of possession when bearer-style forwarding is unacceptable
 ```
 
-A PCA has no expiration by default. It remains valid until revoked or invalidated by the execution contract, chain rules, local policy, or an optional profile-defined expiration.
+A PCA has no expiration by default. It remains valid until revoked or invalidated by the execution contract, continuity rules, local policy, or an optional profile-defined expiration.
 
 ```text
 jti or equivalent identifier
@@ -611,4 +645,4 @@ exp
 → optional; not required by PIC
 ```
 
-A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, proof-of-possession mechanism, and decentralized-subchain security model are still design topics and should be treated in dedicated protocol articles.
+A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, proof-of-possession mechanism, and decentralized-continuity security model are still design topics and should be treated in dedicated protocol articles.

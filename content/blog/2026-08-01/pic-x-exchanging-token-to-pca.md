@@ -297,7 +297,7 @@ Below is an example of an initial PCA:
 
 ```json
 {
-  "profile": "https://pic-protocol.org/0.1",
+  "profile": "https://pic-protocol.org/0.2",
   "issuer": "pic-x:corporate-oauth",
 
   "principal": {
