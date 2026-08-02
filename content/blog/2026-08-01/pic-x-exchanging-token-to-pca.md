@@ -766,7 +766,6 @@ when {
 };
 ```
 
-
 ## PCA-Derived Authorization: End-to-End Flow
 
 ```text
