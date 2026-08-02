@@ -45,7 +45,7 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
 ```json
 {
   "issuer": "http://127.0.0.1:5556/pic-x",
-  "profile": "https://pic-protocol.org/0.2",
+  "profile": "https://pic-protocol.org/profiles/0.2",
 
   "token_endpoint": "http://127.0.0.1:5556/pic-x/token",
   "revocation_endpoint": "http://127.0.0.1:5556/pic-x/revoke",
@@ -60,11 +60,11 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
 
   "subject_token_types_supported": [
     "urn:ietf:params:oauth:token-type:access_token",
-    "https://pic-protocol.org/token-types/continuity"
+    "https://pic-protocol.org/definitions/token-types/continuity"
   ],
 
   "issued_token_types_supported": [
-    "https://pic-protocol.org/token-types/continuity"
+    "https://pic-protocol.org/definitions/token-types/continuity"
   ],
 
   "token_endpoint_auth_methods_supported": [
@@ -72,7 +72,13 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
   ],
 
   "token_exchange_parameters_supported": [
-    "execution_contract"
+    "continuity_proposal",
+    "continuity_proposal_type"
+  ],
+
+  "continuity_proposal_types_supported": [
+    "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
+    "https://pic-protocol.org/definitions/proposal-types/continuity"
   ],
 
   "pca": {
@@ -82,8 +88,17 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     ]
   },
 
+  "continuity_proposals": {
+    "parameter": "continuity_proposal",
+    "type_parameter": "continuity_proposal_type",
+    "types_supported": [
+      "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
+      "https://pic-protocol.org/definitions/proposal-types/continuity"
+    ]
+  },
+
   "continuity": {
-    "token_type": "https://pic-protocol.org/token-types/continuity",
+    "token_type": "https://pic-protocol.org/definitions/token-types/continuity",
     "transition_signing_alg_values_supported": [
       "ES256"
     ],
@@ -103,13 +118,13 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
 ```json
 {
   "issuer": "http://127.0.0.1:5556/pic-x",
-  "profile": "https://pic-protocol.org/0.2"
+  "profile": "https://pic-protocol.org/profiles/0.2"
 }
 ```
 
 `issuer` identifies the PIC-X deployment.
 
-`profile` identifies the supported PIC protocol profile.
+`profile` identifies the supported PIC protocol profile and therefore selects the applicable protocol version, schemas, and validation rules.
 
 The issuer must match the public URL exposed to clients.
 
@@ -146,8 +161,7 @@ urn:ietf:params:oauth:grant-type:token-exchange
 
 The current development profile advertises `token_endpoint_auth_methods_supported` as `none`. The caller is not separately authenticated as an OAuth client. PIC-X still validates the supplied subject token and all PIC artifacts before issuing a result.
 
-The PIC-X Token Exchange Profile uses the following type identifiers:
-
+The PIC-X Token Exchange Profile uses stable definition URIs for token and proposal types. The selected PIC profile determines the applicable schemas, validation rules, and protocol behavior.
 
 PIC uses the following concepts:
 
@@ -155,6 +169,10 @@ PIC uses the following concepts:
 PIC Context of Authority (PCA)
 → plain JSON authority context
 → not signed independently
+
+Continuity Proposal
+→ structured input submitted to initialize or advance continuity
+→ validated by PIC-X before a transition is issued
 
 Continuity Transition
 → signed object binding the previous PCA to the current PCA
@@ -164,16 +182,16 @@ PIC Continuity Token
 → signed JWT representation of one Continuity Transition
 ```
 
-
+The profile and definition identifiers used in this article are:
 
 ```text
-https://pic-protocol.org/token-types/pca
-https://pic-protocol.org/token-types/continuity
+https://pic-protocol.org/profiles/0.2
+https://pic-protocol.org/definitions/token-types/continuity
+https://pic-protocol.org/definitions/proposal-types/continuity-initial
+https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-A PCA is one authority state represented as plain JSON inside a Continuity Transition. It is not issued as the top-level result of the exchange and is not signed independently.
-
-The `actor_token_type` value identifies the submitted JSON object as a proposed PCA. The PCA remains plain JSON and is not independently signed.
+The initial and continuation proposal types may use different schemas. Their exact fields, Proof of Relationship representation, supporting evidence, and validation rules are intentionally deferred to a dedicated protocol article.
 
 The exchange always returns a signed PIC Continuity Token represented as a JWT:
 
@@ -184,28 +202,35 @@ The exchange always returns a signed PIC Continuity Token represented as a JWT:
   ],
   "subject_token_types_supported": [
     "urn:ietf:params:oauth:token-type:access_token",
-    "https://pic-protocol.org/token-types/continuity"
+    "https://pic-protocol.org/definitions/token-types/continuity"
   ],
   "issued_token_types_supported": [
-    "https://pic-protocol.org/token-types/continuity"
+    "https://pic-protocol.org/definitions/token-types/continuity"
   ],
   "token_exchange_parameters_supported": [
-    "execution_contract"
+    "continuity_proposal",
+    "continuity_proposal_type"
+  ],
+  "continuity_proposal_types_supported": [
+    "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
+    "https://pic-protocol.org/definitions/proposal-types/continuity"
   ]
 }
 ```
 
-PIC-X exposes one exchange interface with two inputs:
+PIC-X exposes one exchange interface with two proposal forms:
 
 ```text
-OAuth access token
+OAuth access token + initial continuity proposal
 → initializes PIC execution
-→ PIC-X creates PCA 0
+→ the proposal supplies the execution contract
+→ PIC-X derives PCA 0
 → PIC-X returns PIC Continuity Token 0
 
-PIC Continuity Token N + proposed PCA N+1
+PIC Continuity Token N + continuity proposal
 → continues PIC execution
-→ PIC-X validates the proposed PCA
+→ the proposal may contain PCA N+1, Proof of Relationship, and supporting material
+→ PIC-X validates the proposal
 → PIC-X returns PIC Continuity Token N+1
 ```
 
@@ -220,7 +245,7 @@ The PCA created during initialization is already contained in Continuity Token 0
 
 ## 4. Initial Exchange: OAuth Access Token to Continuity Token 0
 
-The initial exchange receives an OAuth access token and returns the first signed PIC continuity token.
+The initial exchange receives an OAuth access token and an initial continuity proposal, then returns the first signed PIC Continuity Token.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -232,18 +257,33 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token=<oauth-access-token>
 &subject_token_type=urn:ietf:params:oauth:token-type:access_token
-&requested_token_type=https://pic-protocol.org/token-types/continuity
-&execution_contract=<json-object>
+&requested_token_type=https://pic-protocol.org/definitions/token-types/continuity
+&continuity_proposal=<initial-proposal>
+&continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity-initial
 ```
 
-PIC-X validates the access token through the configured Exchange Profile, derives PCA 0 as the initial PIC Context of Authority, constructs Continuity Transition 0 with `previousTransition` and `previousPca` set to `null`, adds the cryptographic material that establishes the continuity origin in `continuity`, serializes the transition as a signed JWT, and returns PIC Continuity Token 0.
+Conceptual initial proposal:
+
+```json
+{
+  "executionContract": {
+    "corporation": "acme",
+    "departments": [
+      "engineering",
+      "operations"
+    ]
+  }
+}
+```
+
+PIC-X validates the access token through the configured Exchange Profile and validates the initial continuity proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, constructs Continuity Transition 0 with `previousTransition` and `previousPca` set to `null`, adds the cryptographic material that establishes the continuity origin in `continuity`, serializes the transition as a signed JWT, and returns PIC Continuity Token 0.
 
 Conceptually:
 
 ```text
 OAuth access token
 +
-execution contract
+initial continuity proposal
 +
 Exchange Profile and local policy
 =
@@ -255,16 +295,22 @@ Example response:
 ```json
 {
   "access_token": "<signed-pic-continuity-token-0-jwt>",
-  "issued_token_type": "https://pic-protocol.org/token-types/continuity",
+  "issued_token_type": "https://pic-protocol.org/definitions/token-types/continuity",
   "token_type": "N_A"
 }
 ```
 
-## 5. Continuation Exchange: Continuity Token N and PCA N+1 to Continuity Token N+1
+## 5. Continuation Exchange: Continuity Token N and Continuity Proposal to Continuity Token N+1
 
-A continuation exchange receives the current PIC Continuity Token as the `subject_token` and a proposed next PCA as the standard OAuth Token Exchange `actor_token`.
+A continuation exchange receives the current PIC Continuity Token as the standard OAuth Token Exchange `subject_token` and receives the proposed continuation material through the PIC-specific `continuity_proposal` parameter.
 
-The proposed PCA remains outside the current PIC Continuity Token until PIC-X validates it. After successful validation, PIC-X constructs a new Continuity Transition whose `previousTransition` links to the preceding transition, whose `previousPca` is the current PCA, whose `currentPca` is the proposed PCA, and whose `continuity` contains the cryptographic material required to prove authorized continuation. PIC-X then serializes and signs that transition as the next PIC Continuity Token.
+The proposal type is identified separately through `continuity_proposal_type`. For continuation, the type is:
+
+```text
+https://pic-protocol.org/definitions/proposal-types/continuity
+```
+
+A continuation proposal may contain a proposed PCA, Proof of Relationship (PoR), and other supporting material. The exact schema is intentionally deferred to a dedicated protocol article.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -275,29 +321,50 @@ Content-Type: application/x-www-form-urlencoded
 ```text
 grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token=<signed-pic-continuity-token-n-jwt>
-&subject_token_type=https://pic-protocol.org/token-types/continuity
-&actor_token=<proposed-pca-n-plus-1>
-&actor_token_type=https://pic-protocol.org/token-types/pca
-&requested_token_type=https://pic-protocol.org/token-types/continuity
+&subject_token_type=https://pic-protocol.org/definitions/token-types/continuity
+&requested_token_type=https://pic-protocol.org/definitions/token-types/continuity
+&continuity_proposal=<proposal>
+&continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity
+```
+
+Conceptually, the proposal may have the following shape:
+
+```json
+{
+  "proposedPca": {
+    "...": "PCA N+1"
+  },
+  "proofOfRelationship": {
+    "...": "PoR"
+  },
+  "supportingEvidence": [
+    {
+      "...": "additional material"
+    }
+  ]
+}
 ```
 
 ```text
 subject_token
 → PIC Continuity Token N
 
-actor_token
-→ proposed PCA N+1, not yet part of the continuity token
+continuity_proposal
+→ proposed continuation material to be validated
+
+continuity_proposal_type
+→ identifies the proposal schema and semantics
 
 requested_token_type
 → PIC Continuity Token N+1
 ```
 
-PIC-X validates the current continuity token and proposed PCA, checks the execution contract binding, revocation state, non-expansion of authority, and the selected continuity mode, then signs the new Continuity Transition.
+PIC-X validates the current PIC Continuity Token and the continuity proposal, including the proposed PCA, Proof of Relationship, execution-contract binding, revocation state, non-expansion of authority, supporting evidence, and selected continuity mode. After successful validation, PIC-X constructs a new Continuity Transition whose `previousTransition` links to the preceding transition, whose `previousPca` is the current PCA, whose `currentPca` is the proposed PCA, and whose `continuity` contains the cryptographic material required to prove authorized continuation. PIC-X then serializes and signs that transition as the next PIC Continuity Token.
 
 ```text
 PIC Continuity Token N
 +
-proposed PCA N+1
+continuity proposal
 +
 PIC-X validation
 =
@@ -309,18 +376,21 @@ Example response:
 ```json
 {
   "access_token": "<signed-pic-continuity-token-n-plus-1-jwt>",
-  "issued_token_type": "https://pic-protocol.org/token-types/continuity",
+  "issued_token_type": "https://pic-protocol.org/definitions/token-types/continuity",
   "token_type": "N_A"
 }
 ```
 
-The current PIC Continuity Token N is carried as the standard `subject_token`; no additional `continuity` parameter is required.
+The current PIC Continuity Token N is carried as the standard `subject_token`. `actor_token` is not used to transport the continuity proposal; it remains available only to a future profile that needs to represent a distinct external actor credential according to OAuth Token Exchange semantics.
 
 PIC-X advertises two continuity modes:
 
 ```text
 centralized-continuity
-→ PIC-X validates each transition and returns the next signed PIC Continuity Token
+→ PIC-X validates each continuation request
+→ PIC-X constructs and signs the next Continuity Transition
+→ only PIC-X can mint the next PIC Continuity Token
+→ PIC-X does not need to persist the complete continuity state
 
 decentralized-continuity
 → reserved capability whose detailed design is still under definition
@@ -333,7 +403,7 @@ Every successful exchange returns a signed PIC Continuity Token represented as a
 ```json
 {
   "access_token": "<signed-pic-continuity-token-jwt>",
-  "issued_token_type": "https://pic-protocol.org/token-types/continuity",
+  "issued_token_type": "https://pic-protocol.org/definitions/token-types/continuity",
   "token_type": "N_A"
 }
 ```
@@ -440,8 +510,17 @@ Continuity Transition signing, execution contract binding, continuity-token form
     ]
   },
 
+  "continuity_proposals": {
+    "parameter": "continuity_proposal",
+    "type_parameter": "continuity_proposal_type",
+    "types_supported": [
+      "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
+      "https://pic-protocol.org/definitions/proposal-types/continuity"
+    ]
+  },
+
   "continuity": {
-    "token_type": "https://pic-protocol.org/token-types/continuity",
+    "token_type": "https://pic-protocol.org/definitions/token-types/continuity",
     "transition_signing_alg_values_supported": [
       "ES256"
     ],
@@ -463,14 +542,17 @@ continuity.transition_signing_alg_values_supported
 pca.execution_contract_binding_methods_supported
 → methods used to bind the validated execution contract to the PCA
 
+continuity_proposals.types_supported
+→ proposal types accepted for initialization and continuation
+
 continuity.token_type
 → semantic identifier of the PIC Continuity Token
 
 continuity.formats_supported
 → serialization formats supported for the PIC Continuity Token
+```
 
 PIC Continuity Tokens are represented as signed JWTs. PCAs are plain JSON authority contexts contained in Continuity Transitions and are not signed independently. The precise signer roles, proof structures, and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
-```
 
 With the `digest` binding method, PIC-X validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and breaks the binding.
 

@@ -17,7 +17,7 @@ PIC-X receives an OAuth access token, validates it, and derives the initial PIC 
 OAuth access token
         |
         v
-picX.exchange(accessToken, executionContract)
+picX.exchange(accessToken, continuityProposal)
         |
         v
 PCA 0
@@ -32,7 +32,7 @@ PIC Continuity Token 0
         +-- application PDP evaluation over current PCA
         |
         v
-picX.exchange(continuityTokenN, proposedPcaNPlus1)
+picX.exchange(continuityTokenN, continuityProposal)
         |
         v
 PIC Continuity Token N+1
@@ -48,7 +48,7 @@ The application developer does not need to implement token validation, scope par
 
 The remaining sections explain how PIC-X performs the first exchange.
 
-The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile will define how an OAuth access token is exchanged for the first PIC Continuity Token and will be developed in the next articles.
+The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile uses a `continuity_proposal` input for both initialization and continuation. The proposal type identifies which schema and validation rules apply; those schemas will be defined in a dedicated protocol article.
 
 ## PCA and Continuity Transition
 
@@ -366,7 +366,7 @@ After constructing PCA 0, PIC-X creates the initial Continuity Transition:
 
 ```json
 {
-  "profile": "https://pic-protocol.org/0.2",
+  "profile": "https://pic-protocol.org/profiles/0.2",
   "issuer": "https://pic-x.example.com",
   "previousTransition": null,
   "previousPca": null,
@@ -412,36 +412,53 @@ PIC Continuity Token 0
 
 `continuity` contains the cryptographic material used to establish the origin of continuity or to prove authorized continuation from a preceding transition. The exact proof structure, validation algorithm, supported proof types, chaining rules, and decentralized continuity model are intentionally not defined in this article and will be covered in a dedicated protocol article.
 
+A **Continuity Proposal** is the structured input submitted to PIC-X when continuity is initialized or advanced. The initial proposal and continuation proposal use different type identifiers and may have different schemas:
+
+```text
+https://pic-protocol.org/definitions/proposal-types/continuity-initial
+https://pic-protocol.org/definitions/proposal-types/continuity
+```
+
+In this article, the initial proposal contains the execution contract. A continuation proposal may contain a proposed PCA, Proof of Relationship (PoR), and other supporting material. The complete schemas are intentionally deferred to a dedicated protocol article.
+
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
 `execution.contract` carries execution-specific constraints.
 
-## 5. Providing an Execution Contract
+## 5. Providing the Initial Continuity Proposal
 
-The execution contract is a mandatory input to the initialization exchange:
+The initialization exchange uses a `continuity_proposal` whose type is:
+
+```text
+https://pic-protocol.org/definitions/proposal-types/continuity-initial
+```
+
+The initial proposal contains the execution contract and may contain additional initialization material when defined by the selected PIC profile. Its complete schema is intentionally deferred to a dedicated protocol article.
 
 ```text
 continuityToken0 = picX.exchange(
     accessToken,
-    executionContract
+    continuityProposal
 )
 ```
 
-It is provided by the caller, not by the Exchange Profile.
+For the flow described here, the proposal contains only the execution contract. It is provided by the caller, not by the Exchange Profile.
 
-Example input:
+Example proposal:
 
 ```json
 {
-  "corporation": "acme",
-  "departments": [
-    "engineering",
-    "operations"
-  ]
+  "executionContract": {
+    "corporation": "acme",
+    "departments": [
+      "engineering",
+      "operations"
+    ]
+  }
 }
 ```
 
-PIC-X places the supplied value in PCA 0 before constructing and signing Continuity Transition 0:
+PIC-X extracts the validated `executionContract` from the initial continuity proposal and places it in PCA 0 before constructing and signing Continuity Transition 0:
 
 ```json
 {
@@ -771,10 +788,10 @@ when {
 ## PCA-Derived Authorization: End-to-End Flow
 
 ```text
-OAuth JWT + executionContract
+OAuth JWT + initial continuity proposal
         |
         v
-picX.exchange(accessToken, executionContract)
+picX.exchange(accessToken, continuityProposal)
         |
         v
 Exchange Profile
@@ -788,7 +805,7 @@ PCA 0
 +-- optional principal
 +-- optional attributes
 +-- execution invariants
-`-- mandatory execution contract
+`-- execution contract from the initial continuity proposal
         |
         v
 Continuity Transition 0
@@ -805,16 +822,17 @@ PIC Continuity Token 0
 Application
 +-- reads the current PCA
 +-- performs application authorization
-`-- proposes PCA N+1 when continuity advances
+`-- creates a continuity proposal when continuity advances
         |
         v
-picX.exchange(continuityTokenN, proposedPcaNPlus1)
+picX.exchange(continuityTokenN, continuityProposal)
         |
         v
 PIC-X
 +-- validates the current PIC Continuity Token
 +-- validates non-expansion of authority
-+-- validates proposed PCA N+1
++-- validates the continuity proposal
++-- validates proposed PCA N+1 and Proof of Relationship
 +-- constructs Continuity Transition N+1
 `-- serializes and signs it as PIC Continuity Token N+1
         |
