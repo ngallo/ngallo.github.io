@@ -1,87 +1,91 @@
 +++
 author = "Nicola Gallo"
-title = "Designing PIC-X: Exchanging an OAuth Access Token for an Initial PCA"
+title = "Designing PIC-X: Deriving an Initial PIC Context of Authority"
 date = "2026-08-01T10:00:00+02:00"
-description = "This article defines the first PIC-X exchange flow: deriving an initial PIC Context of Authority (PCA) from a validated OAuth access token through an Exchange Profile."
+description = "This article defines the first PIC-X exchange flow: deriving an initial PIC Context of Authority (PCA) as plain JSON from a validated OAuth access token, then binding it into the first signed Continuity Transition."
 tags = ["pic", "pic-x", "oauth", "token exchange", "exchange profile", "configuration", "security", "authorization", "software engineering", "design"]
 +++
 
 <figure class="post-banner">
-  <img src="/images/2026-08-01/pic-x-exchanging-token-to-pca.png" alt="Designing PIC-X: Exchanging an OAuth Access Token for an Initial PCA." loading="lazy">
-  <figcaption>Designing PIC-X. Exchanging an OAuth Access Token for an Initial PCA.</figcaption>
+  <img src="/images/2026-08-01/pic-x-exchanging-token-to-pca.png" alt="Designing PIC-X: Deriving an Initial PIC Context of Authority." loading="lazy">
+  <figcaption>Designing PIC-X. Deriving an Initial PIC Context of Authority.</figcaption>
 </figure>
 
-PIC-X receives an OAuth access token, validates it, and converts it into the initial PCA from which the PIC lineage begins.
+PIC-X receives an OAuth access token, validates it, and derives the initial PIC Context of Authority, or PCA. The PCA is a plain JSON authority context. It is not signed independently. PIC-X then places it in the first signed Continuity Transition, from which authority continuity begins.
 
 ```text
 OAuth access token
-        │
-        ▼
-Exchange Profile
-├── token validation
-├── claim normalization
-├── scope parsing
-└── PCA0 construction
-        │
-        ▼
-Initial PIC lineage
-```
-
-## Developer Experience
-
-Using PIC-X requires only two exchange operations.
-
-Create the initial PCA from an OAuth access token:
-
-```text
-pcaInitial = picX.exchange(
-    accessToken,
-    executionContract
-)
-```
-
-Use the PCA during application authorization:
-
-```text
-decision = applicationPdp.evaluate(...)
-
-pcaNext = picX.exchange(
-    pcaInitial,
-    proofOfRelationship
-)
-```
-
-At a glance:
-
-```text
-OAuth access token
-        │
-        ▼
+        |
+        v
 picX.exchange(accessToken, executionContract)
-        │
-        ▼
-PCA initial
-        │
-        ├── application PDP evaluation
-        │
-        ▼
-picX.exchange(pca, proofOfRelationship)
-        │
-        ▼
-PCA next
+        |
+        v
+PCA 0
+plain JSON PIC Context of Authority
+        |
+        v
+signed Continuity Transition 0
+        |
+        v
+PIC Continuity Token 0
+        |
+        +-- application PDP evaluation over current PCA
+        |
+        v
+picX.exchange(continuityTokenN, proposedPcaNPlus1)
+        |
+        v
+PIC Continuity Token N+1
 ```
 
 
-The application developer does not need to implement token validation, scope parsing, PCA construction, invariant selection, or lineage verification.
+The application developer does not need to implement token validation, scope parsing, PCA construction, Continuity Transition signing, invariant selection, or continuity verification.
 
-> **Info:** The exchange can also be performed by an API gateway, service mesh, or another infrastructure component. In that model, PIC-X remains transparent to the application: the application receives the PCA and the authorization result without implementing the exchange flow.
+> **Info:** The exchange can also be performed by an API gateway, service mesh, or another infrastructure component. In that model, PIC-X remains transparent to the application: the application receives the PIC Continuity Token and can read its current PCA without implementing the exchange flow.
 
-> **Warning:** The following example uses an application PDP through AuthZEN. It must not be confused with PIC Trusted Anchors such as Guardrail. Trusted Anchors are protocol-level trust policy engines: they evaluate granted scopes, verify signatures, and enforce non-repudiation and other PIC trust rules. They are part of the PIC protocol flow, not the application authorization flow shown here. Trusted Anchors and Guardrail will be described in a separate article.
+> **Warning:** The following example uses an application PDP through AuthZEN. It must not be confused with PIC Trusted Anchors such as Guardrail. Trusted Anchors are protocol-level trust policy engines: they evaluate granted scopes, verify Continuity Transition signatures, and enforce non-repudiation and other PIC trust rules. They are part of the PIC protocol flow, not the application authorization flow shown here. Trusted Anchors and Guardrail will be described in a separate article.
 
 
 The remaining sections explain how PIC-X performs the first exchange.
 
-The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile will define how an OAuth access token is exchanged for an initial PCA and will be developed in the next articles.
+The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile will define how an OAuth access token is exchanged for the first PIC Continuity Token and will be developed in the next articles.
+
+## PCA and Continuity Transition
+
+A **PCA** is the **PIC Context of Authority**.
+
+It is represented as a plain JSON object containing the authority and execution context derived for one continuity position.
+
+```text
+PCA
+→ PIC Context of Authority
+→ plain JSON
+→ not signed independently
+```
+
+A **Continuity Transition** is the signed object that binds two continuity positions:
+
+```text
+previous PCA
++
+current PCA
++
+transition metadata
+=
+signed Continuity Transition
+```
+
+For initialization there is no previous PCA:
+
+```text
+Continuity Transition 0
+├── previous PCA: null
+└── current PCA: PCA 0
+```
+
+The cryptographic signature is applied to the Continuity Transition, not to the individual PCA.
+
+A **PIC Continuity Token** carries one or more signed Continuity Transitions.
 
 ## 1. Incoming OAuth Access Token
 
@@ -291,15 +295,12 @@ Each privilege is one atomic authority item:
 privilege = (scope, operation, resourceType, resourceId)
 ```
 
-## 4. Initial PCA
+## 4. Initial PIC Context of Authority
 
-Below is an example of an initial PCA:
+Below is an example of PCA 0, the initial PIC Context of Authority. This object is plain JSON and has no independent signature:
 
 ```json
 {
-  "profile": "https://pic-protocol.org/0.2",
-  "issuer": "pic-x:corporate-oauth",
-
   "principal": {
     "id": "user-123",
     "roles": [
@@ -346,28 +347,54 @@ Below is an example of an initial PCA:
     }
   },
 
-  "continuation": {
-    "challenge": "base64url-random-256-bit-value",
-    "mode": "single-use",
-    "expiresAt": "2026-08-01T14:15:00Z"
-  },
-
-  "issuedAt": "2026-08-01T14:00:00Z",
-  "expiresAt": "2026-08-01T14:15:00Z"
+  "issuedAt": "2026-08-01T14:00:00Z"
 }
 ```
 
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
-`execution.invariants` carries the authority that must be preserved or attenuated across the lineage.  
+The PCA is not a JWT and is not signed by itself. Protocol metadata such as `profile` and signer identity such as `issuer` belong to the signed Continuity Transition, not to the PCA.
+
+After constructing PCA 0, PIC-X creates the initial Continuity Transition:
+
+```json
+{
+  "profile": "https://pic-protocol.org/0.2",
+  "issuer": "pic-x:corporate-oauth",
+  "sequence": 0,
+  "previousPca": null,
+  "currentPca": {
+    "...": "PCA 0"
+  },
+  "transitionMetadata": {
+    "createdAt": "2026-08-01T14:00:00Z"
+  }
+}
+```
+
+PIC-X signs this Continuity Transition and places it in PIC Continuity Token 0.
+
+```text
+PCA 0
+→ plain JSON authority context
+
+Continuity Transition 0
+→ signed binding containing PCA 0
+
+PIC Continuity Token 0
+→ transport artifact returned by PIC-X
+```
+
+
+`execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
 `execution.contract` carries execution-specific constraints.
 
 ## 5. Providing an Execution Contract
 
-The execution contract is a mandatory input to the initial exchange:
+The execution contract is a mandatory input to the initialization exchange:
 
 ```text
-pcaInitial = picX.exchange(
+continuityToken0 = picX.exchange(
     accessToken,
     executionContract
 )
@@ -387,7 +414,7 @@ Example input:
 }
 ```
 
-PIC-X places the supplied value in the initial PCA:
+PIC-X places the supplied value in PCA 0 before constructing and signing Continuity Transition 0:
 
 ```json
 {
@@ -482,10 +509,10 @@ requiredScope = "documents:write"
 A developer might use code as simple as the following:
 
 ```text
-principal = selectPrincipal(pca)
+principal = selectPrincipal(currentPca)
 
 privilege = selectInvariantByScope(
-    pca,
+    currentPca,
     "documents:write"
 )
 ```
@@ -546,10 +573,10 @@ Derived resource:
 Once the authority has selected the privilege, the application can invoke the PDP interface:
 
 ```text
-principal = selectPrincipal(pca)
+principal = selectPrincipal(currentPca)
 
 privilege = selectInvariantByScope(
-    pca,
+    currentPca,
     "documents:write"
 )
 
@@ -563,7 +590,7 @@ decision = pdp.authzen.evaluate(
     resource,
     {
         scope: privilege.scope,
-        securityDomain: pca.attributes.securityDomain
+        securityDomain: currentPca.attributes.securityDomain
     }
 )
 ```
@@ -714,51 +741,49 @@ when {
 
 ```text
 OAuth JWT + executionContract
-│
-        ▼
+        |
+        v
 picX.exchange(accessToken, executionContract)
-│
-        ▼
+        |
+        v
 Exchange Profile
-├── parses each scope
-└── emits:
-    ├── scope
-    ├── operation
-    ├── resourceType
-    └── resourceId
-        │
-        ▼
-PCA0
-├── optional principal
-├── optional attributes
-├── execution invariants
-└── mandatory execution contract
-        │
-        ▼
++-- validates the OAuth token
++-- parses each scope
+`-- emits normalized PIC authority
+        |
+        v
+PCA 0
++-- plain JSON PIC Context of Authority
++-- optional principal
++-- optional attributes
++-- execution invariants
+`-- mandatory execution contract
+        |
+        v
+Continuity Transition 0
++-- previous PCA: null
++-- current PCA: PCA 0
+`-- signed by PIC-X
+        |
+        v
+PIC Continuity Token 0
+        |
+        v
 Application
-│
-└── application authorization and picX.exchange(pca, proofOfRelationship)
-        │
-        ▼
++-- reads the current PCA
++-- performs application authorization
+`-- proposes PCA N+1 when continuity advances
+        |
+        v
+picX.exchange(continuityTokenN, proposedPcaNPlus1)
+        |
+        v
 PIC-X
-├── selectPrincipal(pca)
-└── selectInvariantByScope(pca, requiredScope)
-        │
-        ▼
-Selected invariant
-├── operation
-├── resourceType
-└── resourceId
-        │
-        ▼
-AuthZEN adapter
-├── principal → subject
-├── operation → action
-├── resourceType → resource.type
-├── resourceId → resource.id
-└── scope → context.scope
-        │
-        ▼
-Application PDP
-└── evaluates application policy
++-- validates current continuity
++-- validates non-expansion of authority
++-- validates proposed PCA N+1
+`-- signs Continuity Transition N+1
+        |
+        v
+PIC Continuity Token N+1
 ```
