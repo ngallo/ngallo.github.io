@@ -21,9 +21,7 @@ The document exposes public PIC-X endpoints and supported protocol capabilities.
 
 ## PIC-X and the PIC Token Service
 
-PIC-X is the overall system.
-
-The PIC Token Service, or PTS, is the PIC-X component that implements the PIC profile of OAuth Token Exchange.
+PIC-X is the overall system. The PIC Token Service, or PTS, is the PIC-X component that implements the PIC profile of OAuth Token Exchange.
 
 ```text
 PIC-X
