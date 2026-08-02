@@ -2,7 +2,7 @@
 author = "Nicola Gallo"
 title = "Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration"
 date = "2026-08-01T11:00:00+02:00"
-description = "This article defines the PIC-X discovery document exposed through .well-known/pic-x-configuration. It explains the relationship between the PIC-X platform and the PIC Token Service, the PIC profile of OAuth Token Exchange, PCA initialization and continuation, subchain submission, attestation services, Trusted Anchors, and lineage capabilities."
+description = "This article defines the PIC-X discovery document exposed through .well-known/pic-x-configuration. It explains the relationship between PIC-X and the PIC Token Service, the PIC profile of OAuth Token Exchange, PCA initialization and chain continuation, execution contract binding, supported chain modes, transport bindings, attestation services, Trusted Anchors, revocation, and transport security."
 tags = ["pic", "pic-x", "pts", "well-known", "discovery", "configuration", "metadata", "oauth", "token exchange", "pca", "subchain", "security", "software engineering", "design"]
 +++
 
@@ -17,11 +17,11 @@ When PIC-X starts, it exposes its public configuration at:
 http://127.0.0.1:5556/pic-x/.well-known/pic-x-configuration
 ```
 
-The document exposes public platform endpoints and supported protocol capabilities. Internal Exchange Profiles are not exposed.
+The document exposes public PIC-X endpoints and supported protocol capabilities. Internal Exchange Profiles are not exposed.
 
 ## PIC-X and the PIC Token Service
 
-PIC-X is the platform.
+PIC-X is the overall system.
 
 The PIC Token Service, or PTS, is the PIC-X component that implements the PIC profile of OAuth Token Exchange.
 
@@ -38,7 +38,7 @@ The PIC Token Service, or PTS, is the PIC-X component that implements the PIC pr
 │  │    and binding                          │  │
 │  │  • chain validation and aggregation     │  │
 │  │  • revocation                           │  │
-│  │  • PCA and chain JWT signing keys       │  │
+│  │  • PTS signing keys and chain verification       │  │
 │  └─────────────────────────────────────────┘  │
 │                                               │
 │  Attestation services                         │
@@ -47,7 +47,7 @@ The PIC Token Service, or PTS, is the PIC-X component that implements the PIC pr
 └───────────────────────────────────────────────┘
 ```
 
-The platform discovery document therefore contains both PTS endpoints and other PIC-X capabilities.
+The PIC-X discovery document therefore contains both PTS endpoints and other PIC-X capabilities.
 
 ## PIC-X Discovery Document
 
@@ -73,7 +73,8 @@ The platform discovery document therefore contains both PTS endpoints and other 
   ],
 
   "issued_token_types_supported": [
-    "https://pic-protocol.org/token-types/pca"
+    "https://pic-protocol.org/token-types/pca",
+    "https://pic-protocol.org/token-types/chain"
   ],
 
   "token_endpoint_auth_methods_supported": [
@@ -99,12 +100,9 @@ The platform discovery document therefore contains both PTS endpoints and other 
     "formats_supported": [
       "jwt"
     ],
-    "signing_alg_values_supported": [
-      "ES256"
-    ],
     "chain_modes_supported": [
       "centralized-chain",
-      "snapshot-based-subchain"
+      "decentralized-subchains"
     ]
   }
 }
@@ -140,13 +138,13 @@ token_endpoint
 → exposes the PIC profile of OAuth Token Exchange
 
 revocation_endpoint
-→ requests PCA revocation
+→ requests revocation according to the PIC revocation specification
 
 jwks_uri
 → publishes the keys used to verify PCA signatures
 ```
 
-The token endpoint belongs to the PTS component, while the discovery document belongs to the wider PIC-X platform.
+The token endpoint belongs to the PTS component, while the discovery document belongs to the wider PIC-X system.
 
 ## 3. PIC Profile of OAuth Token Exchange
 
@@ -155,6 +153,8 @@ PTS uses the standard OAuth Token Exchange grant:
 ```text
 urn:ietf:params:oauth:grant-type:token-exchange
 ```
+
+The current development profile advertises `token_endpoint_auth_methods_supported` as `none`. This means that the caller is not separately authenticated as an OAuth client at the token endpoint. It does not mean that the exchange is unauthenticated: PTS still validates the supplied OAuth access token, PCA, and chain artifact before issuing a result. A later production profile may add explicit client or workload authentication without changing the PIC exchange semantics.
 
 PIC defines its own token type:
 
@@ -174,7 +174,8 @@ The URI is controlled by the PIC project. It does not use the IETF namespace bec
     "https://pic-protocol.org/token-types/pca"
   ],
   "issued_token_types_supported": [
-    "https://pic-protocol.org/token-types/pca"
+    "https://pic-protocol.org/token-types/pca",
+    "https://pic-protocol.org/token-types/chain"
   ],
   "token_exchange_parameters_supported": [
     "execution_contract",
@@ -187,17 +188,15 @@ PTS supports two exchange paths:
 
 ```text
 OAuth access token → PCA
-→ initializes a new PIC authorization chain
+→ creates the initial PCA proposal
 
-PCA → PCA
-→ continues an existing PIC authorization chain
+PIC Chain N + PCA N+1 → PIC Chain N+1
+→ validates a proposed next PCA and appends it to the signed chain
 ```
 
-The initial exchange receives an OAuth access token as the `subject_token`.
+The initial exchange receives an OAuth access token as the `subject_token` and returns an initial signed PCA.
 
-A continuation exchange receives an existing PCA as the `subject_token`.
-
-The lineage is supplied separately through the PIC-specific `chain` parameter as one signed JWT chain artifact.
+For continuation, the next PCA is first produced outside the chain as a proposal. The exchange receives that proposed PCA as the `subject_token` and receives the current signed chain through the PIC-specific `chain` parameter. After validation, PTS returns a new signed chain containing the accepted PCA.
 
 ## 4. Initial Exchange: OAuth Access Token to PCA
 
@@ -243,9 +242,9 @@ Example response:
 }
 ```
 
-## 5. Continuation Exchange: PCA to PCA
+## 5. Continuation Exchange: Chain N and PCA N+1 to Chain N+1
 
-A continuation exchange receives the current PCA and one signed chain artifact, then returns the next PCA.
+A continuation exchange receives the current signed chain and a proposed next PCA. The proposed PCA exists outside the chain until PTS validates and accepts it.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -255,85 +254,79 @@ Content-Type: application/x-www-form-urlencoded
 
 ```text
 grant_type=urn:ietf:params:oauth:grant-type:token-exchange
-&subject_token=<current-pca>
+&subject_token=<proposed-pca-n-plus-1>
 &subject_token_type=https://pic-protocol.org/token-types/pca
-&requested_token_type=https://pic-protocol.org/token-types/pca
-&chain=<signed-chain-jwt>
+&requested_token_type=https://pic-protocol.org/token-types/chain
+&chain=<signed-chain-n-jwt>
 ```
 
 ```text
 subject_token
-→ the current PCA
+→ the proposed PCA N+1, not yet included in the chain
 
 subject_token_type
 → https://pic-protocol.org/token-types/pca
 
 requested_token_type
-→ https://pic-protocol.org/token-types/pca
+→ https://pic-protocol.org/token-types/chain
 
 chain
-→ one signed JWT carrying the centralized chain, a local subchain, or an aggregated snapshot
+→ the current signed PIC Chain N JWT
 ```
 
-The `chain` parameter is singular. Multiple hops or segments are represented inside the signed JWT rather than by repeating the request parameter.
-
-Example decoded JWT header:
-
-```json
-{
-  "typ": "pic-chain+jwt",
-  "alg": "ES256",
-  "kid": "chain-signing-key-1"
-}
-```
-
-Example decoded JWT payload:
-
-```json
-{
-  "mode": "snapshot-based-subchain",
-  "chain_id": "chain-123",
-  "base_pca": "pca-456",
-  "hops": [
-    {
-      "sequence": 1,
-      "executor": "executor-a",
-      "previous": "sha256:..."
-    },
-    {
-      "sequence": 2,
-      "executor": "executor-b",
-      "previous": "sha256:..."
-    }
-  ]
-}
-```
+PTS validates:
 
 ```text
-centralized-chain
-→ PTS creates and manages the chain artifact
-
-snapshot-based-subchain
-→ local nodes create a signed JWT containing the subchain
-→ PTS validates the JWT signature, ordering, linkage, and PCA binding
-→ PTS incorporates the verified chain state into the next PCA
+→ the signature and validity of Chain N
+→ the current authority represented by Chain N
+→ the proposed PCA N+1
+→ the execution contract binding
+→ non-expansion of authority
+→ revocation state
+→ the rules of the selected chain mode
 ```
 
-PTS validates the current PCA, validates the signed chain JWT, applies the configured PIC rules, and issues the next PCA.
+If validation succeeds, PTS appends the proposed PCA to the chain and returns a new signed `PIC Chain N+1` JWT.
+
+```text
+PIC Chain N
++
+proposed PCA N+1
++
+PTS validation
+=
+PIC Chain N+1
+```
 
 Example response:
 
 ```json
 {
-  "access_token": "<next-signed-pca>",
-  "issued_token_type": "https://pic-protocol.org/token-types/pca",
+  "access_token": "<signed-pic-chain-n-plus-1-jwt>",
+  "issued_token_type": "https://pic-protocol.org/token-types/chain",
   "token_type": "N_A"
 }
 ```
 
-## 6. Token Exchange Response
+The `chain` parameter is singular and carries one signed JWT chain artifact.
 
-The response follows the OAuth Token Exchange response structure:
+PIC-X currently advertises two chain modes:
+
+```text
+centralized-chain
+→ PTS validates each proposed transition and maintains the authoritative chain
+
+decentralized-subchains
+→ reserved for bounded decentralized execution segments
+```
+
+The detailed structure, signing model, checkpoint rules, workload identity requirements, and verification algorithm for `decentralized-subchains` remain active protocol design topics and are intentionally not defined in this discovery document.
+
+## 6. Token Exchange Responses
+
+The response follows the OAuth Token Exchange response structure. The semantic type of the returned value is determined by `issued_token_type`.
+
+### Initial exchange response
 
 ```json
 {
@@ -343,22 +336,30 @@ The response follows the OAuth Token Exchange response structure:
 }
 ```
 
-`access_token` is the response field defined by OAuth Token Exchange.
+### Continuation exchange response
 
-The returned value is not an OAuth access token. Its semantic type is determined by `issued_token_type`.
-
-```text
-access_token
-→ contains the signed PCA
-
-issued_token_type
-→ identifies the PIC PCA token type
-
-token_type: N_A
-→ the PCA is not used as an OAuth Bearer access token
+```json
+{
+  "access_token": "<signed-pic-chain-n-plus-1-jwt>",
+  "issued_token_type": "https://pic-protocol.org/token-types/chain",
+  "token_type": "N_A"
+}
 ```
 
-The PCA remains an application-level authorization artifact while OAuth Token Exchange provides the interoperable issuance protocol.
+`access_token` is the response field defined by OAuth Token Exchange. The returned value is not necessarily an OAuth access token and must not be interpreted only from the field name.
+
+```text
+issued_token_type = https://pic-protocol.org/token-types/pca
+→ access_token contains a signed PCA
+
+issued_token_type = https://pic-protocol.org/token-types/chain
+→ access_token contains a signed PIC Chain JWT
+
+token_type = N_A
+→ the returned artifact is not used as an OAuth Bearer access token
+```
+
+OAuth Token Exchange provides the interoperable issuance protocol. PIC defines the authorization semantics of the returned artifact.
 
 ## 7. Attestation and Trusted Anchors
 
@@ -449,7 +450,7 @@ Example response from the Trusted Anchors endpoint:
 
 ## 8. PCA and Chain Capabilities
 
-PCA signing, execution contract binding, and chain JWT signing are separate capabilities.
+PCA signing, execution contract binding, chain format, and chain modes are separate capabilities.
 
 ```json
 {
@@ -467,12 +468,9 @@ PCA signing, execution contract binding, and chain JWT signing are separate capa
     "formats_supported": [
       "jwt"
     ],
-    "signing_alg_values_supported": [
-      "ES256"
-    ],
     "chain_modes_supported": [
       "centralized-chain",
-      "snapshot-based-subchain"
+      "decentralized-subchains"
     ]
   }
 }
@@ -491,25 +489,310 @@ chain.token_type
 chain.formats_supported
 → serialization formats supported for the chain artifact
 
-chain.signing_alg_values_supported
-→ algorithms used to sign chain JWTs
+All PIC artifacts described here are represented as signed JWTs. The precise signer roles and algorithm negotiation for decentralized subchains remain part of the subchain design.
 ```
 
 With the `digest` binding method, PTS validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and breaks the binding.
 
+### Chain modes
+
 ```text
 centralized-chain
-→ the chain is created, signed, and managed by the central PTS
+→ PTS validates each transition
+→ PTS issues the next PCA
+→ PTS maintains the authoritative chain centrally
+→ the propagated token remains bounded in size
 
-snapshot-based-subchain
-→ local nodes extend a subchain
-→ the complete subchain is serialized as one JWT
-→ the JWT is signed with a supported chain signing algorithm
-→ the signed chain JWT is submitted through the `chain` parameter
-→ PTS validates and incorporates its verified state into the next PCA
-→ snapshots must be produced within a configured maximum interval
-→ shorter intervals are allowed
-→ the maximum interval limits exposure to colluding compromised nodes
+decentralized-subchains
+→ identifies support for bounded decentralized execution segments
+→ advertised as a protocol capability
+→ detailed token structure and verification rules are not defined here
 ```
 
-The `chain` parameter always carries one signed JWT. That JWT can contain one hop, multiple hops, a full centralized chain, or a snapshot-based subchain, depending on the selected chain mode.
+The PIC model may support a complete chain representation. Whether a deployment transports the full chain, stores it centrally, or uses bounded subchains is an implementation choice.
+
+This PIC-X discovery document only advertises the supported chain modes.
+
+The detailed design of `decentralized-subchains` remains an active protocol design topic. Its chain token structure, PCA sequencing, signature model, attestation requirements, checkpoint rules, key rotation behavior, replay protection, and collusion limits are intentionally left unspecified in this document.
+
+## 9. PIC-Token Transport
+
+OAuth access tokens and PIC authorization artifacts serve different purposes.
+
+OAuth is one possible entry mechanism for PIC, not a universal dependency of the PIC model. In an OAuth-based entry flow, an access token may authorize access to an API, gateway, or external system boundary:
+
+```http
+Authorization: Bearer <oauth-access-token>
+```
+
+A PIC authorization artifact is transported separately through the `PIC-Token` header:
+
+```http
+PIC-Token: <signed-pic-chain-jwt>
+```
+
+A complete HTTP request may therefore carry both:
+
+```http
+POST /payments HTTP/1.1
+Host: api.example.com
+Authorization: Bearer <oauth-access-token>
+PIC-Token: <signed-pic-chain-jwt>
+Content-Type: application/json
+```
+
+```text
+OAuth access token
+→ may authorize access to an API, gateway, or external boundary in an OAuth-based entry flow
+
+PIC-Token
+→ carries the PIC chain artifact
+→ carries the current execution authority
+→ binds execution constraints and authorization invariants
+→ preserves verifiable continuity across the execution path
+```
+
+OAuth and PIC are complementary.
+
+In an OAuth-based initialization flow, PTS derives the initial PIC authority from the validated OAuth access token, the Exchange Profile, the execution contract, and local policy.
+
+```text
+initial PCA authority
+⊆
+OAuth subject-token authority
+∩
+Exchange Profile
+∩
+execution contract
+∩
+local policy
+```
+
+After initialization, OAuth does not need to participate in every internal authorization decision:
+
+```text
+effective execution authority
+=
+current PIC authority
+∩
+local policy
+```
+
+The PIC chain must never expand beyond the authority established by its origin and subsequent valid restrictions.
+
+The OAuth access token does not become part of the PIC lineage and does not need to be propagated through the internal execution path. PIC may also be initialized by other entry mechanisms when a future PIC profile explicitly defines them.
+
+Likewise, a PCA is not an OAuth access token and must not be interpreted as one merely because OAuth Token Exchange returns it in the `access_token` response field.
+
+### PIC-Token is an HTTP binding
+
+`PIC-Token` is the HTTP transport binding for a PIC chain artifact.
+
+The underlying PCA and chain representation are transport-independent. They may be carried through:
+
+```text
+HTTP
+Apache Kafka
+message brokers
+event streams
+job queues
+RPC frameworks
+workflow engines
+storage-backed execution systems
+```
+
+For Apache Kafka, the PIC chain artifact may be placed in a record header:
+
+```text
+pic-token = <signed-pic-chain-jwt>
+```
+
+Alternatively, an application envelope may carry it explicitly:
+
+```json
+{
+  "event": {
+    "type": "payment.requested",
+    "payload": {}
+  },
+  "pic_token": "<signed-pic-chain-jwt>"
+}
+```
+
+The transport binding may change, but the authorization semantics represented by the PCA remain the same.
+
+## 10. Security Considerations for Transport
+
+A PCA and a PIC chain artifact are signed authorization artifacts, but they are still transported as sequences of bytes.
+
+The signature protects integrity and allows recipients to authenticate the signer only after validating the signing key and its binding to the claimed identity or issuer. It does not, by itself, provide confidentiality and does not prevent an attacker from copying and forwarding an unmodified token.
+
+Transport security remains necessary.
+
+HTTP deployments should use TLS. Deployments requiring mutual workload authentication should use mTLS or another authenticated transport. Message brokers and streaming systems should provide equivalent confidentiality, integrity, peer authentication, and access-control guarantees.
+
+Without a protected transport, an attacker may:
+
+```text
+→ observe a PCA or PIC chain token
+→ copy or forward it
+→ replay it against another endpoint
+→ observe request or response data
+→ impersonate an unprotected transport peer
+```
+
+These risks may originate from an unprotected transport, a compromised intermediary, broker, endpoint, or token store. Secure transport reduces exposure, while PIC-level controls constrain how a copied artifact may be reused.
+
+PIC authorization and secure transport address different layers:
+
+```text
+TLS, mTLS, or encrypted messaging
+→ protect communication between peers
+
+PCA signatures and PIC validation
+→ protect authorization semantics and execution integrity
+```
+
+A deployment must not rely on PCA signatures as a replacement for secure transport.
+
+### Forwarding and replay
+
+A valid signature proves that an artifact was issued or signed by an authorized entity. It does not prove that the entity presenting the artifact is the intended presenter.
+
+An on-path attacker that can read an unprotected token may forward it unchanged. The signature will still be valid because the bytes were not modified.
+
+PIC deployments should therefore combine transport protection with protocol-level replay and forwarding defenses, including:
+
+```text
+revocation validation
+optional expiration, when defined by the profile
+audience or execution-domain restriction, when present
+unique PCA identifiers
+execution contract binding
+chain and lineage validation
+workload identity binding, where required
+proof of possession, where required
+```
+
+### Audience and execution-domain restrictions
+
+A PIC profile may bind a PCA or chain to an execution domain, service, workload group, or other authorized audience.
+
+When such a restriction is present, a recipient MUST reject the artifact when it is outside the authorized audience or execution domain.
+
+Audience restriction limits where a copied artifact can be replayed, but it does not replace authenticated transport.
+
+### PCA validity, identifiers, and revocation
+
+A PCA has no expiration by default. It may remain valid for the lifetime required by the authorized execution.
+
+PIC does not require PCAs to be short-lived. PCA validity is determined by the execution contract, the applicable PIC profile, local policy, chain state, and revocation state.
+
+```text
+jti or equivalent PCA identifier
+→ uniquely identifies the PCA
+→ supports correlation, auditing, lineage validation, and revocation
+
+revocation
+→ invalidates a PCA or its execution authority according to the PIC revocation specification
+
+exp
+→ may optionally define a time-based validity limit
+→ is not required by the PIC model
+```
+
+A PCA remains valid until an applicable invalidation condition occurs, such as:
+
+```text
+→ explicit revocation
+→ invalidation of its execution contract
+→ supersession according to the chain rules
+→ an optional expiration time being reached
+→ another profile-specific invalidation condition
+```
+
+Whether a PCA may be presented more than once depends on the execution contract, chain rules, revocation state, and local policy.
+
+A profile that permits long-lived PCAs MUST define how recipients obtain revocation status. Online recipients may consult PTS or another trusted revocation source.
+
+The status-list representation and the rules for offline or intermittently connected verification have not yet been defined by the current PIC-X profile. They remain an active protocol design topic.
+
+### Execution contract binding
+
+The execution contract binding ensures that a PCA cannot be reused with a different execution contract without detection.
+
+With the `digest` method, the PCA contains a digest of the validated execution contract.
+
+```text
+execution contract
+→ canonicalization
+→ cryptographic digest
+→ digest included in the PCA
+```
+
+A recipient must recompute or otherwise obtain the expected digest and reject the PCA when the binding does not match.
+
+### Proof of possession
+
+Proof of possession may be used when bearer-style forwarding is not acceptable.
+
+A PCA may be bound to a workload key or another authenticated execution identity. The presenter then proves possession of the corresponding private key when invoking the next workload.
+
+Conceptually:
+
+```text
+PCA
+→ contains or references a confirmation key
+
+request
+→ contains a signature or authenticated proof
+
+recipient
+→ verifies that the presenter controls the bound key
+```
+
+Proof of possession reduces the value of a copied PCA because possession of the token bytes alone is not sufficient.
+
+The exact proof-of-possession mechanism is profile-specific and is not defined by this discovery document.
+
+### Message brokers and streaming systems
+
+For asynchronous transports such as Apache Kafka, transport protection must include both the network connection and broker-level authorization.
+
+A secure deployment should consider:
+
+```text
+TLS between producers, brokers, and consumers
+mutual authentication where required
+topic-level authorization
+record-header integrity
+retention and access controls
+consumer-group isolation
+encryption at rest where required
+```
+
+A signed PCA can detect unauthorized modification, but it does not prevent an unauthorized broker operator, producer, or consumer from reading or replaying the token when the surrounding system permits it.
+
+### Layered security model
+
+The intended separation is:
+
+```text
+secure transport
+→ protects bytes in transit
+
+OAuth access token
+→ may authorize access to an API, gateway, or external boundary in an OAuth-based entry flow
+
+PCA
+→ represents application and execution authority
+
+PIC chain validation
+→ protects continuity and authorization history
+
+proof of possession
+→ binds presentation to an authorized key or workload
+```
+
+These controls are complementary. None of them should be treated as a universal replacement for the others.
+
