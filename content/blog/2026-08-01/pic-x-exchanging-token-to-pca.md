@@ -63,7 +63,7 @@ PCA
 → not signed independently
 ```
 
-A **Continuity Transition** is the object that binds two continuity positions and is then serialized as the payload of a signed JWT:
+A **Continuity Transition** is the object that binds two continuity positions. A **PIC Continuity Token** is the signed JWT representation of that Continuity Transition:
 
 ```text
 chained transition
@@ -74,8 +74,9 @@ current PCA
 +
 cryptographic continuity evidence
 =
-Continuity Transition payload
-→ signed JWT
+Continuity Transition
+→ serialized as JWT payload
+→ signed as a PIC Continuity Token
 ```
 
 For initialization there is no previous transition and no previous PCA:
@@ -90,7 +91,9 @@ Continuity Transition 0
 
 The cryptographic signature is applied to the Continuity Transition, not to the individual PCA.
 
-A **PIC Continuity Token** carries one or more signed Continuity Transitions.
+Although the OAuth Token Exchange profile may identify a proposed PCA through a type URI, the PCA itself remains a plain JSON semantic value rather than an independently signed token.
+
+A **PIC Continuity Token** is the signed JWT representation of one Continuity Transition. The transition may link to its predecessor through `chainedTransition`.
 
 ## 1. Incoming OAuth Access Token
 
@@ -408,7 +411,7 @@ PIC Continuity Token 0
 
 `chainedTransition` links the current transition to its predecessor. It is `null` for the initial transition.
 
-`continuity` contains the cryptographic evidence used to establish authority continuity. The exact proof structure, validation algorithm, supported proof types, and decentralized continuity model are intentionally not defined in this article and will be covered in a dedicated protocol article.
+`continuity` contains the cryptographic evidence used to establish authority continuity. The exact proof structure, validation algorithm, supported proof types, chaining rules, and decentralized continuity model are intentionally not defined in this article and will be covered in a dedicated protocol article.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -790,9 +793,11 @@ PCA 0
         |
         v
 Continuity Transition 0
-+-- previous PCA: null
-+-- current PCA: PCA 0
-`-- signed by PIC-X
++-- chainedTransition: null
++-- previousPca: null
++-- currentPca: PCA 0
++-- continuity: initial cryptographic evidence
+`-- serialized and signed as PIC Continuity Token 0
         |
         v
 PIC Continuity Token 0
@@ -808,10 +813,11 @@ picX.exchange(continuityTokenN, proposedPcaNPlus1)
         |
         v
 PIC-X
-+-- validates current continuity
++-- validates the current PIC Continuity Token
 +-- validates non-expansion of authority
 +-- validates proposed PCA N+1
-`-- signs Continuity Transition N+1
++-- constructs Continuity Transition N+1
+`-- serializes and signs it as PIC Continuity Token N+1
         |
         v
 PIC Continuity Token N+1

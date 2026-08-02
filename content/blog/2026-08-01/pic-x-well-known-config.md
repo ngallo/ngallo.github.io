@@ -150,7 +150,7 @@ urn:ietf:params:oauth:grant-type:token-exchange
 
 The current development profile advertises `token_endpoint_auth_methods_supported` as `none`. The caller is not separately authenticated as an OAuth client. PTS still validates the supplied subject token and all PIC artifacts before issuing a result.
 
-PIC defines two token types:
+The PIC-X Token Exchange Profile uses the following type identifiers:
 
 
 PIC uses the following concepts:
@@ -175,7 +175,9 @@ https://pic-protocol.org/token-types/pca
 https://pic-protocol.org/token-types/continuity
 ```
 
-A PCA is one authority state inside the ordered continuity sequence carried by a PIC Continuity Token. It is not issued as the top-level result of the exchange.
+A PCA is one authority state represented as plain JSON inside a Continuity Transition. It is not issued as the top-level result of the exchange and is not signed independently.
+
+The URI `https://pic-protocol.org/token-types/pca` identifies the semantic type of the JSON value carried as a proposed PCA in the OAuth Token Exchange profile; it does not mean that the PCA is an independently signed token.
 
 The exchange always returns a signed PIC Continuity Token represented as a JWT:
 
@@ -211,10 +213,11 @@ PIC Continuity Token N + proposed PCA N+1
 → PTS returns PIC Continuity Token N+1
 ```
 
-The returned artifact is therefore always a continuity token. For the first exchange, the continuity token has no previous continuity:
+The returned artifact is therefore always a PIC Continuity Token. For the first exchange, the initial Continuity Transition has no predecessor and no previous PCA:
 
 ```text
-Continuity Token 0.previous = null
+Continuity Transition 0.chainedTransition = null
+Continuity Transition 0.previousPca = null
 ```
 
 The PCA created during initialization is already contained in Continuity Token 0 as PCA 0.
@@ -237,7 +240,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &execution_contract=<json-object>
 ```
 
-PTS validates the access token through the configured Exchange Profile, derives PCA 0 as the initial PIC Context of Authority, constructs the initial signed Continuity Transition with no predecessor, and returns Continuity Token 0.
+PTS validates the access token through the configured Exchange Profile, derives PCA 0 as the initial PIC Context of Authority, constructs Continuity Transition 0 with `chainedTransition` and `previousPca` set to `null`, adds the initial cryptographic continuity evidence in `continuity`, serializes the transition as a signed JWT, and returns PIC Continuity Token 0.
 
 Conceptually:
 
@@ -263,9 +266,9 @@ Example response:
 
 ## 5. Continuation Exchange: Continuity Token N and PCA N+1 to Continuity Token N+1
 
-A continuation exchange receives the current signed continuity as the `subject_token` and a proposed next PCA as the standard OAuth Token Exchange `actor_token`.
+A continuation exchange receives the current PIC Continuity Token as the `subject_token` and a proposed next PCA as the standard OAuth Token Exchange `actor_token`.
 
-The proposed PCA remains outside the current PIC Continuity Token until PTS validates it. After successful validation, PTS appends it as the next authority state and returns the next PIC Continuity Token.
+The proposed PCA remains outside the current PIC Continuity Token until PTS validates it. After successful validation, PTS constructs a new Continuity Transition whose `chainedTransition` links to the preceding transition, whose `previousPca` is the current PCA, whose `currentPca` is the proposed PCA, and whose `continuity` contains the required cryptographic continuity evidence. PTS then serializes and signs that transition as the next PIC Continuity Token.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -321,7 +324,7 @@ PIC-X advertises two continuity modes:
 
 ```text
 centralized-continuity
-→ PTS validates each transition and returns the next signed continuity
+→ PTS validates each transition and returns the next signed PIC Continuity Token
 
 decentralized-continuity
 → reserved capability whose detailed design is still under definition
@@ -470,7 +473,7 @@ continuity.token_type
 continuity.formats_supported
 → serialization formats supported for the PIC Continuity Token
 
-All PIC artifacts described here are represented as signed JWTs. The precise signer roles and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
+PIC Continuity Tokens are represented as signed JWTs. PCAs are plain JSON authority contexts contained in Continuity Transitions and are not signed independently. The precise signer roles, proof structures, and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
 ```
 
 With the `digest` binding method, PTS validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and breaks the binding.
@@ -490,23 +493,22 @@ decentralized-continuity
 → detailed token structure and verification rules are not defined here
 ```
 
-The continuity model uses the following conceptual hierarchy:
+The continuity model uses the following conceptual structure:
 
 ```text
 PIC Continuity Token
-`-- Continuity Segment
-    `-- Continuity Transition
-        |-- previous PCA
-        `-- current PCA
+`-- signed JWT representation of one Continuity Transition
+    |-- chainedTransition
+    |-- previousPca
+    |-- currentPca
+    `-- continuity
 ```
 
-A **Continuity Transition** is the signed authority-propagation step from PCA `n-1` to PCA `n`.
+A **Continuity Transition** is the authority-propagation step from PCA `n-1` to PCA `n`.
 
-The PCA values are plain JSON objects. The cryptographic signature is applied to the Continuity Transition that binds them together, not to each PCA independently.
+The PCA values are plain JSON objects. The cryptographic signature protects the complete Continuity Transition through its signed JWT representation; individual PCAs are not signed independently.
 
-A **Continuity Segment** is an ordered group of one or more Continuity Transitions.
-
-The PIC model may support a complete PCA-continuity representation. Whether a deployment transports the complete continuity, stores continuity state centrally, or uses bounded decentralized segments is an implementation choice.
+The PIC model may support a complete continuity representation. Whether a deployment transports all linked Continuity Transitions, stores authoritative continuity state centrally, or uses bounded decentralized representations is an implementation choice.
 
 This PIC-X discovery document advertises the supported continuity modes only. The detailed design of `decentralized-continuity` remains an active protocol-design topic. Its token structure, transition proofs, attestation requirements, checkpoint rules, key rotation behavior, replay protection, and collusion limits are intentionally left unspecified in this document.
 
@@ -542,6 +544,7 @@ OAuth access token
 
 PIC-Token
 → carries the PIC Continuity Token
+→ carries the current Continuity Transition and current PCA
 → carries the current execution authority
 → binds execution constraints and authorization invariants
 → preserves verifiable continuity across the execution path
