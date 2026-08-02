@@ -50,6 +50,9 @@ The remaining sections explain how PIC-X performs the first exchange.
 
 The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile uses a `continuity_proposal` input for both initialization and continuation. The proposal type identifies which schema and validation rules apply; those schemas will be defined in a dedicated protocol article.
 
+The value of `continuity_proposal` is produced by serializing the proposal as compact UTF-8 JSON and applying unpadded Base64url encoding. The exact proposal schemas and any future cryptographic protection applied to a proposal are outside the scope of this article.
+
+
 ## PCA and Continuity Transition
 
 A **PCA** is the **PIC Context of Authority**.
@@ -360,14 +363,14 @@ Below is an example of PCA 0, the initial PIC Context of Authority. This object 
 
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
-The PCA is not a JWT and is not signed by itself. Protocol metadata such as `profile` and signer identity such as `issuer` belong to the signed Continuity Transition, not to the PCA.
+The PCA is not a JWT and is not signed by itself. Protocol metadata such as `profile` and the standard JWT issuer claim `iss` belong to the signed Continuity Transition, not to the PCA.
 
 After constructing PCA 0, PIC-X creates the initial Continuity Transition:
 
 ```json
 {
   "profile": "https://pic-protocol.org/profiles/0.2",
-  "issuer": "https://pic-x.example.com",
+  "iss": "https://pic-x.example.com",
   "previousTransition": null,
   "previousPca": null,
   "currentPca": {
@@ -419,7 +422,7 @@ https://pic-protocol.org/definitions/proposal-types/continuity-initial
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-In this article, the initial proposal contains the execution contract. A continuation proposal may contain a proposed PCA, Proof of Relationship (PoR), and other supporting material. The complete schemas are intentionally deferred to a dedicated protocol article.
+In this article, the initial proposal contains the execution contract. A continuation proposal may contain a proposed PCA, Proof of Relationship (PoR), and other supporting material. Its exact schema, cryptographic binding, validation sequence, and continuation flow are intentionally deferred to a dedicated protocol article.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -444,7 +447,7 @@ continuityToken0 = picX.exchange(
 
 For the flow described here, the proposal contains only the execution contract. It is provided by the caller, not by the Exchange Profile.
 
-Example proposal:
+Example proposal before Base64url encoding:
 
 ```json
 {
@@ -839,6 +842,8 @@ PIC-X
         v
 PIC Continuity Token N+1
 ```
+
+> **Note:** A PCA has no mandatory independent expiration. Any expiration policy is profile-defined. A PCA is usable only as part of a valid PIC Continuity Token and remains subject to revocation, continuity rules, execution-contract constraints, local policy, and any declared token or profile expiration.
 
 ## References
 

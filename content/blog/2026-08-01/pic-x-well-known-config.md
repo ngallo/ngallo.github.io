@@ -76,11 +76,6 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     "continuity_proposal_type"
   ],
 
-  "continuity_proposal_types_supported": [
-    "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
-    "https://pic-protocol.org/definitions/proposal-types/continuity"
-  ],
-
   "pca": {
     "format": "json",
     "execution_contract_binding_methods_supported": [
@@ -122,13 +117,13 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
 }
 ```
 
-`issuer` identifies the PIC-X deployment.
+`issuer` identifies the PIC-X deployment in discovery metadata. Signed PIC Continuity Tokens use the standard JWT `iss` claim.
 
 `profile` identifies the supported PIC protocol profile and therefore selects the applicable protocol version, schemas, and validation rules.
 
 The issuer must match the public URL exposed to clients.
 
-## 2. PIC Token Service Endpoints
+## 2. PIC-X Endpoints
 
 ```json
 {
@@ -161,7 +156,7 @@ urn:ietf:params:oauth:grant-type:token-exchange
 
 The current development profile advertises `token_endpoint_auth_methods_supported` as `none`. The caller is not separately authenticated as an OAuth client. PIC-X still validates the supplied subject token and all PIC artifacts before issuing a result.
 
-The PIC-X Token Exchange Profile uses stable definition URIs for token and proposal types. The selected PIC profile determines the applicable schemas, validation rules, and protocol behavior.
+The PIC-X Token Exchange Profile uses stable definition URIs for token and proposal types. The selected PIC profile determines the applicable schemas, validation rules, and protocol behavior. The `continuity_proposal` and `continuity_proposal_type` parameters, together with the related discovery members, are defined by the PIC Token Exchange Profile.
 
 PIC uses the following concepts:
 
@@ -191,7 +186,9 @@ https://pic-protocol.org/definitions/proposal-types/continuity-initial
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-The initial and continuation proposal types may use different schemas. Their exact fields, Proof of Relationship representation, supporting evidence, and validation rules are intentionally deferred to a dedicated protocol article.
+The initial and continuation proposal types may use different schemas. Their exact fields, Proof of Relationship representation, supporting evidence, cryptographic binding, and validation rules are intentionally deferred to a dedicated protocol article.
+
+The value of `continuity_proposal` is the unpadded Base64url encoding of the compact UTF-8 JSON serialization of the proposal object. This transport encoding does not by itself make the proposal a JWT or a signed object.
 
 The exchange always returns a signed PIC Continuity Token represented as a JWT:
 
@@ -210,10 +207,6 @@ The exchange always returns a signed PIC Continuity Token represented as a JWT:
   "token_exchange_parameters_supported": [
     "continuity_proposal",
     "continuity_proposal_type"
-  ],
-  "continuity_proposal_types_supported": [
-    "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
-    "https://pic-protocol.org/definitions/proposal-types/continuity"
   ]
 }
 ```
@@ -262,7 +255,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity-initial
 ```
 
-Conceptual initial proposal:
+Conceptual initial proposal before Base64url encoding:
 
 ```json
 {
@@ -310,7 +303,7 @@ The proposal type is identified separately through `continuity_proposal_type`. F
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-A continuation proposal may contain a proposed PCA, Proof of Relationship (PoR), and other supporting material. The exact schema is intentionally deferred to a dedicated protocol article.
+A continuation proposal may contain a proposed PCA, Proof of Relationship (PoR), and other supporting material. Its exact schema, cryptographic binding, validation sequence, and continuation flow are intentionally deferred to a dedicated protocol article.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -327,7 +320,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-Conceptually, the proposal may have the following shape:
+Conceptually, before Base64url encoding, the proposal may have the following shape:
 
 ```json
 {
@@ -381,7 +374,7 @@ Example response:
 }
 ```
 
-The current PIC Continuity Token N is carried as the standard `subject_token`. `actor_token` is not used to transport the continuity proposal; it remains available only to a future profile that needs to represent a distinct external actor credential according to OAuth Token Exchange semantics.
+The current PIC Continuity Token N is carried as the standard `subject_token`. `actor_token` is not used by this profile to transport the continuity proposal. A future profile may use it only when a distinct external actor credential must be represented according to OAuth Token Exchange semantics.
 
 PIC-X advertises two continuity modes:
 
@@ -638,14 +631,10 @@ In this OAuth-based initialization flow, PIC-X derives the initial PIC authority
 
 ```text
 initial PCA authority
-⊆
-OAuth subject-token authority
-∩
-Exchange Profile
-∩
-execution contract
-∩
-local policy
+→ derived from the validated OAuth authority
+→ mapped by the Exchange Profile
+→ constrained by the execution contract
+→ restricted by local policy
 ```
 
 After initialization, OAuth does not need to participate in every internal authorization decision:
@@ -725,17 +714,17 @@ audience or execution-domain restrictions when defined
 proof of possession or another continuation-authorization proof
 ```
 
-A PCA has no expiration by default. It remains valid until revoked or invalidated by the execution contract, continuity rules, local policy, or an optional profile-defined expiration.
+A PCA has no mandatory independent expiration. Any expiration policy is profile-defined. A PCA is usable only as part of a valid PIC Continuity Token and remains subject to revocation, continuity rules, execution-contract constraints, local policy, and any declared token or profile expiration.
 
 ```text
-jti or equivalent identifier
+jti or equivalent token identifier
 → correlation, audit, lineage, and revocation
 
 revocation
-→ primary PCA invalidation mechanism
+→ invalidates the relevant PIC artifact or continuity state according to the selected profile
 
 exp
-→ optional; not required by PIC
+→ optional on the signed PIC Continuity Token when defined by the selected profile
 ```
 
 A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, proof-of-possession mechanism, and decentralized-continuity security model are still design topics and should be treated in dedicated protocol articles.
