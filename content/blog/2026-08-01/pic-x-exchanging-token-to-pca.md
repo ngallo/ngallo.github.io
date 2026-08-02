@@ -54,7 +54,7 @@ The `exchange` operation will be exposed through a PIC-specific OAuth Token Exch
 
 A **PCA** is the **PIC Context of Authority**.
 
-It is represented as a plain JSON object containing the authority and execution context derived for one continuity position.
+It is a plain JSON object representing the authority and execution context at a specific point in PIC continuity.
 
 ```text
 PCA
@@ -66,7 +66,7 @@ PCA
 A **Continuity Transition** is the object that binds two continuity positions. A **PIC Continuity Token** is the signed JWT representation of that Continuity Transition:
 
 ```text
-chained transition
+previous transition
 +
 previous PCA
 +
@@ -83,17 +83,16 @@ For initialization there is no previous transition and no previous PCA:
 
 ```text
 Continuity Transition 0
-├── chainedTransition: null
+├── previousTransition: null
 ├── previousPca: null
 ├── currentPca: PCA 0
-└── continuity: initial cryptographic continuity evidence
+└── continuity: cryptographic evidence establishing the continuity origin
 ```
 
 The cryptographic signature is applied to the Continuity Transition, not to the individual PCA.
 
-Although the OAuth Token Exchange profile may identify a proposed PCA through a type URI, the PCA itself remains a plain JSON semantic value rather than an independently signed token.
 
-A **PIC Continuity Token** is the signed JWT representation of one Continuity Transition. The transition may link to its predecessor through `chainedTransition`.
+A **PIC Continuity Token** is the signed JWT representation of one Continuity Transition. Transition 0 has no predecessor, while each subsequent transition links to its predecessor through `previousTransition`.
 
 ## 1. Incoming OAuth Access Token
 
@@ -154,7 +153,7 @@ documents:write
 documents:read:document-42
 ```
 
-Below is the Exchange Profile configuration for a specific identity provider:
+Below is an example Exchange Profile for a specific identity provider:
 
 ```yaml
 exchangeProfile:
@@ -369,13 +368,13 @@ After constructing PCA 0, PIC-X creates the initial Continuity Transition:
 {
   "profile": "https://pic-protocol.org/0.2",
   "issuer": "https://pic-x.example.com",
-  "chainedTransition": null,
+  "previousTransition": null,
   "previousPca": null,
   "currentPca": {
     "...": "PCA 0"
   },
   "continuity": {
-    "...": "cryptographic continuity proofs"
+    "...": "cryptographic material establishing the continuity origin"
   }
 }
 ```
@@ -400,7 +399,7 @@ PCA 0
 → plain JSON authority context
 
 Continuity Transition 0
-→ contains chainedTransition, previousPca, currentPca, and continuity
+→ contains previousTransition, previousPca, currentPca, and continuity
 
 signed JWT
 → cryptographically protects the complete Continuity Transition
@@ -409,9 +408,9 @@ PIC Continuity Token 0
 → the signed JWT returned by PIC-X
 ```
 
-`chainedTransition` links the current transition to its predecessor. It is `null` for the initial transition.
+`previousTransition` links the current transition to its predecessor. It is `null` for Transition 0.
 
-`continuity` contains the cryptographic evidence used to establish authority continuity. The exact proof structure, validation algorithm, supported proof types, chaining rules, and decentralized continuity model are intentionally not defined in this article and will be covered in a dedicated protocol article.
+`continuity` contains the cryptographic material used to establish the origin of continuity or to prove authorized continuation from a preceding transition. The exact proof structure, validation algorithm, supported proof types, chaining rules, and decentralized continuity model are intentionally not defined in this article and will be covered in a dedicated protocol article.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -793,10 +792,10 @@ PCA 0
         |
         v
 Continuity Transition 0
-+-- chainedTransition: null
++-- previousTransition: null
 +-- previousPca: null
 +-- currentPca: PCA 0
-+-- continuity: initial cryptographic evidence
++-- continuity: cryptographic evidence establishing the continuity origin
 `-- serialized and signed as PIC Continuity Token 0
         |
         v
