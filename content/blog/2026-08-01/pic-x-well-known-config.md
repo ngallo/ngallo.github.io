@@ -34,9 +34,11 @@ The PIC Token Service, or PTS, is the PIC-X component that implements the PIC pr
 │  │                                         │  │
 │  │  • OAuth Token Exchange endpoint        │  │
 │  │  • PCA initialization and continuation  │  │
+│  │  • execution contract validation        │  │
+│  │    and binding                          │  │
 │  │  • subchain validation and aggregation  │  │
 │  │  • revocation                           │  │
-│  │  • PCA signing keys                     │  │
+│  │  • PCA and chain signing keys           │  │
 │  └─────────────────────────────────────────┘  │
 │                                               │
 │  Attestation services                         │
@@ -87,8 +89,17 @@ The platform discovery document therefore contains both PTS endpoints and other 
     "signing_alg_values_supported": [
       "ES256"
     ],
-    "lineage_modes_supported": [
-      "centralized",
+    "execution_contract_binding_methods_supported": [
+      "digest"
+    ]
+  },
+
+  "chain": {
+    "signing_alg_values_supported": [
+      "ES256"
+    ],
+    "chain_modes_supported": [
+      "centralized-chain",
       "snapshot-based-subchain"
     ]
   }
@@ -216,7 +227,7 @@ execution_contract
 → the application-supplied execution context used to initialize the PCA
 ```
 
-PTS validates the access token through the configured Exchange Profile, maps its authority into PIC execution invariants, validates the execution contract, and issues the initial PCA.
+PTS validates the access token through the configured Exchange Profile, maps its authority into PIC execution invariants, validates the execution contract, binds the contract digest to the PCA, and issues the initial PCA.
 
 Example response:
 
@@ -410,7 +421,9 @@ Example response from the Trusted Anchors endpoint:
 }
 ```
 
-## 8. PCA Signing and Lineage Modes
+## 8. PCA and Chain Capabilities
+
+PCA signing, execution contract binding, and chain signing are separate capabilities.
 
 ```json
 {
@@ -418,8 +431,17 @@ Example response from the Trusted Anchors endpoint:
     "signing_alg_values_supported": [
       "ES256"
     ],
-    "lineage_modes_supported": [
-      "centralized",
+    "execution_contract_binding_methods_supported": [
+      "digest"
+    ]
+  },
+
+  "chain": {
+    "signing_alg_values_supported": [
+      "ES256"
+    ],
+    "chain_modes_supported": [
+      "centralized-chain",
       "snapshot-based-subchain"
     ]
   }
@@ -427,15 +449,29 @@ Example response from the Trusted Anchors endpoint:
 ```
 
 ```text
-centralized
-→ lineage is managed by the central PTS
+pca.signing_alg_values_supported
+→ algorithms used by PTS to sign PCA tokens
+
+pca.execution_contract_binding_methods_supported
+→ methods used to bind an execution contract to the issued PCA
+
+chain.signing_alg_values_supported
+→ algorithms used to sign chain and subchain artifacts
+```
+
+With the `digest` binding method, PTS validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and therefore breaks the binding.
+
+```text
+centralized-chain
+→ the chain is created and managed by the central PTS
 
 snapshot-based-subchain
-→ local nodes extend their subchains
+→ local nodes extend signed subchains
 → subchain tokens are submitted to PTS through the token exchange request
+→ PTS validates the submitted subchains and incorporates their verified state into the next PCA
 → snapshots must be produced within a configured maximum interval
 → shorter intervals are allowed
 → the maximum interval limits exposure to colluding compromised nodes
 ```
 
-The `subchain` parameter carries one or more signed subchain tokens. PTS validates them and incorporates their verified state into the newly issued PCA.
+The `subchain` parameter carries one or more signed subchain tokens. It is used only with the `snapshot-based-subchain` mode.
