@@ -36,9 +36,9 @@ The PIC Token Service, or PTS, is the PIC-X component that implements the PIC pr
 │  │  • PCA initialization and continuation  │  │
 │  │  • execution contract validation        │  │
 │  │    and binding                          │  │
-│  │  • subchain validation and aggregation  │  │
+│  │  • chain validation and aggregation     │  │
 │  │  • revocation                           │  │
-│  │  • PCA and chain signing keys           │  │
+│  │  • PCA and chain JWT signing keys       │  │
 │  └─────────────────────────────────────────┘  │
 │                                               │
 │  Attestation services                         │
@@ -82,7 +82,7 @@ The platform discovery document therefore contains both PTS endpoints and other 
 
   "token_exchange_parameters_supported": [
     "execution_contract",
-    "subchain"
+    "chain"
   ],
 
   "pca": {
@@ -95,6 +95,10 @@ The platform discovery document therefore contains both PTS endpoints and other 
   },
 
   "chain": {
+    "token_type": "https://pic-protocol.org/token-types/chain",
+    "formats_supported": [
+      "jwt"
+    ],
     "signing_alg_values_supported": [
       "ES256"
     ],
@@ -174,7 +178,7 @@ The URI is controlled by the PIC project. It does not use the IETF namespace bec
   ],
   "token_exchange_parameters_supported": [
     "execution_contract",
-    "subchain"
+    "chain"
   ]
 }
 ```
@@ -193,7 +197,7 @@ The initial exchange receives an OAuth access token as the `subject_token`.
 
 A continuation exchange receives an existing PCA as the `subject_token`.
 
-Subchain artifacts are supplied separately through the PIC-specific `subchain` parameter.
+The lineage is supplied separately through the PIC-specific `chain` parameter as one signed JWT chain artifact.
 
 ## 4. Initial Exchange: OAuth Access Token to PCA
 
@@ -227,7 +231,7 @@ execution_contract
 → the application-supplied execution context used to initialize the PCA
 ```
 
-PTS validates the access token through the configured Exchange Profile, maps its authority into PIC execution invariants, validates the execution contract, binds the contract digest to the PCA, and issues the initial PCA.
+PTS validates the access token through the configured Exchange Profile, maps its authority into PIC execution invariants, validates the execution contract, binds its digest to the PCA, and issues the initial PCA.
 
 Example response:
 
@@ -241,9 +245,7 @@ Example response:
 
 ## 5. Continuation Exchange: PCA to PCA
 
-A continuation exchange receives the current PCA and returns the next PCA.
-
-A request with one subchain token:
+A continuation exchange receives the current PCA and one signed chain artifact, then returns the next PCA.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -256,19 +258,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token=<current-pca>
 &subject_token_type=https://pic-protocol.org/token-types/pca
 &requested_token_type=https://pic-protocol.org/token-types/pca
-&subchain=<signed-subchain-token>
-```
-
-A continuation request may carry multiple subchain tokens by repeating the parameter:
-
-```text
-grant_type=urn:ietf:params:oauth:grant-type:token-exchange
-&subject_token=<current-pca>
-&subject_token_type=https://pic-protocol.org/token-types/pca
-&requested_token_type=https://pic-protocol.org/token-types/pca
-&subchain=<signed-subchain-token-1>
-&subchain=<signed-subchain-token-2>
-&subchain=<signed-subchain-token-3>
+&chain=<signed-chain-jwt>
 ```
 
 ```text
@@ -281,19 +271,55 @@ subject_token_type
 requested_token_type
 → https://pic-protocol.org/token-types/pca
 
-subchain
-→ one or more signed subchain tokens
+chain
+→ one signed JWT carrying the centralized chain, a local subchain, or an aggregated snapshot
+```
+
+The `chain` parameter is singular. Multiple hops or segments are represented inside the signed JWT rather than by repeating the request parameter.
+
+Example decoded JWT header:
+
+```json
+{
+  "typ": "pic-chain+jwt",
+  "alg": "ES256",
+  "kid": "chain-signing-key-1"
+}
+```
+
+Example decoded JWT payload:
+
+```json
+{
+  "mode": "snapshot-based-subchain",
+  "chain_id": "chain-123",
+  "base_pca": "pca-456",
+  "hops": [
+    {
+      "sequence": 1,
+      "executor": "executor-a",
+      "previous": "sha256:..."
+    },
+    {
+      "sequence": 2,
+      "executor": "executor-b",
+      "previous": "sha256:..."
+    }
+  ]
+}
 ```
 
 ```text
-one subchain token
-→ submits one local subchain
+centralized-chain
+→ PTS creates and manages the chain artifact
 
-multiple subchain tokens
-→ submits multiple local subchains for validation and aggregation
+snapshot-based-subchain
+→ local nodes create a signed JWT containing the subchain
+→ PTS validates the JWT signature, ordering, linkage, and PCA binding
+→ PTS incorporates the verified chain state into the next PCA
 ```
 
-PTS validates the current PCA, validates every submitted subchain token, applies the configured PIC rules, and issues the next PCA.
+PTS validates the current PCA, validates the signed chain JWT, applies the configured PIC rules, and issues the next PCA.
 
 Example response:
 
@@ -423,7 +449,7 @@ Example response from the Trusted Anchors endpoint:
 
 ## 8. PCA and Chain Capabilities
 
-PCA signing, execution contract binding, and chain signing are separate capabilities.
+PCA signing, execution contract binding, and chain JWT signing are separate capabilities.
 
 ```json
 {
@@ -437,6 +463,10 @@ PCA signing, execution contract binding, and chain signing are separate capabili
   },
 
   "chain": {
+    "token_type": "https://pic-protocol.org/token-types/chain",
+    "formats_supported": [
+      "jwt"
+    ],
     "signing_alg_values_supported": [
       "ES256"
     ],
@@ -453,25 +483,33 @@ pca.signing_alg_values_supported
 → algorithms used by PTS to sign PCA tokens
 
 pca.execution_contract_binding_methods_supported
-→ methods used to bind an execution contract to the issued PCA
+→ methods used to bind the validated execution contract to the PCA
+
+chain.token_type
+→ semantic identifier of the PIC chain artifact
+
+chain.formats_supported
+→ serialization formats supported for the chain artifact
 
 chain.signing_alg_values_supported
-→ algorithms used to sign chain and subchain artifacts
+→ algorithms used to sign chain JWTs
 ```
 
-With the `digest` binding method, PTS validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and therefore breaks the binding.
+With the `digest` binding method, PTS validates the execution contract and places a cryptographic digest of the validated contract in the PCA. Any change to the contract produces a different digest and breaks the binding.
 
 ```text
 centralized-chain
-→ the chain is created and managed by the central PTS
+→ the chain is created, signed, and managed by the central PTS
 
 snapshot-based-subchain
-→ local nodes extend signed subchains
-→ subchain tokens are submitted to PTS through the token exchange request
-→ PTS validates the submitted subchains and incorporates their verified state into the next PCA
+→ local nodes extend a subchain
+→ the complete subchain is serialized as one JWT
+→ the JWT is signed with a supported chain signing algorithm
+→ the signed chain JWT is submitted through the `chain` parameter
+→ PTS validates and incorporates its verified state into the next PCA
 → snapshots must be produced within a configured maximum interval
 → shorter intervals are allowed
 → the maximum interval limits exposure to colluding compromised nodes
 ```
 
-The `subchain` parameter carries one or more signed subchain tokens. It is used only with the `snapshot-based-subchain` mode.
+The `chain` parameter always carries one signed JWT. That JWT can contain one hop, multiple hops, a full centralized chain, or a snapshot-based subchain, depending on the selected chain mode.
