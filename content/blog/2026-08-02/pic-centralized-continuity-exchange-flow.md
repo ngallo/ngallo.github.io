@@ -1,4 +1,4 @@
-+++
+<!-- +++
 author = "Nicola Gallo"
 title = "Designing PIC-X: Centralized Continuity Exchange Flow"
 date = "2026-08-02T23:15:00+02:00"
@@ -10,4 +10,4 @@ tags = ["pic", "pic-x", "authority continuity", "oauth", "token exchange", "cent
   <img src="/images/2026-08-02/pic-centralized-continuity-exchange-flow.png" alt="Designing PIC-X: Centralized Continuity Exchange Flow." loading="lazy">
   <figcaption>Designing PIC-X. Centralized Continuity Exchange Flow.</figcaption>
 </figure>
-
+ -->
