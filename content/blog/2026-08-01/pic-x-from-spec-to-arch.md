@@ -31,10 +31,10 @@ I am therefore starting **PIC-X**, the first open-source implementation componen
 
 PIC-X will initially implement the exchange and Trust Plane capabilities needed to connect existing authority infrastructure with PIC. It is one component, not the complete PIC implementation landscape: other libraries, SDKs, enforcement components, integrations, and operational tools may follow as the ecosystem develops.
 
-The first goal is to integrate PIC with existing OAuth infrastructure: exchange an OAuth token, evaluate the authority it represents, and create the PIC Context of Authority required to begin or continue a PIC execution.
+The first goal is to integrate PIC with existing OAuth infrastructure: exchange an OAuth token, evaluate the authority it represents, and issue the initial PCA JWT required to begin a PIC execution.
 
 ```text
-OAuth token  →  PIC-X Trust Plane  →  PIC Context of Authority
+OAuth token  →  PIC-X Trust Plane  →  PCA JWT
 ```
 
 OAuth will be the first integration target, not the limit of the project. The architecture should later support other authority sources and exchange profiles without making PIC dependent on OAuth.
@@ -63,4 +63,4 @@ The latest implementation will show how PIC-X currently works. The complete seri
 - [PIC Sandboxed Execution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-lineage-guardrail-spec.html)
 - [PIC Architecture and Deployment Specification](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-architecture-deployment-spec.html)
 
-The next article will examine the first PIC-X flow: exchanging an OAuth access token for $\mathsf{PCA}_0$, the origin PIC Context of Authority, and the design decisions required to make that conversion explicit and verifiable.
+The next article will examine the first PIC-X flow: exchanging an OAuth access token for the initial PCA JWT, the signed representation of the origin PIC Context of Authority, and the design decisions required to make that conversion explicit and verifiable.

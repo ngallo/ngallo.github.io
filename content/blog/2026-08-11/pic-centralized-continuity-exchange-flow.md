@@ -1,4 +1,4 @@
-+++
+<!-- +++
 author = "Nicola Gallo"
 title = "Designing PIC-X: Centralized Continuity Exchange Flow"
 date = "2026-08-02T23:15:00+02:00"
@@ -204,4 +204,4 @@ The disclosure for `eu-office` is simply not sent. Its digest is still there, in
 
 which matches `execution.contract` in PCA 0 exactly.
 
-> **Note:** In-place array digests hide values, not cardinality. A verifier can see that `departments` holds three entries even when only two are disclosed. When the number of undisclosed entries is itself sensitive, the array must be made selectively disclosable as a whole, so that `departments` appears in `_sd` instead of in the payload.
+> **Note:** In-place array digests hide values, not cardinality. A verifier can see that `departments` holds three entries even when only two are disclosed. When the number of undisclosed entries is itself sensitive, the array must be made selectively disclosable as a whole, so that `departments` appears in `_sd` instead of in the payload. -->
