@@ -11,7 +11,7 @@ tags = ["pic", "pic-x", "authority continuity", "oauth", "token exchange", "exch
   <figcaption>Designing PIC-X. Deriving an Initial PIC Context of Authority.</figcaption>
 </figure>
 
-PIC-X receives an OAuth access token, validates it, and derives the initial PIC Context of Authority, or PCA. A PCA is the logical Context of Authority. Its standard serialized representation is a signed PCA JWT. PIC-X then returns a PIC Continuity JWT that transports one Authority Graph. An Authority Graph is a content-addressable graph linking PCA JWTs and representing verifiable authority continuity.
+PIC-X receives an OAuth access token, validates it, and derives the initial PIC Context of Authority, or PCA. A PCA is the logical Context of Authority. Its signed representation is a PCA JWT. PIC-X then returns a PIC Continuity JWT that transports one Continuity Graph.
 
 ```text
 OAuth access token
@@ -24,9 +24,9 @@ PCA JWT 0
 signed PIC Context of Authority
         |
         v
-Authority Graph
-→ represents verifiable authority continuity
-→ links PCA JWTs
+Continuity Graph
+→ starts from the root PCA JWT
+→ carries numbered continuity transitions
         |
         v
 PIC Continuity JWT 0
@@ -59,30 +59,30 @@ The value of `continuity_proposal` is produced by serializing the proposal as co
 
 A **PCA** is the logical **PIC Context of Authority**.
 
-Its standard serialized representation is a signed **PCA JWT**.
+Its signed representation is a **PCA JWT**.
 
 ```text
 PCA
 → logical PIC Context of Authority
 
 PCA JWT
-→ signed standard representation of a PCA
+→ signed representation of one PCA
 → Content-Type: pic-pca+jwt
 → contains standard JWT claims
 → contains context_of_authority
-→ contains proof_of_relationship
+→ carries the root challenge
 ```
 
-A **PIC Continuity JWT** transports one Authority Graph. Its internal structure is intentionally deferred to a dedicated protocol article.
+A **PIC Continuity JWT** transports one Continuity Graph. Its internal structure is intentionally deferred to a dedicated protocol article.
 
 ```text
-Authority Graph
-→ represents verifiable authority continuity
-→ links PCA JWTs
+Continuity Graph
+→ starts from root_authority_jwt
+→ carries numbered continuity transitions
 =
 PIC Continuity JWT
 → Content-Type: pic-continuity+jwt
-→ transports one Authority Graph
+→ transports one Continuity Graph
 ```
 
 For initialization, PIC-X issues the initial PCA JWT and returns the initial PIC Continuity JWT:
@@ -91,17 +91,13 @@ For initialization, PIC-X issues the initial PCA JWT and returns the initial PIC
 PCA JWT 0
 ├── standard JWT claims
 ├── context_of_authority
-└── proof_of_relationship
-    → proves how that authority state was derived
+└── challenge
+    → initializes the first continuity transition
 
 PIC Continuity JWT 0
-├── transports one Authority Graph
-├── represents verifiable authority continuity
-└── links PCA JWTs
+├── transports one Continuity Graph
+└── carries root_authority_jwt
 ```
-
-The proof_of_relationship contained in the PCA JWT proves how that authority state was derived.
-
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
@@ -261,9 +257,9 @@ raw = documents:write
 
 The Exchange Profile validates and maps the access token. The execution contract is supplied by the caller inside the initial Continuity Proposal, not by the Exchange Profile.
 
-## 3. Normalized Exchange Result
+## 3. Mapped Exchange Result
 
-For the sample token, the Exchange Profile produces the following normalized result:
+For the sample token, the Exchange Profile produces the following mapped result:
 
 ```json
 {
@@ -315,7 +311,7 @@ privilege = (scope, operation, resourceType, resourceId)
 
 ## 4. Initial PCA (PIC Context of Authority)
 
-Below is an example of the `context_of_authority` value for PCA 0. A PCA is the logical Context of Authority. Its standard serialized representation is a signed PCA JWT:
+Below is an example of the `context_of_authority` value for PCA 0. A PCA is the logical Context of Authority. Its signed representation is a PCA JWT:
 
 ```json
 {
@@ -369,6 +365,8 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
 }
 ```
 
+The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as an Indexed Authority Map so that authority can be hashed deterministically, attenuated by key, and transported compactly.
+
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
 Protocol metadata such as `profile` and the standard JWT issuer claim `iss` belong to the signed PCA JWT and PIC Continuity JWT artifacts, not to the logical context alone.
@@ -379,18 +377,20 @@ After constructing PCA 0, PIC-X issues the initial PCA JWT:
 PCA JWT 0
 ├── standard JWT claims
 ├── context_of_authority: PCA 0
-└── proof_of_relationship
-    → proves how that authority state was derived
+└── challenge
+    → initializes the first continuity transition
 ```
 
-PIC-X then returns the initial PIC Continuity JWT, which transports one Authority Graph linking PCA JWTs.
+The PCA JWT signs the root authority state and carries the root challenge used to initialize the first continuity transition.
+
+PIC-X then returns the initial PIC Continuity JWT, which transports one Continuity Graph.
 
 ```text
 JWT header
 → identifies the signing algorithm and key
 
 JWT payload
-→ transports one Authority Graph
+→ transports one Continuity Graph
 
 JWT signature
 → protects the PIC Continuity JWT
@@ -403,17 +403,14 @@ PCA 0
 → logical Context of Authority
 
 PCA JWT 0
-→ signed standard representation of PCA 0
-→ contains proof_of_relationship
+→ signed representation of PCA 0
+→ carries the root challenge
 
 PIC Continuity JWT 0
-→ transports one Authority Graph
-→ represents verifiable authority continuity
-→ links PCA JWTs
+→ transports one Continuity Graph
+→ carries root_authority_jwt
 → returned by PIC-X
 ```
-
-The proof_of_relationship contained in the PCA JWT proves how that authority state was derived.
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
@@ -424,7 +421,7 @@ https://pic-protocol.org/definitions/proposal-types/continuity-initial
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-In this article, the initial proposal contains the execution contract. A continuation proposal may contain `proposed_pca_jwt`, `proof_of_relationship`, and `supporting_evidence`. Its exact schema, cryptographic binding, validation sequence, and continuation flow are intentionally deferred to a dedicated protocol article.
+In this article, the initial proposal contains the execution contract. Continuation proposal details are intentionally deferred to a dedicated protocol article.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -802,7 +799,7 @@ picX.exchange(accessToken, continuityProposal)
 Exchange Profile
 +-- validates the OAuth token
 +-- parses each scope
-`-- emits normalized PIC authority
+`-- emits logical PIC authority
         |
         v
 PCA 0
@@ -815,13 +812,12 @@ PCA 0
         v
 PCA JWT 0
 +-- context_of_authority: PCA 0
-`-- proof_of_relationship
+`-- root challenge
         |
         v
 PIC Continuity JWT 0
-+-- transports one Authority Graph
-+-- represents verifiable authority continuity
-+-- links PCA JWTs
++-- transports one Continuity Graph
+`-- carries root_authority_jwt
         |
         v
 Application
@@ -837,8 +833,8 @@ PIC-X
 +-- validates the current PIC Continuity JWT
 +-- validates non-expansion of authority
 +-- validates the continuity proposal
-+-- validates proposed_pca_jwt and proof_of_relationship
-+-- issues PCA JWT N+1
++-- validates the continuity transition
++-- issues Continuity Transition JWT N+1
 `-- returns PIC Continuity JWT N+1
         |
         v
@@ -861,4 +857,4 @@ PIC Continuity JWT N+1
 
 - [Designing PIC-X: From Specification to Architecture to Code](/blog/2026-08-01/pic-x-from-spec-to-arch/)
 - [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
-- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph](/blog/2026-08-11/pic-x-jwts-content-addressable-authority-graph/)
+- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Continuity Graph](/blog/2026-08-11/pic-x-jwts-authority-graph/)

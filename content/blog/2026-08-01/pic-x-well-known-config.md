@@ -106,6 +106,9 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
       "pic-pca+jwt",
       "pic-continuity+jwt"
     ],
+    "transition_formats_supported": [
+      "pic-continuity-transition+jwt"
+    ],
     "continuity_modes_supported": [
       "centralized-continuity",
       "decentralized-continuity"
@@ -164,26 +167,24 @@ The current development profile advertises `token_endpoint_auth_methods_supporte
 
 The PIC-X Token Exchange Profile uses stable definition URIs for token and proposal types. The selected PIC profile determines the applicable schemas, validation rules, and protocol behavior. The `continuity_proposal` and `continuity_proposal_type` parameters, together with the related discovery members, are defined by the PIC Token Exchange Profile.
 
-An Authority Graph is a content-addressable graph linking PCA JWTs and representing verifiable authority continuity.
-
 PIC uses the following concepts:
 
 ```text
 PIC Context of Authority (PCA)
 → logical Context of Authority
-→ standard serialized representation is a signed PCA JWT
+→ signed representation is a PCA JWT
 
 Continuity Proposal
 → structured input submitted to initialize or advance continuity
 → validated by PIC-X before continuity is advanced
 
-Authority Graph
+Continuity Graph
 → transported by the PIC Continuity JWT
-→ represents verifiable authority continuity
-→ links PCA JWTs
+→ starts from root_authority_jwt
+→ carries numbered continuity transitions
 
 PIC Continuity JWT
-→ signed JWT transport for one Authority Graph
+→ signed JWT transport for one Continuity Graph
 ```
 
 The profile and definition identifiers used in this article are:
@@ -231,16 +232,18 @@ OAuth access token + initial continuity proposal
 
 PIC Continuity JWT N + continuity proposal
 → continues PIC execution
-→ the proposal may contain proposed_pca_jwt, proof_of_relationship, and supporting_evidence
+→ the proposal carries continuation material
 → PIC-X validates the proposal
 → PIC-X returns PIC Continuity JWT N+1
 ```
 
-The returned artifact is therefore always a PIC Continuity JWT. For the first exchange, PIC-X issues the initial PCA JWT and returns a PIC Continuity JWT that transports one Authority Graph.
+The returned artifact is therefore always a PIC Continuity JWT.
+
+For the first exchange, PIC-X issues the initial PCA JWT as root_authority_jwt. The returned PIC Continuity JWT transports one Continuity Graph.
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
-The initial PCA JWT becomes part of the Authority Graph transported in the initial PIC Continuity JWT.
+The initial PCA JWT becomes the root_authority_jwt transported in the initial PIC Continuity JWT.
 
 ## 4. Initial Exchange: OAuth Access Token to Continuity JWT 0
 
@@ -275,7 +278,7 @@ Conceptual initial proposal before Base64url encoding:
 }
 ```
 
-PIC-X validates the access token through the configured Exchange Profile and validates the initial continuity proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, issues the initial PCA JWT, and returns the initial PIC Continuity JWT. The proof_of_relationship contained in the PCA JWT proves how that authority state was derived.
+PIC-X validates the access token through the configured Exchange Profile and validates the initial continuity proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, issues the initial PCA JWT, and returns the initial PIC Continuity JWT. The PCA JWT signs the root authority state and carries the root challenge used to initialize the first continuity transition.
 
 Conceptually:
 
@@ -309,7 +312,7 @@ The proposal type is identified separately through `continuity_proposal_type`. F
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-A continuation proposal may contain `proposed_pca_jwt`, `proof_of_relationship`, and `supporting_evidence`. Its exact schema, cryptographic binding, validation sequence, and continuation flow are intentionally deferred to a dedicated protocol article.
+A continuation proposal carries continuation material used to produce the next Continuity Transition JWT. Its exact schema, validation sequence, and continuation flow are intentionally deferred to a dedicated protocol article.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -326,22 +329,6 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-Conceptually, before Base64url encoding, the proposal may have the following shape:
-
-```json
-{
-  "proposed_pca_jwt": "<signed-pic-pca-jwt-n-plus-1>",
-  "proof_of_relationship": {
-    "...": "PoR"
-  },
-  "supporting_evidence": [
-    {
-      "...": "additional material"
-    }
-  ]
-}
-```
-
 ```text
 subject_token
 → PIC Continuity JWT N
@@ -356,7 +343,7 @@ requested_token_type
 → PIC Continuity JWT N+1
 ```
 
-PIC-X validates the current PIC Continuity JWT and the continuity proposal, including `proposed_pca_jwt`, `proof_of_relationship`, execution-contract binding, revocation state, non-expansion of authority, supporting evidence, and selected continuity mode. After successful validation, PIC-X returns PIC Continuity JWT N+1. The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
+PIC-X validates the current PIC Continuity JWT and the continuity proposal, including execution-contract binding, revocation state, non-expansion of authority, continuation material, and selected continuity mode. After successful validation, PIC-X returns PIC Continuity JWT N+1. The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
 ```text
 PIC Continuity JWT N
@@ -440,9 +427,6 @@ Example response from the attestation endpoint:
       "signing_alg_values_supported": [
         "ES256"
       ],
-      "key_binding_methods_supported": [
-        "cnf-jwk"
-      ],
       "proof_of_possession_methods_supported": [
         "jws-nonce"
       ]
@@ -455,9 +439,6 @@ Example response from the attestation endpoint:
       ],
       "signing_alg_values_supported": [
         "RS256"
-      ],
-      "key_binding_methods_supported": [
-        "cnf-jwk"
       ],
       "proof_of_possession_methods_supported": [
         "jws-nonce"
@@ -530,6 +511,9 @@ PCA JWT signing, PIC Continuity JWT signing, execution contract placement or bin
       "pic-pca+jwt",
       "pic-continuity+jwt"
     ],
+    "transition_formats_supported": [
+      "pic-continuity-transition+jwt"
+    ],
     "continuity_modes_supported": [
       "centralized-continuity",
       "decentralized-continuity"
@@ -556,9 +540,12 @@ continuity.token_type
 
 continuity.formats_supported
 → serialization formats supported for PCA JWTs and PIC Continuity JWTs
+
+continuity.transition_formats_supported
+→ serialization formats supported for Continuity Transition JWTs
 ```
 
-PCAs are represented as PCA JWTs. Each PIC Continuity JWT transports one Authority Graph. The precise signer roles, proof structures, and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
+PCAs are represented as PCA JWTs. Each PIC Continuity JWT transports one Continuity Graph. The precise signer roles, proof structures, and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
 
 With the `embedded` binding method, PIC-X validates the execution contract and places the validated contract directly in the PCA under `execution.contract`. The contract is therefore protected by the signed PCA JWT that represents the PCA.
 
@@ -572,7 +559,7 @@ centralized-continuity
 → PIC-X does not need to persist the complete continuity state
 
 decentralized-continuity
-→ executors may produce and verify PIC Continuity JWTs locally
+→ nodes may produce Continuity Transition JWTs and update the Continuity Graph according to profile rules
 → advertised as a reserved protocol capability
 → detailed token structure and verification rules are not defined here
 ```
@@ -581,18 +568,18 @@ The continuity model uses the following conceptual structure:
 
 ```text
 PIC Continuity JWT
-`-- transports one Authority Graph
-    |-- represents verifiable authority continuity
-    `-- links PCA JWTs
+`-- transports one Continuity Graph
+    |-- starts from root_authority_jwt
+    `-- carries numbered continuity transitions
 ```
 
-A **PCA JWT** is the standard signed representation of a PCA.
+A **PCA JWT** is the signed representation of one PCA.
 
-The PCA is the logical Context of Authority. The proof_of_relationship contained in the PCA JWT proves how that authority state was derived.
+The PCA is the logical Context of Authority. The PCA JWT signs the root authority state and carries the root challenge used to initialize the first continuity transition.
 
-The PIC model may support different Authority Graph representations, depending on the selected continuity mode.
+The PIC model may support different Continuity Graph representations, depending on the selected continuity mode.
 
-This PIC-X discovery document advertises the supported continuity modes only. The detailed design of `decentralized-continuity` remains an active protocol-design topic. Its Authority Graph structure, proof handling, attestation requirements, checkpoint rules, key rotation behavior, replay protection, and collusion limits are intentionally left unspecified in this document.
+This PIC-X discovery document advertises the supported continuity modes only. The detailed design of `decentralized-continuity` remains an active protocol-design topic. Its Continuity Graph structure, proof handling, attestation requirements, continuity rules, key rotation behavior, replay protection, and collusion limits are intentionally left unspecified in this document.
 
 ## 9. PIC-Token Transport
 
@@ -626,9 +613,9 @@ OAuth access token
 
 PIC-Token
 → carries the PIC Continuity JWT
-→ carries the Authority Graph
-→ represents verifiable authority continuity
-→ links PCA JWTs
+→ carries the Continuity Graph
+→ starts from root_authority_jwt
+→ carries numbered continuity transitions
 → carries the current execution authority
 → binds execution constraints and authorization invariants
 → preserves verifiable continuity across the execution path
@@ -662,7 +649,7 @@ The PIC Continuity JWT must never expand beyond the authority established by its
 
 The OAuth access token does not become part of PIC continuity and does not need to be propagated through the internal execution path.
 
-Likewise, a PCA is not an OAuth access token and must not be interpreted as one merely because OAuth Token Exchange returns it in the `access_token` response field.
+Likewise, a PIC Continuity JWT is not an OAuth Bearer access token merely because OAuth Token Exchange returns it in the `access_token` response field.
 
 ### PIC-Token is an HTTP binding
 
@@ -703,11 +690,11 @@ The transport binding may change, but the authorization semantics represented by
 
 ## 10. Security Considerations
 
-PIC Continuity JWTs are signed JWTs. PCAs are represented by signed PCA JWTs. The PIC Continuity JWT transports one Authority Graph.
+PIC Continuity JWTs are signed JWTs. PCAs are represented by signed PCA JWTs. The PIC Continuity JWT transports one Continuity Graph.
 
 Signatures protect integrity and authenticate a signer only after the signing key and its identity binding have been validated. They do not provide confidentiality and do not prevent copying by themselves.
 
-Possession of a copied PIC Continuity JWT should not by itself grant the ability to advance continuity. A continuation request must include cryptographic proof of the relationship that led to the next PCA JWT.
+Possession of a copied PIC Continuity JWT should not by itself grant the ability to advance continuity. A continuation request must include valid Proof of Relationship in a Continuity Transition JWT.
 
 A stolen token may still expose authority, identity, and execution-context information because PIC Continuity JWTs are signed but not encrypted. Depending on the transport and verification profile, copying may also enable replay of the current artifact even when it does not enable continuation.
 
@@ -758,4 +745,4 @@ A profile supporting long-lived PCAs must define how recipients obtain revocatio
 
 - [Designing PIC-X: From Specification to Architecture to Code](/blog/2026-08-01/pic-x-from-spec-to-arch/)
 - [Designing PIC-X: Deriving an Initial PIC Context of Authority](/blog/2026-08-01/pic-x-exchanging-token-to-pca/)
-- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph](/blog/2026-08-11/pic-x-jwts-content-addressable-authority-graph/)
+- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Continuity Graph](/blog/2026-08-11/pic-x-jwts-authority-graph/)
