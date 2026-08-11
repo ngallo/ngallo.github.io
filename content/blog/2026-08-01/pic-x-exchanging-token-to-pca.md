@@ -26,7 +26,7 @@ signed PIC Context of Authority
         v
 Continuity Graph
 → starts from the root PCA JWT
-→ carries numbered continuity transitions
+→ carries numbered continuity transitions when continuity advances
         |
         v
 PIC Continuity JWT 0
@@ -78,7 +78,7 @@ A **PIC Continuity JWT** transports one Continuity Graph. Its internal structure
 ```text
 Continuity Graph
 → starts from root_authority_jwt
-→ carries numbered continuity transitions
+→ carries numbered continuity transitions when continuity advances
 =
 PIC Continuity JWT
 → Content-Type: pic-continuity+jwt

@@ -360,6 +360,14 @@ Decoded PIC Continuity JWT example:
 
 `current_authority_hash` is not stored inside each Continuity Transition JWT. It is the final authority hash declared by the PIC Continuity JWT and verified after materializing the authority from root_authority_jwt plus all valid transitions.
 
+`root_authority_hash` and `current_authority_hash` belong to different hash domains.
+
+`root_authority_hash` is an artifact hash: it is the hash of the compact root_authority_jwt.
+
+`current_authority_hash` is an authority-state hash: it is the hash of the materialized Canonical Authority Map after applying all valid transitions.
+
+They are not directly comparable. The verifier uses `root_authority_hash` to authenticate the root artifact and `current_authority_hash` to verify the final materialized authority state.
+
 For PIC Profile 0.2, current_authority_hash equals the hash of the materialized Canonical Authority Map after all valid attenuations have been applied.
 
 ## Continuity Graph
@@ -397,11 +405,23 @@ continuity_graph
 
 Transition keys are decimal strings. Verification order is numeric ascending order, not lexical order.
 
-The root position is `context_of_authority.position`. The first transition position must be root position + 1. `current_position` must equal the last transition position.
+The rule is simple: transition positions must be contiguous.
+
+For a graph with transitions, the first transition position must equal `context_of_authority.position + 1`.
+
+For every later transition, the current transition position must equal the previous transition position + 1.
+
+No gaps are allowed.
+
+For example, if the root position is 4, then the valid transition positions are 5, 6, 7, and so on. A transitions map containing "5" and "7" without "6" is invalid.
+
+The root position is `context_of_authority.position`. `current_position` must equal the last transition position.
 
 ### Initial Continuity Graph
 
 The initial PIC Continuity JWT may contain no transitions.
+
+In this case, transitions is empty.
 
 In that case:
 
@@ -455,6 +475,8 @@ signed continuity transition embedded in the Continuity Graph
 
 A Continuity Transition JWT is a signed transition artifact embedded inside the PIC Continuity JWT. It is not the same as the PIC Continuity JWT.
 
+The signing algorithms supported for Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
+
 Decoded Continuity Transition JWT example:
 
 ```json
@@ -505,7 +527,7 @@ Decoded Continuity Transition JWT example:
 
 ## Predecessor Hash Rules
 
-For the first transition after the root authority, `predecessor_hash` equals `context_of_authority.root_authority_hash`. For every later transition, `predecessor_hash` equals the previous transition's `current_continuity_transition_hash`.
+For the first transition after the root authority, predecessor_hash equals context_of_authority.root_authority_hash. For every later transition, predecessor_hash equals the previous transition's current_continuity_transition_hash.
 
 ```text
 transition["5"].payload.predecessor_hash
@@ -521,12 +543,10 @@ transition["6"].payload.predecessor_hash
 transition["5"].current_continuity_transition_hash
 ```
 
-The transition hash is always the hash of the compact current_continuity_transition_jwt:
+The transition hash is always:
 
 ```text
-hash(current_continuity_transition_jwt)
-=
-current_continuity_transition_hash
+hash(compact current_continuity_transition_jwt) = current_continuity_transition_hash
 ```
 
 ## Attenuations
@@ -589,22 +609,30 @@ Key binding is part of `proof_of_relationship`.
 1. Verify the PIC Continuity JWT signature.
 2. Read `context_of_authority.root_authority_jwt`.
 3. Verify the `root_authority_jwt` as a PCA JWT.
-4. Verify that `hash(root_authority_jwt)` equals `context_of_authority.root_authority_hash`.
-5. Extract root position and root challenge from the PCA JWT.
-6. Sort `continuity_graph.transitions` by numeric key.
-7. Verify that the first transition position is root position + 1.
-8. For each transition:
+4. Verify that `hash(compact root_authority_jwt)` equals `context_of_authority.root_authority_hash`.
+5. Extract the root position, root challenge, and root Canonical Authority Map from the PCA JWT.
+6. Materialize the root Canonical Authority Map.
+7. If `continuity_graph.transitions` is empty:
+   - verify `continuity_graph.current_position` equals `context_of_authority.position`;
+   - verify `continuity_graph.current_authority_hash` equals the hash of the root Canonical Authority Map;
+   - stop transition verification successfully.
+8. If `continuity_graph.transitions` is not empty:
+   - sort `continuity_graph.transitions` by numeric key;
+   - verify that transition positions are contiguous;
+   - verify that the first transition position equals `context_of_authority.position + 1`.
+9. For each transition:
    - verify the Continuity Transition JWT signature;
    - verify `hash(compact transition JWT)` equals `current_continuity_transition_hash`;
    - verify `payload.position` equals the numeric transition key;
-   - verify `predecessor_hash` equals `root_authority_hash` for the first transition or the previous transition hash for later transitions;
+   - verify `predecessor_hash` equals `context_of_authority.root_authority_hash` for the first transition;
+   - verify `predecessor_hash` equals the previous transition's `current_continuity_transition_hash` for later transitions;
    - verify the first transition's `challenge.previous_challenge` equals `root_authority_jwt.payload.challenge.next_challenge`;
    - verify every later transition's `challenge.previous_challenge` equals the previous transition's `challenge.next_challenge`;
    - verify `proof_of_relationship` over `predecessor_hash`, `challenge.previous_challenge`, `challenge.next_challenge`, and `position`;
    - apply attenuations to the materialized Canonical Authority Map;
    - verify non-expansion of authority.
-9. Verify `current_position` equals the last transition position.
-10. Verify that `continuity_graph.current_authority_hash` equals the hash of the materialized Canonical Authority Map after all valid attenuations have been applied.
+10. Verify `continuity_graph.current_position` equals the last transition position.
+11. Verify that `continuity_graph.current_authority_hash` equals the hash of the materialized Canonical Authority Map after all valid attenuations have been applied.
 
 ## Continuity Modes
 

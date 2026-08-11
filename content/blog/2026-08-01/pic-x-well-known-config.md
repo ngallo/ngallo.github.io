@@ -102,6 +102,9 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     "continuity_signing_alg_values_supported": [
       "ES256"
     ],
+    "transition_signing_alg_values_supported": [
+      "ES256"
+    ],
     "formats_supported": [
       "pic-pca+jwt",
       "pic-continuity+jwt"
@@ -239,7 +242,9 @@ PIC Continuity JWT N + continuity proposal
 
 The returned artifact is therefore always a PIC Continuity JWT.
 
-For the first exchange, PIC-X issues the initial PCA JWT as root_authority_jwt. The returned PIC Continuity JWT transports one Continuity Graph.
+For the first exchange, PIC-X issues the initial PCA JWT as root_authority_jwt.
+
+The returned PIC Continuity JWT transports one Continuity Graph.
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
@@ -507,6 +512,9 @@ PCA JWT signing, PIC Continuity JWT signing, execution contract placement or bin
     "continuity_signing_alg_values_supported": [
       "ES256"
     ],
+    "transition_signing_alg_values_supported": [
+      "ES256"
+    ],
     "formats_supported": [
       "pic-pca+jwt",
       "pic-continuity+jwt"
@@ -528,6 +536,9 @@ continuity.pca_signing_alg_values_supported
 
 continuity.continuity_signing_alg_values_supported
 → algorithms used to sign PIC Continuity JWTs
+
+continuity.transition_signing_alg_values_supported
+→ algorithms used to sign Continuity Transition JWTs
 
 pca.execution_contract_binding_methods_supported
 → methods used to place or bind the validated execution contract in the PCA
