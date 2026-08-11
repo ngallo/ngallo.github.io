@@ -69,6 +69,39 @@ This registry maps the identifiers advertised by `.well-known/pic-x-configuratio
 
 The proposal JSON is transported through the `continuity_proposal` parameter as compact UTF-8 JSON encoded with unpadded Base64url.
 
+## JWT Serialization
+
+PIC Profile 0.2 transports and embeds signed JWT artifacts using compact JWS serialization.
+
+Unless a future profile explicitly defines another serialization, fields ending in `_jwt` carry the compact signed JWT string.
+
+This applies to:
+
+```text
+root_authority_jwt
+current_continuity_transition_jwt
+```
+
+The JSON examples in this article are decoded views shown for readability. They are not the normative wire representation.
+
+Artifact hashes over JWT values are computed over the UTF-8 bytes of the compact serialized JWT, not over the decoded JSON view.
+
+For example:
+
+```text
+hash(compact root_authority_jwt)
+```
+
+and:
+
+```text
+hash(compact current_continuity_transition_jwt)
+```
+
+Future profiles may define additional serializations, including JSON-based serializations, but a verifier must not accept an alternative serialization unless the selected profile explicitly defines it and advertises it.
+
+The profile does not forbid other serializations in future versions. It only makes compact JWS the normative serialization for PIC Profile 0.2. A future profile may define a JSON-based serialization, but that profile must also define how signatures are verified, how hashes are computed, and how embedded artifacts are represented.
+
 ## Logical and Canonical Authority
 
 The first article shows the Logical Context of Authority as readable application-facing JSON.
@@ -198,7 +231,7 @@ The initial root has no causal predecessor. It carries the root challenge used b
 
 The example uses a reduced Indexed Authority Map for readability; production PCA JWTs carry the complete canonical map derived from the Logical Context of Authority.
 
-Decoded PCA JWT example:
+Decoded PCA JWT example, shown for readability
 
 ```json
 {
@@ -303,7 +336,7 @@ The PIC Continuity JWT remains the artifact returned by the exchange endpoint an
 
 In a PIC Continuity JWT, `context_of_authority` does not contain the full current authority state. It identifies the trusted root authority artifact from which the current authority is materialized.
 
-Decoded PIC Continuity JWT example:
+Decoded PIC Continuity JWT example, shown for readability
 
 ```json
 {
@@ -322,7 +355,7 @@ Decoded PIC Continuity JWT example:
     "context_of_authority": {
       "position": 4,
       "root_authority_hash": "sha256:root-authority-jwt-4",
-      "root_authority_jwt": "<signed-pic-pca-jwt>"
+      "root_authority_jwt": "<compact-signed-pic-pca-jwt>"
     },
 
     "continuity_graph": {
@@ -332,15 +365,15 @@ Decoded PIC Continuity JWT example:
       "transitions": {
         "5": {
           "current_continuity_transition_hash": "sha256:transition-5",
-          "current_continuity_transition_jwt": "<signed-continuity-transition-jwt-5>"
+          "current_continuity_transition_jwt": "<compact-signed-continuity-transition-jwt-5>"
         },
         "6": {
           "current_continuity_transition_hash": "sha256:transition-6",
-          "current_continuity_transition_jwt": "<signed-continuity-transition-jwt-6>"
+          "current_continuity_transition_jwt": "<compact-signed-continuity-transition-jwt-6>"
         },
         "7": {
           "current_continuity_transition_hash": "sha256:transition-7",
-          "current_continuity_transition_jwt": "<signed-continuity-transition-jwt-7>"
+          "current_continuity_transition_jwt": "<compact-signed-continuity-transition-jwt-7>"
         }
       }
     }
@@ -437,7 +470,7 @@ In that case:
   "context_of_authority": {
     "position": 0,
     "root_authority_hash": "sha256:root-authority-jwt-0",
-    "root_authority_jwt": "<signed-pic-pca-jwt-0>"
+    "root_authority_jwt": "<compact-signed-pic-pca-jwt-0>"
   },
   "continuity_graph": {
     "current_position": 0,
@@ -477,7 +510,7 @@ A Continuity Transition JWT is a signed transition artifact embedded inside the 
 
 The signing algorithms supported for Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
 
-Decoded Continuity Transition JWT example:
+Decoded Continuity Transition JWT example, shown for readability
 
 ```json
 {

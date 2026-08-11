@@ -61,6 +61,8 @@ A **PCA** is the logical **PIC Context of Authority**.
 
 Its signed representation is a **PCA JWT**.
 
+This article uses decoded and conceptual views to explain the flow. The dedicated JWT article defines the normative serialization. In PIC Profile 0.2, signed PIC JWT artifacts use compact JWS serialization.
+
 ```text
 PCA
 → logical PIC Context of Authority

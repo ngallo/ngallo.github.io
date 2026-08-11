@@ -105,6 +105,9 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     "transition_signing_alg_values_supported": [
       "ES256"
     ],
+    "jws_serializations_supported": [
+      "compact-jws"
+    ],
     "formats_supported": [
       "pic-pca+jwt",
       "pic-continuity+jwt"
@@ -515,6 +518,9 @@ PCA JWT signing, PIC Continuity JWT signing, execution contract placement or bin
     "transition_signing_alg_values_supported": [
       "ES256"
     ],
+    "jws_serializations_supported": [
+      "compact-jws"
+    ],
     "formats_supported": [
       "pic-pca+jwt",
       "pic-continuity+jwt"
@@ -540,6 +546,9 @@ continuity.continuity_signing_alg_values_supported
 continuity.transition_signing_alg_values_supported
 → algorithms used to sign Continuity Transition JWTs
 
+continuity.jws_serializations_supported
+→ JWS serializations supported for signed PIC JWT artifacts in this continuity profile
+
 pca.execution_contract_binding_methods_supported
 → methods used to place or bind the validated execution contract in the PCA
 
@@ -555,6 +564,8 @@ continuity.formats_supported
 continuity.transition_formats_supported
 → serialization formats supported for Continuity Transition JWTs
 ```
+
+PIC Profile 0.2 advertises only compact-jws. This means PCA JWTs, PIC Continuity JWTs, and Continuity Transition JWTs are transported and embedded as compact signed JWT strings. Future profiles may advertise additional serializations only when their signature, canonicalization, hashing, and transport rules are explicitly defined.
 
 PCAs are represented as PCA JWTs. Each PIC Continuity JWT transports one Continuity Graph. The precise signer roles, proof structures, and algorithm negotiation for decentralized continuity remain part of the decentralized-continuity design.
 
