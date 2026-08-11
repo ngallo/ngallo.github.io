@@ -849,4 +849,16 @@ PIC Continuity JWT N+1
 
 ## References
 
-- [OpenID Foundation AuthZEN specifications](https://openid.net/wg/authzen/specifications/) — authorization interoperability specifications for communication between Policy Enforcement Points and Policy Decision Points.
+### External References
+
+- [RFC 8693 — OAuth 2.0 Token Exchange](https://www.rfc-editor.org/rfc/rfc8693)
+- [RFC 9068 — JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens](https://www.rfc-editor.org/rfc/rfc9068)
+- [OpenID Foundation AuthZEN specifications](https://openid.net/wg/authzen/specifications/)
+- [PIC Protocol](https://www.pic-protocol.org/)
+- [PIC Prover and Verifier Specification](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-prover-verifier-spec.html)
+
+### PIC-X Series
+
+- [Designing PIC-X: From Specification to Architecture to Code](/blog/2026-08-01/pic-x-from-spec-to-arch/)
+- [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
+- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph](/blog/2026-08-11/pic-x-jwts-content-addressable-authority-graph/)

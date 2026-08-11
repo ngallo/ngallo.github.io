@@ -57,10 +57,16 @@ The latest implementation will show how PIC-X currently works. The complete seri
 
 ## References
 
+### External References
+
 - [PIC Protocol](https://www.pic-protocol.org/)
 - [PIC Prover and Verifier Specification](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-prover-verifier-spec.html)
 - [PIC Revocation Specification](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-revocation-spec.html)
 - [PIC Sandboxed Execution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-lineage-guardrail-spec.html)
 - [PIC Architecture and Deployment Specification](https://htmlpreview.github.io/?https://raw.githubusercontent.com/pic-protocol/pic-spec/main/draft/0.2/rfc/pic-architecture-deployment-spec.html)
 
-The next article will examine the first PIC-X flow: exchanging an OAuth access token for the initial PCA JWT, the signed representation of the origin PIC Context of Authority, and the design decisions required to make that conversion explicit and verifiable.
+### PIC-X Series
+
+- [Designing PIC-X: Deriving an Initial PIC Context of Authority](/blog/2026-08-01/pic-x-exchanging-token-to-pca/)
+- [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
+- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph](/blog/2026-08-11/pic-x-jwts-content-addressable-authority-graph/)
