@@ -49,7 +49,7 @@ A **PCA JWT** is the signed root authority representation.
 
 A **PIC Continuity JWT** transports one Continuity Graph and its root_authority_jwt.
 
-A **Continuity Graph** starts from a trusted root_authority_jwt and carries a numbered sequence of signed Continuity Transition JWTs.
+A **Continuity Graph** starts from a trusted root_authority_jwt and carries a numbered sequence of signed Continuity Transition JWTs when continuity advances.
 
 ## PIC Artifact Registry
 
@@ -334,6 +334,10 @@ transports one Continuity Graph and its root_authority_jwt
 
 The PIC Continuity JWT remains the artifact returned by the exchange endpoint and transported across execution boundaries.
 
+In centralized exchange, the PIC Continuity JWT is returned by the exchange endpoint. Across continuity modes, it is the signed transport artifact for Proof of Continuity.
+
+The signer of the outer PIC Continuity JWT is not necessarily the authority issuer in every continuity mode. The authority root remains root_authority_jwt, signed by the trusted authority issuer.
+
 In a PIC Continuity JWT, `context_of_authority` does not contain the full current authority state. It identifies the trusted root authority artifact from which the current authority is materialized.
 
 Decoded PIC Continuity JWT example, shown for readability
@@ -405,7 +409,7 @@ For PIC Profile 0.2, current_authority_hash equals the hash of the materialized 
 
 ## Continuity Graph
 
-The Continuity Graph starts from a trusted root_authority_jwt and carries a numbered sequence of signed Continuity Transition JWTs. Each transition proves causal continuity from its predecessor and may attenuate the authority represented by the root authority.
+The Continuity Graph starts from a trusted root_authority_jwt and carries a numbered sequence of signed Continuity Transition JWTs when continuity advances. Each transition proves causal continuity from its predecessor and may attenuate the authority represented by the root authority.
 
 ```text
 PIC Continuity JWT
@@ -637,9 +641,11 @@ The verifier must be able to validate this proof independently. It must not trus
 
 Key binding is part of `proof_of_relationship`.
 
+When a future profile allows holder-signed PIC Continuity JWTs, the relationship between the outer PIC Continuity JWT signing key and `proof_of_relationship` is defined by that continuity profile. PIC Profile 0.2 does not define delegated holder-signing keys in this article.
+
 ## Verification
 
-1. Verify the PIC Continuity JWT signature.
+1. Verify the PIC Continuity JWT signature according to the signer acceptance rules of the selected continuity mode.
 2. Read `context_of_authority.root_authority_jwt`.
 3. Verify the `root_authority_jwt` as a PCA JWT.
 4. Verify that `hash(compact root_authority_jwt)` equals `context_of_authority.root_authority_hash`.
@@ -678,6 +684,8 @@ In centralized continuity, PIC-X validates and issues the next PIC Continuity JW
 In decentralized continuity, other nodes may be allowed to produce Continuity Transition JWTs and update the Continuity Graph according to profile rules.
 
 This is why PCA JWT cannot replace PIC Continuity JWT as the only artifact. PCA JWT is the signed root authority artifact. PIC Continuity JWT is the transport artifact that carries the root and the Continuity Graph.
+
+This article defines the common artifacts only. The detailed rules for central-issued continuity, holder-signed subchains, proof_of_relationship-bound outer signatures, maximum subchain length, consecutive holder-key reuse, central re-issue, compaction, and snapshot / re-root behavior are deferred to a dedicated continuity-mode article.
 
 ## References
 

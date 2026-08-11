@@ -835,13 +835,14 @@ PIC-X
 +-- validates the current PIC Continuity JWT
 +-- validates non-expansion of authority
 +-- validates the continuity proposal
-+-- validates the continuity transition
-+-- issues Continuity Transition JWT N+1
++-- validates or produces the continuity transition according to the selected mode
 `-- returns PIC Continuity JWT N+1
         |
         v
 PIC Continuity JWT N+1
 ```
+
+The continuation detail shown here is PIC-X-mediated; detailed centralized and holder-signed subchain behavior is deferred to a dedicated continuity-mode article.
 
 > **Note:** A PCA has no mandatory independent expiration. Any expiration policy is profile-defined. A PCA JWT is usable only as part of a valid PIC Continuity JWT and remains subject to revocation, continuity rules, execution-contract constraints, local policy, and any declared token or profile expiration.
 
