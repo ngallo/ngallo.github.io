@@ -3,21 +3,11 @@ author = "Nicola Gallo"
 title = "Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph"
 date = "2026-08-11T09:00:00+02:00"
 description = "This article introduces the two JWT artifacts defined by PIC, the Content-Addressable Authority Graph, and the canonical structures used to represent verifiable authority continuity."
-tags = [
-  "pic",
-  "pic-x",
-  "jwt",
-  "authority graph",
-  "content-addressable",
-  "continuity",
-  "oauth",
-  "security",
-  "design"
-]
+tags = ["pic", "pic-x", "jwt", "authority graph", "content-addressable", "continuity", "oauth", "security", "design"]
 +++
 
 <figure class="post-banner">
-  <img src="/images/2026-08-11/pic-x-jwts-content-addressable-authority-graph.png"
+  <img src="/images/2026-08-11/pic-x-jwts-authority-graph.png"
        alt="Designing PIC-X: PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph."
        loading="lazy">
   <figcaption>Designing PIC-X. PCA JWT, PIC Continuity JWT, and the Content-Addressable Authority Graph.</figcaption>
