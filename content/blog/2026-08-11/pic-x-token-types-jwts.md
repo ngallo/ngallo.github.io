@@ -217,12 +217,14 @@ hash(compact JWT artifact)
 → cryptographic identity of the signed artifact
 
 hash(canonical/materialized authority state)
-→ identity of the resulting authority state
+→ conceptual, profile-dependent identity of the resulting authority state
 ```
 
 They are not directly comparable.
 
-When hashing a canonical/materialized authority state, Profile 0.2 uses deterministic canonical serialization of the Indexed Authority Map: sections are serialized as `principal`, `attributes`, `invariants`, then `execution_contract`, and entries within each section are serialized by ascending numeric index. Hashing never relies on arbitrary JSON object member order.
+Profile 0.2 defines the deterministic canonical structure and ordering of the materialized Indexed Authority Map: sections are ordered as `principal`, `attributes`, `invariants`, then `execution_contract`, and entries within each section are ordered by ascending numeric index. JSON object member order has no semantic meaning.
+
+An interoperable cryptographic hash over the materialized authority state requires the selected profile/schema to define the exact byte serialization used as hash input. This article does not define that byte-level encoding.
 
 ## PIC PCA JWT
 
@@ -511,7 +513,9 @@ Existing execution-contract constraints must not be removed, replaced, or weaken
 
 New execution-contract constraints introduced by an accepted transition become additional entries in the materialized/effective `execution_contract` Indexed Authority Map section after PIC-X validates the transition and issues the next settled continuity state. The signed root PIC PCA JWT is not mutated, and no new PIC PCA JWT is created for the new continuity position.
 
-The workload proposes execution-contract additions as canonical Indexed Authority Map `[key, value]` tuple entries in `attenuations.execution_contract.additions`. Each addition contains only the two tuple elements `key` and `value`. The workload does not assign a numeric index. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index in `execution_contract` only after accepting the transition. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `["departments:engineering", true]` and `["departments:operations", true]`.
+The workload proposes execution-contract additions as canonical Indexed Authority Map `[key, value]` tuple entries in `attenuations.execution_contract.additions`. Each addition contains only the two tuple elements `key` and `value`. The workload does not assign a numeric index. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `["departments:engineering", true]` and `["departments:operations", true]`.
+
+When one PIC Continuity Transition JWT proposes multiple execution-contract additions, PIC-X validates the proposed additions, denormalizes any collection-valued logical proposal material into individual canonical tuple additions when applicable, sorts accepted additions lexicographically by canonical key using the same Unicode code point ordering defined for initial `execution_contract` assignment, assigns the next section-local numeric indexes in that sorted order, and then materializes the additions. Input array order is not normative; the same accepted additions materialize to the same canonical ordering for the same predecessor state. The workload is not required to pre-sort additions.
 
 ## Predecessor and Challenge Semantics
 
@@ -586,7 +590,7 @@ attenuations.invariants.remove_bitmap
 attenuations.execution_contract.additions
 → additive restriction
 → additions array of `[key, value]` tuple constraints
-→ PIC-X assigns indexes after validation
+→ PIC-X sorts and assigns indexes after validation
 → all constraints combined with logical AND
 ```
 
@@ -655,12 +659,13 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
 13. Read `attenuations.execution_contract.additions` when present.
 14. Validate each proposed execution-contract `[key, value]` tuple.
 15. Verify that accepted additions only further restrict execution.
-16. Assign accepted additions their next section-local numeric indexes.
-17. Add accepted additions to the materialized/effective `execution_contract` section.
-18. Combine all execution-contract constraints using logical AND.
-19. Verify overall authority and non-expansion semantics.
-20. Verify revocation and local policy.
-21. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
+16. Sort accepted additions lexicographically by canonical key.
+17. Assign accepted additions their next section-local numeric indexes in that sorted order.
+18. Add accepted additions to the materialized/effective `execution_contract` section.
+19. Combine all execution-contract constraints using logical AND.
+20. Verify overall authority and non-expansion semantics.
+21. Verify revocation and local policy.
+22. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
 
 Profile 0.2 does not transport multiple prior transitions for independent replay. PIC-X validates each single advancement centrally and issues the next trusted continuity artifact.
 
