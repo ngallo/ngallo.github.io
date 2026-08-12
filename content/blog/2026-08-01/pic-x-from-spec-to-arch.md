@@ -69,4 +69,4 @@ The latest implementation will show how PIC-X currently works. The complete seri
 
 - [Designing PIC-X: Deriving an Initial PIC Context of Authority](/blog/2026-08-01/pic-x-exchanging-token-to-pca/)
 - [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
-- [Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT](/blog/2026-08-11/pic-x-jwts-authority-graph/)
+- [Designing PIC-X: Token Types and JWTs](/blog/2026-08-11/pic-x-token-types-jwts/)

@@ -861,4 +861,4 @@ PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
 
 - [Designing PIC-X: From Specification to Architecture to Code](/blog/2026-08-01/pic-x-from-spec-to-arch/)
 - [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
-- [Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT](/blog/2026-08-11/pic-x-jwts-authority-graph/)
+- [Designing PIC-X: Token Types and JWTs](/blog/2026-08-11/pic-x-token-types-jwts/)

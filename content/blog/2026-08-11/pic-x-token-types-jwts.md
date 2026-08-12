@@ -1,8 +1,8 @@
 +++
 author = "Nicola Gallo"
-title = "Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT"
+title = "Designing PIC-X: Token Types and JWTs"
 date = "2026-08-11T09:00:00+02:00"
-description = "This article defines the canonical JSON/JWT artifacts used by PIC Profile 0.2: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT."
+description = "This article defines the token types and canonical JSON/JWT artifacts used by PIC Profile 0.2: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT."
 tags = [
   "pic",
   "pic-x",
@@ -15,10 +15,10 @@ tags = [
 +++
 
 <figure class="post-banner">
-  <img src="/images/2026-08-11/pic-x-jwts-authority-graph.png"
-       alt="Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT."
+  <img src="/images/2026-08-11/pic-x-token-types-jwts.png"
+       alt="Designing PIC-X: Token Types and JWTs."
        loading="lazy">
-  <figcaption>Designing PIC-X. PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT.</figcaption>
+  <figcaption>Designing PIC-X. Token Types and JWTs.</figcaption>
 </figure>
 
 PIC Profile 0.2 defines centralized PIC-X-mediated continuity advancement.
@@ -778,7 +778,7 @@ candidate
 → validate previous trusted continuity
 → validate candidate signer / PoR key relationship
 → validate one transition
-→ validate predecessor, challenge, attenuation, contract additions, non-expansion, revocation/policy
+→ validate predecessor, challenge, attenuation, execution-contract additions, non-expansion, revocation/policy
 → issue PIC Continuity JWT N+1
 → no `continuity_transition_jwt`
 ```
