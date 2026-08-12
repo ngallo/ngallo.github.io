@@ -27,7 +27,7 @@ signed PIC Context of Authority
 PIC Continuity JWT 0
 settled, no pending transition
         |
-        +-- application PDP evaluation over current PCA
+        +-- application PDP evaluation over the effective PIC authority context
         |
         v
 workload candidate with one transition
@@ -359,17 +359,15 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
         "operations"
       ]
     }
-  },
-
-  "issuedAt": "2026-08-01T14:00:00Z"
+  }
 }
 ```
 
-The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as an Indexed Authority Map so that authority can be hashed deterministically, attenuated by key, and transported compactly.
+The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as an Indexed Authority Map so that authority can be hashed deterministically, `execution.invariants` can be attenuated by key, and the result can be transported compactly.
 
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
-Protocol metadata such as `profile` and the standard JWT issuer claim `iss` belong to the signed PCA JWT and PIC Continuity JWT artifacts, not to the logical context alone.
+Protocol metadata such as `profile`, the standard JWT issuer claim `iss`, and the standard JWT issued-at claim `iat` belong to the signed PCA JWT and PIC Continuity JWT artifacts, not to the logical context alone.
 
 After constructing PCA 0, PIC-X issues the initial PCA JWT:
 
@@ -556,10 +554,10 @@ requiredScope = "documents:write"
 A developer might use code as simple as the following:
 
 ```text
-principal = selectPrincipal(currentPca)
+principal = selectPrincipal(effectiveAuthorityContext)
 
 privilege = selectInvariantByScope(
-    currentPca,
+    effectiveAuthorityContext,
     "documents:write"
 )
 ```
@@ -590,7 +588,7 @@ Selected privilege:
 }
 ```
 
-The [AuthZEN](https://openid.net/wg/authzen/specifications/) request values are derived from the selected PCA values:
+The [AuthZEN](https://openid.net/wg/authzen/specifications/) request values are derived from the selected authority-context values:
 
 ```text
 subject  = toAuthZenSubject(principal)
@@ -625,10 +623,10 @@ In this article, PIC supplies the current authority context, while AuthZEN is us
 Once the authority has selected the privilege, the application can invoke the PDP interface:
 
 ```text
-principal = selectPrincipal(currentPca)
+principal = selectPrincipal(effectiveAuthorityContext)
 
 privilege = selectInvariantByScope(
-    currentPca,
+    effectiveAuthorityContext,
     "documents:write"
 )
 
@@ -642,7 +640,7 @@ decision = pdp.authzen.evaluate(
     resource,
     {
         scope: privilege.scope,
-        securityDomain: currentPca.attributes.securityDomain
+        securityDomain: effectiveAuthorityContext.attributes.securityDomain
     }
 )
 ```
@@ -822,7 +820,7 @@ PIC Continuity JWT 0
         |
         v
 Application
-+-- uses the current PCA
++-- uses the effective PIC authority context
 +-- performs application authorization
 `-- prepares one advancement candidate when continuity advances
         |

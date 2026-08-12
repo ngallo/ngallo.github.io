@@ -373,7 +373,7 @@ signed artifact for one proposed continuity advancement
 
 A Continuity Transition JWT is not carried forward after PIC-X accepts the advancement. It is carried only in the workload-produced candidate for the current exchange.
 
-The signing algorithms supported for Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
+The signing algorithms accepted for workload-signed Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
 
 Decoded Continuity Transition JWT example, shown for readability
 

@@ -155,12 +155,12 @@ revocation_endpoint
 → requests revocation according to the PIC revocation specification
 
 jwks_uri
-→ publishes the keys used to verify PCA JWTs, PIC Continuity JWTs, and Continuity Transition JWTs issued by this PIC-X deployment
+→ publishes the keys used to verify PCA JWTs issued by PIC-X and PIC-X-issued PIC Continuity JWTs
 ```
 
 The token endpoint and the discovery document are both exposed by PIC-X.
 
-Workload candidate signing keys are validated through the Proof of Relationship and the selected centralized exchange profile, not merely because they appear in the PIC-X JWKS.
+Continuity Transition JWTs are workload-signed. Their signing keys are validated through Proof of Relationship and the selected centralized exchange profile, not merely because they appear in the PIC-X JWKS.
 
 ## 3. PIC Profile of OAuth Token Exchange
 
@@ -541,7 +541,7 @@ continuity.continuity_signing_alg_values_supported
 → algorithms used to sign PIC Continuity JWTs
 
 continuity.transition_signing_alg_values_supported
-→ algorithms used to sign Continuity Transition JWTs
+→ signing algorithms accepted for workload-signed Continuity Transition JWTs
 
 continuity.jws_serializations_supported
 → JWS serializations supported for signed PIC JWT artifacts in this continuity profile
@@ -634,8 +634,8 @@ PIC-Token
 → carries the PIC Continuity JWT
 → carries a trusted settled continuity artifact when issued by PIC-X
 → may carry a workload-produced candidate during exchange
-→ carries the current execution authority
-→ binds execution constraints and authorization invariants
+→ carries the PIC Continuity JWT for the current execution state
+→ binds the execution to its trusted root authority and continuity state
 → preserves verifiable continuity across the execution path
 ```
 
@@ -659,7 +659,7 @@ After initialization, OAuth does not need to participate in every internal autho
 
 ```text
 effective execution authority
-→ derived from the current PIC authority
+→ derived from the current PIC authority context
 → restricted by local policy
 ```
 
