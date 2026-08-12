@@ -453,6 +453,47 @@ a:hover {
   text-decoration: none !important;
 }
 
+/* ── Post Actions ────────────────────────────────────────────────────────── */
+.postActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: -0.75rem 0 1.5rem;
+}
+
+.postPrintButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  color: var(--text-secondary);
+  background: rgba(28, 29, 31, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: color 0.2s ease, background-color 0.2s ease,
+              border-color 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.postPrintButton:hover {
+  color: var(--accent);
+  background: rgba(88, 166, 255, 0.1);
+  border-color: rgba(88, 166, 255, 0.5);
+  box-shadow:
+    0 0 12px rgba(88, 166, 255, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.postPrintButton svg {
+  flex-shrink: 0;
+}
+
 /* ── Post List Items ──────────────────────────────────────────────────────── */
 .postListItem {
   border-radius: 0;
@@ -2447,5 +2488,206 @@ a:focus-visible {
     font-size: 0.78rem;
     padding: 0.75rem;
     max-width: calc(100vw - 48px);
+  }
+}
+
+/* ==========================================================================
+   Print / PDF version for blog posts
+   ========================================================================== */
+@media print {
+  @page {
+    margin: 18mm 16mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+    color: #111 !important;
+    font-size: 11pt;
+    line-height: 1.5;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .headerWrapper,
+  .footer,
+  #reading-progress,
+  #reading-time-left,
+  #back-to-top,
+  .postActions,
+  #share-buttons-container,
+  .share-buttons,
+  .related-posts,
+  .img-zoom-btn,
+  .img-lightbox,
+  .copy-btn,
+  .wrap-btn,
+  .code-lang,
+  .heading-anchor {
+    display: none !important;
+  }
+
+  .flexWrapper,
+  .content,
+  .main,
+  .postWrapper {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    background-image: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #111 !important;
+  }
+
+  .postWrapper {
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+
+  .postWrapper h1,
+  .postWrapper h2,
+  .postWrapper h3,
+  .postWrapper h4,
+  .postWrapper h5,
+  .postWrapper h6 {
+    color: #111 !important;
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .postWrapper h1 {
+    font-size: 22pt;
+    margin: 0 0 10pt;
+  }
+
+  .postWrapper h2 {
+    font-size: 16pt;
+    margin-top: 18pt;
+  }
+
+  .postWrapper h3 {
+    font-size: 13pt;
+  }
+
+  .postWrapper p,
+  .postWrapper li {
+    color: #111 !important;
+    orphans: 3;
+    widows: 3;
+  }
+
+  .postWrapper a,
+  .postWrapper a:link,
+  .postWrapper a:visited {
+    color: #0645ad !important;
+    border: 0 !important;
+    text-decoration: underline !important;
+  }
+
+  .postMetadata,
+  .post-hero,
+  .post-body,
+  .cta,
+  .postWrapper blockquote,
+  .postWrapper details,
+  .postWrapper figure,
+  .postWrapper pre,
+  .postWrapper table,
+  .highlight,
+  .mermaid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .postMetadata {
+    margin: 0 0 14pt !important;
+    padding: 8pt 10pt !important;
+    background: #fff !important;
+    border: 1px solid #bbb !important;
+    color: #333 !important;
+    font-size: 9pt;
+  }
+
+  .postMetadata a,
+  .postMetadata a:link,
+  .postMetadata a:visited {
+    color: #111 !important;
+    text-decoration: none !important;
+  }
+
+  .postWrapper blockquote,
+  .post-hero,
+  .post-body,
+  .cta,
+  .postWrapper details,
+  .mermaid {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #bbb !important;
+    box-shadow: none !important;
+  }
+
+  .postWrapper img,
+  .postWrapper figure img {
+    max-width: 100% !important;
+    height: auto !important;
+    filter: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  .postWrapper figcaption {
+    color: #444 !important;
+  }
+
+  .postWrapper table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 9pt;
+  }
+
+  .postWrapper th,
+  .postWrapper td,
+  .postWrapper table.source-entry th,
+  .postWrapper table.source-entry td {
+    color: #111 !important;
+    border: 1px solid #bbb !important;
+    background: #fff !important;
+  }
+
+  .postWrapper th,
+  .postWrapper table.source-entry th {
+    background: #f1f3f5 !important;
+  }
+
+  .highlight,
+  .highlight pre,
+  .postWrapper pre,
+  .postWrapper code {
+    background: #f6f8fa !important;
+    color: #111 !important;
+    text-shadow: none !important;
+    border-color: #d0d7de !important;
+  }
+
+  .highlight pre,
+  .postWrapper pre {
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-break: break-word;
+    max-width: 100% !important;
+    font-size: 8.5pt;
+  }
+
+  .highlight *,
+  .postWrapper pre *,
+  .postWrapper code * {
+    color: #111 !important;
+    background: transparent !important;
   }
 }
