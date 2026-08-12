@@ -168,31 +168,37 @@ Indexed Authority Map
 PIC PCA JWT
 ```
 
-Profile 0.2 uses section-local numeric indexes starting at `0`. The identity addressed by removal bitmaps is `(section, numeric index)`, for example `principal/0` or `invariants/1`; JSON object member order has no protocol meaning.
+Profile 0.2 uses section-local numeric indexes starting at `0`. Initial index assignment is deterministic and is separate from canonical serialization of an already indexed map. Implementations first denormalize the Logical Context of Authority into canonical tuple candidates, sort those candidates within each section, then assign section-local indexes `0`, `1`, `2`, and so on.
 
 For `principal`, `attributes`, and `execution_contract`, each indexed entry is `[key, value]`. For `invariants`, each indexed entry is `[scope, operation, resourceType, resourceId]`.
+
+For initial index assignment, `principal`, `attributes`, and `execution_contract` candidates are sorted lexicographically by canonical `key`, using Unicode code point order. Collection memberships are denormalized before sorting; each member becomes its own `[key, true]` tuple, and the final canonical membership key determines its position. Presence with `true` represents membership; Profile 0.2 defines no false-valued membership semantics.
+
+For `invariants`, candidates are sorted lexicographically by tuple elements in this order: `scope`, `operation`, `resourceType`, `resourceId`, using Unicode code point order for each element.
+
+The identity addressed by removal bitmaps is `(section, numeric index)`, for example `principal/0` or `invariants/1`; JSON object member order has no protocol meaning.
 
 ```json
 {
   "format": "indexed-authority-map",
   "value": {
     "principal": {
-      "0": ["id", "user-123"],
-      "1": ["roles:payment-approver", true],
-      "2": ["groups:finance", true]
+      "0": ["groups:finance", true],
+      "1": ["id", "user-123"],
+      "2": ["roles:payment-approver", true]
     },
     "attributes": {
       "0": ["department", "finance"],
       "1": ["region", "EU"]
     },
     "invariants": {
-      "0": ["payments:read", "read", "payments", "*"],
-      "1": ["payments:approve", "approve", "payments", "*"]
+      "0": ["payments:approve", "approve", "payments", "*"],
+      "1": ["payments:read", "read", "payments", "*"]
     },
     "execution_contract": {
-      "0": ["purpose", "payment-approval"],
-      "1": ["currency", "EUR"],
-      "2": ["departments:finance", true]
+      "0": ["currency", "EUR"],
+      "1": ["departments:finance", true],
+      "2": ["purpose", "payment-approval"]
     }
   }
 }
@@ -271,22 +277,22 @@ Decoded PIC PCA JWT example, shown for readability
       "format": "indexed-authority-map",
       "value": {
         "principal": {
-          "0": ["id", "user-123"],
-          "1": ["roles:payment-approver", true],
-          "2": ["groups:finance", true]
+          "0": ["groups:finance", true],
+          "1": ["id", "user-123"],
+          "2": ["roles:payment-approver", true]
         },
         "attributes": {
           "0": ["department", "finance"],
           "1": ["region", "EU"]
         },
         "invariants": {
-          "0": ["payments:read", "read", "payments", "*"],
-          "1": ["payments:approve", "approve", "payments", "*"]
+          "0": ["payments:approve", "approve", "payments", "*"],
+          "1": ["payments:read", "read", "payments", "*"]
         },
         "execution_contract": {
-          "0": ["purpose", "payment-approval"],
-          "1": ["currency", "EUR"],
-          "2": ["departments:finance", true]
+          "0": ["currency", "EUR"],
+          "1": ["departments:finance", true],
+          "2": ["purpose", "payment-approval"]
         }
       }
     },
