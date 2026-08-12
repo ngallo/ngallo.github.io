@@ -1,8 +1,8 @@
 +++
 author = "Nicola Gallo"
-title = "Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and Continuity Transition JWT"
+title = "Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT"
 date = "2026-08-11T09:00:00+02:00"
-description = "This article defines the canonical JSON/JWT artifacts used by PIC Profile 0.2: PIC PCA JWT, PIC Continuity JWT, and Continuity Transition JWT."
+description = "This article defines the canonical JSON/JWT artifacts used by PIC Profile 0.2: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT."
 tags = [
   "pic",
   "pic-x",
@@ -16,9 +16,9 @@ tags = [
 
 <figure class="post-banner">
   <img src="/images/2026-08-11/pic-x-jwts-authority-graph.png"
-       alt="Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and Continuity Transition JWT."
+       alt="Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT."
        loading="lazy">
-  <figcaption>Designing PIC-X. PIC PCA JWT, PIC Continuity JWT, and Continuity Transition JWT.</figcaption>
+  <figcaption>Designing PIC-X. PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT.</figcaption>
 </figure>
 
 PIC Profile 0.2 defines centralized PIC-X-mediated continuity advancement.
@@ -37,7 +37,7 @@ trusted PIC Continuity JWT N
         | workload proposes exactly one advancement
         v
 workload-signed candidate PIC Continuity JWT
-with one Continuity Transition JWT N+1
+with one PIC Continuity Transition JWT N+1
         |
         | OAuth Token Exchange / PIC-X exchange
         v
@@ -53,9 +53,9 @@ A **PCA** is the logical Context of Authority.
 
 A **PIC PCA JWT** is the trusted signed root authority representation.
 
-A **PIC Continuity JWT** is the signed continuity artifact. When issued by PIC-X, it is the trusted settled continuity artifact. When produced by a workload for advancement, it is a signed candidate containing exactly one proposed Continuity Transition JWT.
+A **PIC Continuity JWT** is the signed continuity artifact. When issued by PIC-X, it is the trusted settled continuity artifact. When produced by a workload for advancement, it is a signed candidate containing exactly one proposed PIC Continuity Transition JWT.
 
-A **Continuity Transition JWT** is one signed proposed causal advancement from the currently trusted PIC Continuity JWT to the next state.
+A **PIC Continuity Transition JWT** is one signed proposed causal advancement from the currently trusted PIC Continuity JWT to the next state.
 
 PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
 
@@ -71,7 +71,7 @@ This registry maps the identifiers advertised by `.well-known/pic-x-configuratio
 | --- | --- | --- | --- | --- |
 | PIC PCA JWT | None | `application/pic-pca+jwt` | `pic-pca+jwt` | Trusted signed root authority representation. |
 | PIC Continuity JWT | `https://pic-protocol.org/definitions/token-types/continuity` | `application/pic-continuity+jwt` | `pic-continuity+jwt` | Trusted settled continuity artifact when issued by PIC-X; candidate exchange artifact when workload-signed. |
-| Continuity Transition JWT | None | `application/pic-continuity-transition+jwt` | `pic-continuity-transition+jwt` | Signed artifact for one proposed continuity advancement. |
+| PIC Continuity Transition JWT | None | `application/pic-continuity-transition+jwt` | `pic-continuity-transition+jwt` | Signed artifact for one proposed continuity advancement. |
 | Initial Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity-initial` | `application/json` | `N_A` | Supplies initialization material, including the execution contract. |
 | Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity` | `application/json` | `N_A` | Supplies centralized advancement support material when required by the selected profile/schema. |
 
@@ -216,7 +216,7 @@ Profile 0.2 uses section-local numeric indexes. Each indexed entry has `key` and
         }
       }
     },
-    "contract": {
+    "execution_contract": {
       "1": {
         "key": "contract:purpose",
         "value": "payment-approval"
@@ -234,7 +234,9 @@ Profile 0.2 uses section-local numeric indexes. Each indexed entry has `key` and
 }
 ```
 
-`principal`, `attributes`, `invariants`, and `contract` are all indexed and canonicalized. Indexing does not mean all sections use removal attenuation.
+Logical `execution.contract` maps to the flattened canonical `execution_contract` section.
+
+`principal`, `attributes`, `invariants`, and `execution_contract` are all indexed and canonicalized. Indexing does not mean all sections use removal attenuation.
 
 Scalar logical values become one indexed entry. Set or list membership is denormalized so that each member becomes its own indexed boolean entry.
 
@@ -344,7 +346,7 @@ Decoded PIC PCA JWT example, shown for readability
             }
           }
         },
-        "contract": {
+        "execution_contract": {
           "1": {
             "key": "contract:purpose",
             "value": "payment-approval"
@@ -414,12 +416,12 @@ PIC Profile 0.2 uses two operational forms:
 PIC-X-issued PIC Continuity JWT
 → trusted settled continuity artifact
 → signed by PIC-X
-→ contains no pending Continuity Transition JWT
+→ contains no pending PIC Continuity Transition JWT
 
 workload-produced candidate PIC Continuity JWT
 → proposes exactly one advancement
 → signed by the workload using the PoR-bound private key
-→ carries exactly one proposed Continuity Transition JWT in `continuity_transition_jwt`
+→ carries exactly one proposed PIC Continuity Transition JWT in `continuity_transition_jwt`
 ```
 
 PIC-X-issued settled PIC Continuity JWTs contain no `continuity_transition_jwt`. A workload-produced candidate PIC Continuity JWT contains exactly one `continuity_transition_jwt`.
@@ -490,7 +492,7 @@ Decoded workload-produced candidate PIC Continuity JWT example, shown for readab
 
 After PIC-X validates a proposed transition and issues the next settled PIC Continuity JWT, the material required to authorize and validate the next transition must remain available according to the selected profile/schema. The exact settled-token location of that current challenge material is intentionally not assigned in this article.
 
-## Continuity Transition JWT
+## PIC Continuity Transition JWT
 
 Definition URI
 
@@ -498,7 +500,7 @@ Definition URI
 None
 ```
 
-The current protocol does not define a Definition URI for Continuity Transition JWT. It is currently identified by Media Type and JOSE typ.
+The current protocol does not define a Definition URI for PIC Continuity Transition JWT. It is currently identified by Media Type and JOSE typ.
 
 Media Type
 
@@ -518,11 +520,11 @@ Purpose
 signed artifact for one proposed continuity advancement
 ```
 
-A Continuity Transition JWT is not carried forward after PIC-X accepts the advancement. It is carried only in the workload-produced candidate for the current exchange.
+A PIC Continuity Transition JWT is not carried forward after PIC-X accepts the advancement. It is carried only in the workload-produced candidate for the current exchange.
 
-The signing algorithms accepted for workload-signed Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
+The signing algorithms accepted for workload-signed PIC Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
 
-Decoded Continuity Transition JWT example, shown for readability
+Decoded PIC Continuity Transition JWT example, shown for readability
 
 ```json
 {
@@ -555,7 +557,7 @@ Decoded Continuity Transition JWT example, shown for readability
       "invariants": {
         "remove_bitmap": "base64url-bitmap"
       },
-      "contract": {
+      "execution_contract": {
         "additions": [
           {
             "key": "contract:region",
@@ -574,11 +576,11 @@ Decoded Continuity Transition JWT example, shown for readability
 }
 ```
 
-Existing execution-contract constraints must not be removed, replaced, or weakened during continuity advancement. Contract restriction is additive: accepted transitions may introduce additional constraints through `attenuations.contract.additions`, and all existing and newly added constraints are combined with logical AND.
+Existing execution-contract constraints must not be removed, replaced, or weakened during continuity advancement. Execution-contract restriction is additive: accepted transitions may introduce additional constraints through `attenuations.execution_contract.additions`, and all existing and newly added constraints are combined with logical AND.
 
-New contract constraints introduced by an accepted transition become additional entries in the materialized effective Indexed Authority Map after PIC-X validates the transition and issues the next settled continuity state. The signed root PIC PCA JWT is not mutated, and no new PIC PCA JWT is created for the new continuity position.
+New execution-contract constraints introduced by an accepted transition become additional entries in the materialized/effective `execution_contract` Indexed Authority Map section after PIC-X validates the transition and issues the next settled continuity state. The signed root PIC PCA JWT is not mutated, and no new PIC PCA JWT is created for the new continuity position.
 
-The workload proposes contract additions as canonical Indexed Authority Map contract key/value entries in `attenuations.contract.additions`. Each addition contains only `key` and `value`. The workload does not assign a numeric index. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index only after accepting the transition. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `{ "key": "contract:departments:engineering", "value": true }` and `{ "key": "contract:departments:operations", "value": true }`.
+The workload proposes execution-contract additions as canonical Indexed Authority Map contract key/value entries in `attenuations.execution_contract.additions`. Each addition contains only `key` and `value`. The workload does not assign a numeric index. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index in `execution_contract` only after accepting the transition. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `{ "key": "contract:departments:engineering", "value": true }` and `{ "key": "contract:departments:operations", "value": true }`.
 
 ## Predecessor and Challenge Semantics
 
@@ -589,7 +591,7 @@ trusted PIC Continuity JWT N
         |
         | predecessor_hash = hash(compact PIC Continuity JWT N)
         v
-Continuity Transition JWT N+1
+PIC Continuity Transition JWT N+1
 ```
 
 The first transition uses the root PIC PCA JWT challenge:
@@ -606,7 +608,7 @@ For later transitions, the previous settled continuity artifact must provide the
 trusted PIC Continuity JWT N
 → current continuity challenge material
 
-Continuity Transition JWT N+1
+PIC Continuity Transition JWT N+1
 → challenge.previous_challenge matches that material
 → challenge.next_challenge supplies the next challenge
 ```
@@ -617,7 +619,7 @@ The exact settled-token location of current challenge material after advancement
 
 The workload-produced candidate PIC Continuity JWT is signed by the workload.
 
-The workload must use the private key whose corresponding public key or identity is bound or proven by `proof_of_relationship` in the proposed Continuity Transition JWT.
+The workload must use the private key whose corresponding public key or identity is bound or proven by `proof_of_relationship` in the proposed PIC Continuity Transition JWT.
 
 PIC-X verifies:
 
@@ -650,7 +652,7 @@ attenuations.invariants.remove_bitmap
 → removal attenuation
 → remove_bitmap against invariants section indexes
 
-attenuations.contract.additions
+attenuations.execution_contract.additions
 → additive restriction
 → additions array of key/value constraints
 → PIC-X assigns indexes after validation
@@ -675,13 +677,13 @@ For each attenuation, the verifier must ensure:
 new authority ⊆ previous authority
 ```
 
-In Profile 0.2, `attenuations.principal.remove_bitmap`, `attenuations.attributes.remove_bitmap`, and `attenuations.invariants.remove_bitmap` are interpreted against their own section-local numeric indexes. Removed entries must never reappear later in the same continuity. `contract` does not use removal bitmaps. Contract restrictions are monotonic additions through `attenuations.contract.additions`: they add constraints that are combined with logical AND and therefore can only reduce the set of allowed executions.
+In Profile 0.2, `attenuations.principal.remove_bitmap`, `attenuations.attributes.remove_bitmap`, and `attenuations.invariants.remove_bitmap` are interpreted against their own section-local numeric indexes. Removed entries must never reappear later in the same continuity. `execution_contract` does not use removal bitmaps. Execution-contract restrictions are monotonic additions through `attenuations.execution_contract.additions`: they add constraints that are combined with logical AND and therefore can only reduce the set of allowed executions.
 
 ## Proof of Relationship
 
 Proof of Relationship binds one proposed execution transition to its causal predecessor.
 
-In this model, `proof_of_relationship` is inside each Continuity Transition JWT.
+In this model, `proof_of_relationship` is inside each PIC Continuity Transition JWT.
 
 It proves the relationship that led to the proposed authority state and binds the advancement to:
 
@@ -708,7 +710,7 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
 1. Verify the previous trusted PIC Continuity JWT N.
 2. Verify the workload-produced candidate PIC Continuity JWT outer signature.
 3. Verify that the candidate contains exactly one `continuity_transition_jwt`.
-4. Verify the Continuity Transition JWT carried in `continuity_transition_jwt`.
+4. Verify the PIC Continuity Transition JWT carried in `continuity_transition_jwt`.
 5. Verify that the candidate signer is the key authorized or bound by `proof_of_relationship`.
 6. Verify `predecessor_hash` equals `hash(compact PIC Continuity JWT N)`.
 7. Verify `payload.position` equals the previous trusted continuity position + 1.
@@ -719,12 +721,12 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
 10. Apply `attenuations.principal.remove_bitmap` when present.
 11. Apply `attenuations.attributes.remove_bitmap` when present.
 12. Apply `attenuations.invariants.remove_bitmap` when present.
-13. Read `attenuations.contract.additions` when present.
-14. Validate each proposed contract `key` / `value`.
+13. Read `attenuations.execution_contract.additions` when present.
+14. Validate each proposed execution-contract `key` / `value`.
 15. Verify that accepted additions only further restrict execution.
 16. Assign accepted additions their next section-local numeric indexes.
-17. Add accepted additions to the materialized effective contract map.
-18. Combine all contract constraints using logical AND.
+17. Add accepted additions to the materialized/effective `execution_contract` section.
+18. Combine all execution-contract constraints using logical AND.
 19. Verify overall authority and non-expansion semantics.
 20. Verify revocation and local policy.
 21. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
@@ -757,13 +759,13 @@ PIC Continuity JWT N
 ```text
 ADVANCEMENT CANDIDATE
 
-workload creates exactly one Continuity Transition JWT N+1
+workload creates exactly one PIC Continuity Transition JWT N+1
 → predecessor = previous trusted PIC Continuity JWT N
 → challenge continuity
 → attenuation
 → Proof of Relationship
 
-workload places that one Transition JWT in a candidate PIC Continuity JWT
+workload places that one PIC Continuity Transition JWT in a candidate PIC Continuity JWT
 → transition carried in `continuity_transition_jwt`
 → candidate signed using the PoR-bound private key
 ```

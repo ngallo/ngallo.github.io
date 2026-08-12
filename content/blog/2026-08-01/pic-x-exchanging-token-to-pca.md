@@ -75,7 +75,7 @@ PIC PCA JWT
 → carries the root challenge
 ```
 
-A **PIC Continuity JWT** is the continuity artifact returned by PIC-X. A PIC-X-issued PIC Continuity JWT is settled and contains no pending transition. During advancement, a workload-produced candidate PIC Continuity JWT proposes exactly one Continuity Transition JWT for PIC-X validation.
+A **PIC Continuity JWT** is the continuity artifact returned by PIC-X. A PIC-X-issued PIC Continuity JWT is settled and contains no pending transition. During advancement, a workload-produced candidate PIC Continuity JWT proposes exactly one PIC Continuity Transition JWT for PIC-X validation.
 
 ```text
 PIC Continuity JWT
@@ -363,7 +363,7 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
 }
 ```
 
-The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as an Indexed Authority Map so that authority can be hashed deterministically, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by key, and the result can be transported compactly. The normalized logical example is not embedded directly in the PIC PCA JWT.
+The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as an Indexed Authority Map so that authority can be hashed deterministically, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by key, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
 
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
@@ -381,7 +381,7 @@ PIC PCA JWT 0
 
 The PIC PCA JWT signs the root authority state and carries the root challenge used to initialize the first continuity transition.
 
-PIC-X then returns the initial PIC Continuity JWT, which is settled and has no pending Continuity Transition JWT.
+PIC-X then returns the initial PIC Continuity JWT, which is settled and has no pending PIC Continuity Transition JWT.
 
 ```text
 JWT header
@@ -461,7 +461,7 @@ Example proposal before Base64url encoding:
 
 PIC-X extracts the validated `executionContract` from the initial Continuity Proposal and places it in the logical PCA before serialization.
 
-When the PCA is serialized into the PIC PCA JWT, the logical Context of Authority is transformed into the Profile 0.2 Indexed Authority Map defined by the JWT article.
+When the PCA is serialized into the PIC PCA JWT, the logical Context of Authority is transformed into the Profile 0.2 Indexed Authority Map defined by the JWT article. The logical `execution.contract` value becomes the canonical `execution_contract` section.
 
 The logical input remains normalized:
 
@@ -861,4 +861,4 @@ PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
 
 - [Designing PIC-X: From Specification to Architecture to Code](/blog/2026-08-01/pic-x-from-spec-to-arch/)
 - [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
-- [Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and Continuity Transition JWT](/blog/2026-08-11/pic-x-jwts-authority-graph/)
+- [Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and PIC Continuity Transition JWT](/blog/2026-08-11/pic-x-jwts-authority-graph/)
