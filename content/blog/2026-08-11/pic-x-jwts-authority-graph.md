@@ -47,9 +47,9 @@ A **PCA** is the logical Context of Authority.
 
 A **PCA JWT** is the signed root authority representation.
 
-A **PIC Continuity JWT** transports one Continuity Graph and its root_authority_jwt.
+A **PIC Continuity JWT** transports one Continuity Graph and its root_pca_jwt.
 
-A **Continuity Graph** starts from a trusted root_authority_jwt and carries a numbered sequence of signed Continuity Transition JWTs when continuity advances.
+A **Continuity Graph** starts from a trusted root_pca_jwt and carries a numbered sequence of signed Continuity Transition JWTs when continuity advances.
 
 ## PIC Artifact Registry
 
@@ -62,12 +62,12 @@ This registry maps the identifiers advertised by `.well-known/pic-x-configuratio
 | Artifact | Definition URI | Media Type | JOSE typ | Purpose |
 | --- | --- | --- | --- | --- |
 | PCA JWT | None | `application/pic-pca+jwt` | `pic-pca+jwt` | Signed root authority representation. |
-| PIC Continuity JWT | `https://pic-protocol.org/definitions/token-types/continuity` | `application/pic-continuity+jwt` | `pic-continuity+jwt` | Transports one Continuity Graph and its root_authority_jwt. |
+| PIC Continuity JWT | `https://pic-protocol.org/definitions/token-types/continuity` | `application/pic-continuity+jwt` | `pic-continuity+jwt` | Transports one Continuity Graph and its root_pca_jwt. |
 | Continuity Transition JWT | None | `application/pic-continuity-transition+jwt` | `pic-continuity-transition+jwt` | Signed continuity transition embedded in the Continuity Graph. |
 | Initial Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity-initial` | `application/json` | `N_A` | Supplies initialization material, including the execution contract. |
 | Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity` | `application/json` | `N_A` | Supplies continuation material. |
 
-The proposal JSON is transported through the `continuity_proposal` parameter as compact UTF-8 JSON encoded with unpadded Base64url.
+When proposal JSON is transported to PIC-X, it uses the `continuity_proposal` parameter as compact UTF-8 JSON encoded with unpadded Base64url.
 
 ## JWT Serialization
 
@@ -78,7 +78,7 @@ Unless a future profile explicitly defines another serialization, fields ending 
 This applies to:
 
 ```text
-root_authority_jwt
+root_pca_jwt
 current_continuity_transition_jwt
 ```
 
@@ -89,7 +89,7 @@ Artifact hashes over JWT values are computed over the UTF-8 bytes of the compact
 For example:
 
 ```text
-hash(compact root_authority_jwt)
+root_pca_jwt_hash = hash(compact root_pca_jwt)
 ```
 
 and:
@@ -225,7 +225,7 @@ signed root authority representation
 
 The PCA JWT is signed by a trusted authority.
 
-In the continuity model, the root PCA JWT appears as `root_authority_jwt` inside the PIC Continuity JWT.
+In the continuity model, the root PCA JWT appears as `root_pca_jwt` inside the PIC Continuity JWT.
 
 The initial root has no causal predecessor. It carries the root challenge used by the first Continuity Transition JWT.
 
@@ -301,10 +301,12 @@ Decoded PCA JWT example, shown for readability
 | `profile` | Identifies the active PIC profile. |
 | `sub` | Identifies the subject of the authority state when a subject is present. |
 | `iat` | Records when the PCA JWT was issued. |
-| `jti` | Identifies this PCA JWT for correlation, audit, lineage, and revocation. |
-| `position` | Identifies the root authority position. |
+| `jti` | Identifies this PCA JWT instance for correlation and audit. |
+| `position` | Identifies the root continuity position. |
 | `context_of_authority` | Contains the Indexed Authority Map for the PCA. |
 | `challenge.next_challenge` | Initializes the first continuity transition. |
+
+`jti` identifies a JWT instance, while `position` identifies its place in continuity. Cryptographic artifact identity is established by the corresponding signed-artifact hash.
 
 ## PIC Continuity JWT
 
@@ -329,14 +331,14 @@ pic-continuity+jwt
 Purpose
 
 ```text
-transports one Continuity Graph and its root_authority_jwt
+transports one Continuity Graph and its root_pca_jwt
 ```
 
 The PIC Continuity JWT remains the artifact returned by the exchange endpoint and transported across execution boundaries.
 
 In centralized exchange, the PIC Continuity JWT is returned by the exchange endpoint. Across continuity modes, it is the signed transport artifact for Proof of Continuity.
 
-The signer of the outer PIC Continuity JWT is not necessarily the authority issuer in every continuity mode. The authority root remains root_authority_jwt, signed by the trusted authority issuer.
+The signer of the outer PIC Continuity JWT is not necessarily the authority issuer in every continuity mode. The authority root remains root_pca_jwt, signed by the trusted authority issuer.
 
 In a PIC Continuity JWT, `context_of_authority` does not contain the full current authority state. It identifies the trusted root authority artifact from which the current authority is materialized.
 
@@ -358,8 +360,8 @@ Decoded PIC Continuity JWT example, shown for readability
 
     "context_of_authority": {
       "position": 4,
-      "root_authority_hash": "sha256:root-authority-jwt-4",
-      "root_authority_jwt": "<compact-signed-pic-pca-jwt>"
+      "root_pca_jwt_hash": "sha256:root-pca-jwt-4",
+      "root_pca_jwt": "<compact-signed-pic-pca-jwt>"
     },
 
     "continuity_graph": {
@@ -388,35 +390,35 @@ Decoded PIC Continuity JWT example, shown for readability
 
 | Field | Purpose |
 | --- | --- |
-| `context_of_authority.position` | Identifies the root authority position. |
-| `context_of_authority.root_authority_hash` | Identifies the hash of the compact root_authority_jwt. |
-| `context_of_authority.root_authority_jwt` | Carries the signed PCA JWT issued by the trusted authority. |
-| `continuity_graph.current_position` | Identifies the current transition position. |
+| `context_of_authority.position` | Identifies the root continuity position. |
+| `context_of_authority.root_pca_jwt_hash` | Identifies the hash of the compact root_pca_jwt. |
+| `context_of_authority.root_pca_jwt` | Carries the signed PCA JWT issued by the trusted authority. |
+| `continuity_graph.current_position` | Identifies the current continuity position. |
 | `continuity_graph.current_authority_hash` | Identifies the current authority hash. |
 | `continuity_graph.transitions` | Carries the numbered transitions map. |
 
-`current_authority_hash` is not stored inside each Continuity Transition JWT. It is the final authority hash declared by the PIC Continuity JWT and verified after materializing the authority from root_authority_jwt plus all valid transitions.
+`current_authority_hash` is not stored inside each Continuity Transition JWT. It is the final authority hash declared by the PIC Continuity JWT and verified after materializing the authority from root_pca_jwt plus all valid transitions.
 
-`root_authority_hash` and `current_authority_hash` belong to different hash domains.
+`root_pca_jwt_hash` and `current_authority_hash` belong to different hash domains.
 
-`root_authority_hash` is an artifact hash: it is the hash of the compact root_authority_jwt.
+`root_pca_jwt_hash` is an artifact hash: it is the hash of the compact root_pca_jwt.
 
 `current_authority_hash` is an authority-state hash: it is the hash of the materialized Canonical Authority Map after applying all valid transitions.
 
-They are not directly comparable. The verifier uses `root_authority_hash` to authenticate the root artifact and `current_authority_hash` to verify the final materialized authority state.
+They are not directly comparable. The verifier uses `root_pca_jwt_hash` to authenticate the root artifact and `current_authority_hash` to verify the final materialized authority state.
 
 For PIC Profile 0.2, current_authority_hash equals the hash of the materialized Canonical Authority Map after all valid attenuations have been applied.
 
 ## Continuity Graph
 
-The Continuity Graph starts from a trusted root_authority_jwt and carries a numbered sequence of signed Continuity Transition JWTs when continuity advances. Each transition proves causal continuity from its predecessor and may attenuate the authority represented by the root authority.
+The Continuity Graph starts from a trusted root_pca_jwt and carries a numbered sequence of signed Continuity Transition JWTs when continuity advances. Each transition proves causal continuity from its predecessor and may attenuate the authority represented by the root authority.
 
 ```text
 PIC Continuity JWT
 ├── context_of_authority
 │   ├── position
-│   ├── root_authority_hash
-│   └── root_authority_jwt
+│   ├── root_pca_jwt_hash
+│   └── root_pca_jwt
 └── continuity_graph
     ├── current_position
     ├── current_authority_hash
@@ -446,13 +448,13 @@ The rule is simple: transition positions must be contiguous.
 
 For a graph with transitions, the first transition position must equal `context_of_authority.position + 1`.
 
-For every later transition, the current transition position must equal the previous transition position + 1.
+For every later transition, its position must equal the previous transition position + 1.
 
 No gaps are allowed.
 
-For example, if the root position is 4, then the valid transition positions are 5, 6, 7, and so on. A transitions map containing "5" and "7" without "6" is invalid.
+For example, if the root continuity position is 4, then the valid transition positions are 5, 6, 7, and so on. A transitions map containing "5" and "7" without "6" is invalid.
 
-The root position is `context_of_authority.position`. `current_position` must equal the last transition position.
+The root continuity position is `context_of_authority.position`. `current_position` must equal the last transition position.
 
 ### Initial Continuity Graph
 
@@ -462,7 +464,7 @@ In this case, transitions is empty.
 
 In that case:
 
-- `context_of_authority.position` is the root position;
+- `context_of_authority.position` is the root continuity position;
 - `continuity_graph.current_position` equals `context_of_authority.position`;
 - `continuity_graph.transitions` is empty;
 - `continuity_graph.current_authority_hash` equals the hash of the root PCA JWT's Canonical Authority Map;
@@ -473,8 +475,8 @@ In that case:
 {
   "context_of_authority": {
     "position": 0,
-    "root_authority_hash": "sha256:root-authority-jwt-0",
-    "root_authority_jwt": "<compact-signed-pic-pca-jwt-0>"
+    "root_pca_jwt_hash": "sha256:root-pca-jwt-0",
+    "root_pca_jwt": "<compact-signed-pic-pca-jwt-0>"
   },
   "continuity_graph": {
     "current_position": 0,
@@ -512,6 +514,8 @@ signed continuity transition embedded in the Continuity Graph
 
 A Continuity Transition JWT is a signed transition artifact embedded inside the PIC Continuity JWT. It is not the same as the PIC Continuity JWT.
 
+Its `position` identifies this transition's position in the continuity sequence.
+
 The signing algorithms supported for Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
 
 Decoded Continuity Transition JWT example, shown for readability
@@ -531,7 +535,7 @@ Decoded Continuity Transition JWT example, shown for readability
 
     "position": 5,
 
-    "predecessor_hash": "sha256:root-authority-jwt-4",
+    "predecessor_hash": "sha256:root-pca-jwt-4",
 
     "challenge": {
       "previous_challenge": "base64url-random-root",
@@ -564,12 +568,12 @@ Decoded Continuity Transition JWT example, shown for readability
 
 ## Predecessor Hash Rules
 
-For the first transition after the root authority, predecessor_hash equals context_of_authority.root_authority_hash. For every later transition, predecessor_hash equals the previous transition's current_continuity_transition_hash.
+For the first transition after the root authority, predecessor_hash equals context_of_authority.root_pca_jwt_hash. For every later transition, predecessor_hash equals the previous transition's current_continuity_transition_hash.
 
 ```text
 transition["5"].payload.predecessor_hash
 =
-context_of_authority.root_authority_hash
+context_of_authority.root_pca_jwt_hash
 ```
 
 For later transitions:
@@ -641,15 +645,15 @@ The verifier must be able to validate this proof independently. It must not trus
 
 Key binding is part of `proof_of_relationship`.
 
-When a future profile allows holder-signed PIC Continuity JWTs, the relationship between the outer PIC Continuity JWT signing key and `proof_of_relationship` is defined by that continuity profile. PIC Profile 0.2 does not define delegated holder-signing keys in this article.
+When the selected decentralized continuity profile allows holder-signed PIC Continuity JWTs, the relationship between the outer PIC Continuity JWT signing key and `proof_of_relationship` is defined by that continuity profile. PIC Profile 0.2 does not define delegated holder-signing keys in this article.
 
 ## Verification
 
 1. Verify the PIC Continuity JWT signature according to the signer acceptance rules of the selected continuity mode.
-2. Read `context_of_authority.root_authority_jwt`.
-3. Verify the `root_authority_jwt` as a PCA JWT.
-4. Verify that `hash(compact root_authority_jwt)` equals `context_of_authority.root_authority_hash`.
-5. Extract the root position, root challenge, and root Canonical Authority Map from the PCA JWT.
+2. Read `context_of_authority.root_pca_jwt`.
+3. Verify the `root_pca_jwt` as a PCA JWT.
+4. Verify that `hash(compact root_pca_jwt)` equals `context_of_authority.root_pca_jwt_hash`.
+5. Extract the root continuity position, root challenge, and root Canonical Authority Map from the PCA JWT.
 6. Materialize the root Canonical Authority Map.
 7. If `continuity_graph.transitions` is empty:
    - verify `continuity_graph.current_position` equals `context_of_authority.position`;
@@ -663,9 +667,9 @@ When a future profile allows holder-signed PIC Continuity JWTs, the relationship
    - verify the Continuity Transition JWT signature;
    - verify `hash(compact transition JWT)` equals `current_continuity_transition_hash`;
    - verify `payload.position` equals the numeric transition key;
-   - verify `predecessor_hash` equals `context_of_authority.root_authority_hash` for the first transition;
+   - verify `predecessor_hash` equals `context_of_authority.root_pca_jwt_hash` for the first transition;
    - verify `predecessor_hash` equals the previous transition's `current_continuity_transition_hash` for later transitions;
-   - verify the first transition's `challenge.previous_challenge` equals `root_authority_jwt.payload.challenge.next_challenge`;
+   - verify the first transition's `challenge.previous_challenge` equals `root_pca_jwt.payload.challenge.next_challenge`;
    - verify every later transition's `challenge.previous_challenge` equals the previous transition's `challenge.next_challenge`;
    - verify `proof_of_relationship` over `predecessor_hash`, `challenge.previous_challenge`, `challenge.next_challenge`, and `position`;
    - apply attenuations to the materialized Canonical Authority Map;
@@ -675,7 +679,7 @@ When a future profile allows holder-signed PIC Continuity JWTs, the relationship
 
 ## Continuity Modes
 
-The central PIC-X authority issues the initial PCA JWT. That PCA JWT becomes the root_authority_jwt.
+The central PIC-X authority issues the initial PCA JWT. That PCA JWT becomes the root_pca_jwt.
 
 After that, continuity may be advanced through the selected continuity mode.
 
@@ -683,9 +687,11 @@ In centralized continuity, PIC-X validates and issues the next PIC Continuity JW
 
 In decentralized continuity, other nodes may be allowed to produce Continuity Transition JWTs and update the Continuity Graph according to profile rules.
 
+For decentralized continuity, PIC-X discovery advertises the configured `max_subchain_length` that limits consecutive holder-signed Continuity Transition JWTs at the tail of the current Continuity Graph. The count starts after the most recent trusted-central Transition JWT, or after the root PCA JWT when no such central transition exists. This does not change the common JWT structures defined here.
+
 This is why PCA JWT cannot replace PIC Continuity JWT as the only artifact. PCA JWT is the signed root authority artifact. PIC Continuity JWT is the transport artifact that carries the root and the Continuity Graph.
 
-This article defines the common artifacts only. The detailed rules for central-issued continuity, holder-signed subchains, proof_of_relationship-bound outer signatures, maximum subchain length, consecutive holder-key reuse, central re-issue, compaction, and snapshot / re-root behavior are deferred to a dedicated continuity-mode article.
+This article defines the common artifacts only. The detailed rules for central-issued continuity, holder-signed subchains, proof_of_relationship-bound outer signatures, consecutive holder-key reuse, compaction, snapshot / re-root behavior, and advanced central re-issuance policy beyond basic same-state re-signing are deferred to a dedicated continuity-mode article.
 
 ## References
 

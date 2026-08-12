@@ -34,14 +34,15 @@ PIC Continuity JWT 0
         +-- application PDP evaluation over current PCA
         |
         v
-picX.exchange(continuityJwtN, continuityProposal)
+subsequent advancement is mode-dependent
         |
-        v
-PIC Continuity JWT N+1
+        +-- centralized-continuity: PIC-X-mediated advancement
+        `-- decentralized-continuity: local holder-signed advancement,
+            later PIC-X validation/re-issuance
 ```
 
 
-The application developer does not need to implement token validation, scope parsing, PCA construction, PCA JWT signing, invariant selection, or continuity verification.
+The application developer is not expected to implement these protocol mechanics by hand. PIC libraries, SDKs, runtimes, or infrastructure components provide the applicable construction, selection, exchange, and verification operations, while PIC-X performs the server-side authority derivation, validation, and signing required by the selected flow.
 
 > **Info:** The exchange can also be performed by an API gateway, service mesh, or another infrastructure component. In that model, PIC-X remains transparent to the application: the application receives the PIC Continuity JWT without implementing the exchange flow.
 
@@ -50,7 +51,7 @@ The application developer does not need to implement token validation, scope par
 
 The remaining sections explain how PIC-X performs the first exchange.
 
-The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile uses a `continuity_proposal` input for both initialization and continuation. The proposal type identifies which schema and validation rules apply; those schemas will be defined in a dedicated protocol article.
+The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile uses a `continuity_proposal` input for initialization and for centralized continuation flows that submit a proposal to PIC-X. The proposal type identifies which schema and validation rules apply; those schemas will be defined in a dedicated protocol article.
 
 The value of `continuity_proposal` is produced by serializing the proposal as compact UTF-8 JSON and applying unpadded Base64url encoding. The exact proposal schemas and any future cryptographic protection applied to a proposal are outside the scope of this article.
 
@@ -69,7 +70,7 @@ PCA
 
 PCA JWT
 → signed representation of one PCA
-→ Content-Type: pic-pca+jwt
+→ Media Type: application/pic-pca+jwt
 → contains standard JWT claims
 → contains context_of_authority
 → carries the root challenge
@@ -79,11 +80,11 @@ A **PIC Continuity JWT** transports one Continuity Graph. Its internal structure
 
 ```text
 Continuity Graph
-→ starts from root_authority_jwt
+→ starts from root_pca_jwt
 → carries numbered continuity transitions when continuity advances
 =
 PIC Continuity JWT
-→ Content-Type: pic-continuity+jwt
+→ Media Type: application/pic-continuity+jwt
 → transports one Continuity Graph
 ```
 
@@ -98,7 +99,7 @@ PCA JWT 0
 
 PIC Continuity JWT 0
 ├── transports one Continuity Graph
-└── carries root_authority_jwt
+└── carries root_pca_jwt
 ```
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
@@ -410,13 +411,13 @@ PCA JWT 0
 
 PIC Continuity JWT 0
 → transports one Continuity Graph
-→ carries root_authority_jwt
+→ carries root_pca_jwt
 → returned by PIC-X
 ```
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
-A **Continuity Proposal** is the structured input submitted to PIC-X when continuity is initialized or advanced. The initial proposal and continuation proposal use different type identifiers and may have different schemas:
+A **Continuity Proposal** is structured input used when continuity is initialized or advanced. It is submitted to PIC-X for initialization and centralized advancement; decentralized advancement may consume continuation input locally. The initial proposal and continuation proposal use different type identifiers and may have different schemas:
 
 ```text
 https://pic-protocol.org/definitions/proposal-types/continuity-initial
@@ -819,30 +820,24 @@ PCA JWT 0
         v
 PIC Continuity JWT 0
 +-- transports one Continuity Graph
-`-- carries root_authority_jwt
+`-- carries root_pca_jwt
         |
         v
 Application
 +-- uses the current PCA
 +-- performs application authorization
-`-- creates a continuity proposal when continuity advances
+`-- advances continuity according to the selected mode
         |
         v
-picX.exchange(continuityJwtN, continuityProposal)
-        |
-        v
-PIC-X
-+-- validates the current PIC Continuity JWT
-+-- validates non-expansion of authority
-+-- validates the continuity proposal
-+-- validates or produces the continuity transition according to the selected mode
-`-- returns PIC Continuity JWT N+1
-        |
-        v
-PIC Continuity JWT N+1
+centralized-continuity
+→ PIC-X-mediated advancement
+
+decentralized-continuity
+→ local holder-signed advancement
+→ later PIC-X validation/re-issuance according to max_subchain_length/profile rules
 ```
 
-The continuation detail shown here is PIC-X-mediated; detailed centralized and holder-signed subchain behavior is deferred to a dedicated continuity-mode article.
+Subsequent advancement is mode-dependent; detailed centralized and holder-signed subchain behavior is deferred to a dedicated continuity-mode article.
 
 > **Note:** A PCA has no mandatory independent expiration. Any expiration policy is profile-defined. A PCA JWT is usable only as part of a valid PIC Continuity JWT and remains subject to revocation, continuity rules, execution-contract constraints, local policy, and any declared token or profile expiration.
 
