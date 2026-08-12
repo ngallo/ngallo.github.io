@@ -675,7 +675,8 @@ When the selected decentralized continuity profile allows holder-signed PIC Cont
    - apply attenuations to the materialized Canonical Authority Map;
    - verify non-expansion of authority.
 10. Verify `continuity_graph.current_position` equals the last transition position.
-11. Verify that `continuity_graph.current_authority_hash` equals the hash of the materialized Canonical Authority Map after all valid attenuations have been applied.
+11. If the selected continuity mode/profile is decentralized and `max_subchain_length` is configured, verify from signer provenance of existing signed Continuity Transition JWTs that the number of consecutive holder-signed Continuity Transition JWTs at the tail of the current Continuity Graph does not exceed `max_subchain_length`; the count starts after the most recent trusted-central Continuity Transition JWT, or after the root PCA JWT when no trusted-central transition exists.
+12. Verify that `continuity_graph.current_authority_hash` equals the hash of the materialized Canonical Authority Map after all valid attenuations have been applied.
 
 ## Continuity Modes
 
