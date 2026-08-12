@@ -31,7 +31,7 @@ I am therefore starting **PIC-X**, the first open-source implementation componen
 
 PIC-X will initially implement the exchange and Trust Plane capabilities needed to connect existing authority infrastructure with PIC. It is one component, not the complete PIC implementation landscape: other libraries, SDKs, enforcement components, integrations, and operational tools may follow as the ecosystem develops.
 
-The first goal is to integrate PIC with existing OAuth infrastructure: exchange an OAuth token, evaluate the authority it represents, issue the initial PCA JWT, and return the PIC Continuity JWT required to begin a PIC execution.
+The first goal is to integrate PIC with existing OAuth infrastructure: exchange an OAuth token, evaluate the authority it represents, issue the initial PIC PCA JWT, and return the PIC Continuity JWT required to begin a PIC execution.
 
 ```text
 OAuth token  →  PIC-X Trust Plane  →  PIC Continuity JWT
@@ -69,4 +69,4 @@ The latest implementation will show how PIC-X currently works. The complete seri
 
 - [Designing PIC-X: Deriving an Initial PIC Context of Authority](/blog/2026-08-01/pic-x-exchanging-token-to-pca/)
 - [Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration](/blog/2026-08-01/pic-x-well-known-config/)
-- [Designing PIC-X: PCA JWT, PIC Continuity JWT, and Continuity Transition JWT](/blog/2026-08-11/pic-x-jwts-authority-graph/)
+- [Designing PIC-X: PIC PCA JWT, PIC Continuity JWT, and Continuity Transition JWT](/blog/2026-08-11/pic-x-jwts-authority-graph/)
