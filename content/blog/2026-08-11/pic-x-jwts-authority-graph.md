@@ -578,7 +578,7 @@ Existing execution-contract constraints must not be removed, replaced, or weaken
 
 New contract constraints introduced by an accepted transition become additional entries in the materialized effective Indexed Authority Map after PIC-X validates the transition and issues the next settled continuity state. The signed root PIC PCA JWT is not mutated, and no new PIC PCA JWT is created for the new continuity position.
 
-The workload proposes contract additions as key/value constraints in `contract.additions`. Each addition contains only `key` and `value`. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index only after accepting the transition.
+The workload proposes contract additions as canonical Indexed Authority Map contract key/value entries in `attenuations.contract.additions`. Each addition contains only `key` and `value`. The workload does not assign a numeric index. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index only after accepting the transition. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `{ "key": "contract:departments:engineering", "value": true }` and `{ "key": "contract:departments:operations", "value": true }`.
 
 ## Predecessor and Challenge Semantics
 
@@ -638,19 +638,19 @@ The candidate is not an independently trusted continuity artifact. It is a signe
 Profile 0.2 uses two restriction mechanisms inside `attenuations`:
 
 ```text
-principal
+attenuations.principal.remove_bitmap
 → removal attenuation
 → remove_bitmap against principal section indexes
 
-attributes
+attenuations.attributes.remove_bitmap
 → removal attenuation
 → remove_bitmap against attributes section indexes
 
-invariants
+attenuations.invariants.remove_bitmap
 → removal attenuation
 → remove_bitmap against invariants section indexes
 
-contract
+attenuations.contract.additions
 → additive restriction
 → additions array of key/value constraints
 → PIC-X assigns indexes after validation
@@ -675,7 +675,7 @@ For each attenuation, the verifier must ensure:
 new authority ⊆ previous authority
 ```
 
-In Profile 0.2, `principal`, `attributes`, and `invariants` may each use `remove_bitmap` against their own section-local numeric indexes. Removed entries must never reappear later in the same continuity. `contract` does not use removal bitmaps. Contract restrictions are monotonic additions through `attenuations.contract.additions`: they add constraints that are combined with logical AND and therefore can only reduce the set of allowed executions.
+In Profile 0.2, `attenuations.principal.remove_bitmap`, `attenuations.attributes.remove_bitmap`, and `attenuations.invariants.remove_bitmap` are interpreted against their own section-local numeric indexes. Removed entries must never reappear later in the same continuity. `contract` does not use removal bitmaps. Contract restrictions are monotonic additions through `attenuations.contract.additions`: they add constraints that are combined with logical AND and therefore can only reduce the set of allowed executions.
 
 ## Proof of Relationship
 
@@ -716,10 +716,10 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
    - for the first advancement, `challenge.previous_challenge` equals `context_of_authority.root.pca_jwt.payload.challenge.next_challenge`;
    - for later advancements, `challenge.previous_challenge` equals the current challenge material made available by the previous settled continuity artifact according to the selected profile/schema.
 9. Verify `proof_of_relationship` over `predecessor_hash`, `challenge.previous_challenge`, `challenge.next_challenge`, and `position`.
-10. Apply `principal.remove_bitmap` when present.
-11. Apply `attributes.remove_bitmap` when present.
-12. Apply `invariants.remove_bitmap` when present.
-13. Read `contract.additions` when present.
+10. Apply `attenuations.principal.remove_bitmap` when present.
+11. Apply `attenuations.attributes.remove_bitmap` when present.
+12. Apply `attenuations.invariants.remove_bitmap` when present.
+13. Read `attenuations.contract.additions` when present.
 14. Validate each proposed contract `key` / `value`.
 15. Verify that accepted additions only further restrict execution.
 16. Assign accepted additions their next section-local numeric indexes.
