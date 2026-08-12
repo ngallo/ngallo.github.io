@@ -30,7 +30,7 @@ settled, no pending transition
         +-- application PDP evaluation over the effective PIC authority context
         |
         v
-workload candidate with one transition
+later, non-initial workload candidate with one transition
         |
         v
 PIC-X exchange
@@ -51,6 +51,8 @@ The application developer is not expected to implement these protocol mechanics 
 The remaining sections explain how PIC-X performs the first exchange.
 
 The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile uses a `continuity_proposal` input for initialization and for centralized advancement support. The proposal type identifies which schema and validation rules apply; those schemas will be defined in a dedicated protocol article.
+
+The Initial Continuity Proposal is used before PIC continuity exists. Continuation Proposal support material may be used later for centralized advancement when required by the selected profile/schema; it is not the workload-signed candidate PIC Continuity JWT or the PIC Continuity Transition JWT.
 
 The value of `continuity_proposal` is produced by serializing the proposal as compact UTF-8 JSON and applying unpadded Base64url encoding. The exact proposal schemas and any future cryptographic protection applied to a proposal are outside the scope of this article.
 
@@ -363,7 +365,7 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
 }
 ```
 
-The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is deterministically denormalized and ordered into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as a compact tuple-based Indexed Authority Map so that authority can be hashed deterministically, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by section-local numeric index, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
+The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is deterministically denormalized and ordered into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as a compact tuple-based Indexed Authority Map so that authority can be deterministically canonicalized, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by section-local numeric index, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
 
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
@@ -413,14 +415,14 @@ PIC Continuity JWT 0
 
 The internal structure of the PIC Continuity JWT is intentionally deferred to a dedicated protocol article.
 
-A **Continuity Proposal** is structured input used when continuity is initialized or advanced through PIC-X. The initial proposal and continuation proposal use different type identifiers and may have different schemas:
+A **Continuity Proposal** is structured input used when continuity is initialized or when centralized advancement needs profile-defined support material. The Initial Continuity Proposal and Continuation Proposal use different type identifiers and may have different schemas:
 
 ```text
 https://pic-protocol.org/definitions/proposal-types/continuity-initial
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-In this article, the initial proposal contains the execution contract. Continuation proposal details are intentionally deferred to a dedicated protocol article.
+In this article, the Initial Continuity Proposal contains the execution contract and is used before PIC continuity exists. Continuation Proposal details are intentionally deferred to a dedicated protocol article; a Continuation Proposal is support material, not the workload-signed candidate PIC Continuity JWT or the PIC Continuity Transition JWT.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -445,7 +447,7 @@ continuityJwt0 = picX.exchange(
 
 For the flow described here, the proposal contains only the execution contract. It is provided by the caller, not by the Exchange Profile.
 
-Example proposal before Base64url encoding:
+Example Initial Continuity Proposal before Base64url encoding:
 
 ```json
 {
@@ -795,7 +797,7 @@ when {
 ## PCA-Derived Authorization: End-to-End Flow
 
 ```text
-OAuth JWT + initial continuity proposal
+OAuth JWT + Initial Continuity Proposal
         |
         v
 picX.exchange(accessToken, continuityProposal)
@@ -812,7 +814,7 @@ PCA 0
 +-- optional principal
 +-- optional attributes
 +-- execution invariants
-`-- execution contract from the initial continuity proposal
+`-- execution contract from the Initial Continuity Proposal
         |
         v
 PIC PCA JWT 0
@@ -838,8 +840,10 @@ workload-produced candidate PIC Continuity JWT
         v
 PIC-X
 +-- validates previous trusted PIC Continuity JWT
-+-- validates candidate signature and Proof of Relationship
-+-- validates predecessor binding, challenge continuity, and non-expansion
++-- validates candidate signature and Proof of Relationship / key binding
++-- validates predecessor and challenge continuity
++-- validates executor evidence / execution-contract conformance when required
++-- validates attenuation, authority non-expansion, revocation, and local policy
 `-- returns PIC Continuity JWT N+1 signed by PIC-X
 ```
 

@@ -31,22 +31,35 @@ https://pic-protocol.org/profiles/0.2
 
 This article defines the canonical JSON/JWT representation for that profile.
 
+Initialization is separate from non-initial continuity advancement:
+
 ```text
-trusted PIC Continuity JWT N
+OAuth access token
++
+Initial Continuity Proposal
+→ PIC-X
+→ PIC PCA JWT 0
+→ PIC Continuity JWT 0
+```
+
+Non-initial continuity advancement uses the current trusted continuity artifact:
+
+```text
+trusted PIC-X-issued PIC Continuity JWT N
         |
         | workload proposes exactly one advancement
         v
 workload-signed candidate PIC Continuity JWT
-with one PIC Continuity Transition JWT N+1
+carrying one PIC Continuity Transition JWT N+1
         |
-        | OAuth Token Exchange / PIC-X exchange
+        | PIC-X continuity advancement exchange
+        | using the PIC OAuth Token Exchange profile
         v
-PIC-X validates the single proposed transition
+PIC-X validates the candidate and single proposed transition
         |
         v
-PIC Continuity JWT N+1
-issued by PIC-X
-with no pending transition
+PIC-X-issued PIC Continuity JWT N+1
+settled, with no pending transition
 ```
 
 A **PCA** is the logical Context of Authority.
@@ -76,6 +89,8 @@ This registry maps the identifiers advertised by `.well-known/pic-x-configuratio
 | Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity` | `application/json` | `N_A` | Supplies centralized advancement support material when required by the selected profile/schema. |
 
 When proposal JSON is transported to PIC-X, it uses the `continuity_proposal` parameter as compact UTF-8 JSON encoded with unpadded Base64url.
+
+An Initial Continuity Proposal is used before PIC continuity exists. It supplies initialization material, including `executionContract` in the flow described here. A Continuity Proposal is optional profile-defined support material for centralized advancement when required by the selected Profile 0.2 schema; it is not the PIC Continuity Transition JWT, the workload-signed candidate PIC Continuity JWT, or the settled PIC Continuity JWT.
 
 ## JWT Serialization
 
@@ -172,7 +187,7 @@ Profile 0.2 uses section-local numeric indexes starting at `0`. Initial index as
 
 For `principal`, `attributes`, and `execution_contract`, each indexed entry is `[key, value]`. For `invariants`, each indexed entry is `[scope, operation, resourceType, resourceId]`.
 
-For initial index assignment, `principal`, `attributes`, and `execution_contract` candidates are sorted lexicographically by canonical `key`, using Unicode code point order. Collection memberships are denormalized before sorting; each member becomes its own `[key, true]` tuple, and the final canonical membership key determines its position. Presence with `true` represents membership; Profile 0.2 defines no false-valued membership semantics.
+For initial index assignment, `principal`, `attributes`, and `execution_contract` candidates are sorted lexicographically by canonical `key`, using Unicode code point order. Collection memberships are denormalized before sorting; each member becomes its own `[key, true]` tuple, and the final canonical membership key determines its position. `true` is used only to represent presence in a denormalized collection-membership entry. Scalar entries retain their actual scalar value. Profile 0.2 defines no false-valued membership semantics.
 
 For `invariants`, candidates are sorted lexicographically by tuple elements in this order: `scope`, `operation`, `resourceType`, `resourceId`, using Unicode code point order for each element.
 
@@ -396,6 +411,8 @@ Decoded settled PIC Continuity JWT example, shown for readability
 | `context_of_authority.root.pca_jwt_hash` | Identifies the hash of the compact root PIC PCA JWT. |
 | `context_of_authority.root.pca_jwt` | Carries the signed PIC PCA JWT issued by the trusted authority. |
 
+Where workload-signed examples show `kid` or `iss`, those values are illustrative and profile-dependent unless the selected Profile 0.2 schema explicitly requires them. A `kid` or `iss` value by itself does not authorize a candidate or transition; workload signing-key authorization and resolution follow the selected Proof of Relationship and profile rules.
+
 Decoded workload-produced candidate PIC Continuity JWT example, shown for readability
 
 ```json
@@ -460,6 +477,8 @@ A PIC Continuity Transition JWT is not carried forward after PIC-X accepts the a
 
 The signing algorithms accepted for workload-signed PIC Continuity Transition JWTs are advertised by PIC-X through `continuity.transition_signing_alg_values_supported` in the discovery document.
 
+The decoded example below remains workload-signed, not PIC-X-signed. Its `kid` and `iss` values are illustrative/profile-dependent; neither value authorizes the transition by itself.
+
 Decoded PIC Continuity Transition JWT example, shown for readability
 
 ```json
@@ -522,7 +541,7 @@ When one PIC Continuity Transition JWT proposes multiple execution-contract addi
 For PIC Profile 0.2, a proposed transition is cryptographically bound to the previous trusted server-issued PIC Continuity JWT being advanced.
 
 ```text
-trusted PIC Continuity JWT N
+trusted PIC-X-issued PIC Continuity JWT N
         |
         | predecessor_hash = hash(compact PIC Continuity JWT N)
         v
@@ -534,25 +553,36 @@ The first transition uses the root PIC PCA JWT challenge:
 ```text
 context_of_authority.root.pca_jwt.payload.challenge.next_challenge
 =
-transition["1"].payload.challenge.previous_challenge
+first PIC Continuity Transition JWT payload.challenge.previous_challenge
 ```
 
-For later transitions, the previous settled continuity artifact must provide the current challenge material required by the selected profile/schema:
+Challenge continuity uses two fields. `challenge.previous_challenge` must match authenticated challenge material from the predecessor state. `challenge.next_challenge` supplies fresh challenge material for the following advancement.
 
 ```text
-trusted PIC Continuity JWT N
-→ current continuity challenge material
+PIC Continuity JWT 0
+→ trusted settled initial continuity state
 
-PIC Continuity Transition JWT N+1
-→ challenge.previous_challenge matches that material
-→ challenge.next_challenge supplies the next challenge
+PIC Continuity Transition JWT 1
+→ previous_challenge consumes the root bootstrap challenge
+→ next_challenge supplies fresh challenge material for advancement 2
+
+PIC-X validates transition 1
+→ issues settled PIC Continuity JWT 1
+
+PIC Continuity JWT 1
+→ must make the authenticated current challenge material available
+  according to the selected profile/schema
+
+PIC Continuity Transition JWT 2
+→ previous_challenge must match that authenticated material
+→ next_challenge supplies fresh material for advancement 3
 ```
 
 The exact settled-token location of current challenge material after advancement is intentionally deferred to the selected profile/schema definition.
 
-## Workload Candidate Signing
+## Workload Candidate Signing for Continuity Advancement
 
-The workload-produced candidate PIC Continuity JWT is signed by the workload.
+For a non-initial continuity advancement, the workload produces and signs the candidate PIC Continuity JWT.
 
 The workload must use the private key whose corresponding public key or identity is bound or proven by `proof_of_relationship` in the proposed PIC Continuity Transition JWT.
 
@@ -561,14 +591,16 @@ PIC-X verifies:
 ```text
 candidate outer PIC Continuity JWT signature
 +
-Proof of Relationship / key binding
+PoR-authorized/bound workload key
+→ proves that the workload proposing the candidate controls the key accepted
+  for this advancement under the selected profile
 ```
 
-and verifies that the candidate signer is the key authorized or bound by the Proof of Relationship for that transition.
+The PIC Continuity Transition JWT is also workload-signed. Settled PIC Continuity JWTs are PIC-X-signed.
 
 Candidate signer binding is part of `proof_of_relationship`. No additional binding object is defined here.
 
-The candidate is not an independently trusted continuity artifact. It is a signed proposal sent to PIC-X for centralized validation.
+The candidate is not an independently trusted continuity artifact. It is a signed proposal sent to PIC-X for centralized validation. PIC-X accepts it only after validating the candidate, transition, PoR/key binding, challenge continuity, executor evidence and execution-contract conformance when required, attenuation/non-expansion, and applicable revocation/policy.
 
 ## Attenuations
 
@@ -616,11 +648,11 @@ In Profile 0.2, `attenuations.principal.remove_bitmap`, `attenuations.attributes
 
 ## Proof of Relationship
 
-Proof of Relationship binds one proposed execution transition to its causal predecessor.
+Challenge continuity establishes the selected profile's freshness and predecessor-continuation condition. It does not prove executor attributes.
 
 In this model, `proof_of_relationship` is inside each PIC Continuity Transition JWT.
 
-It proves the relationship that led to the proposed authority state and binds the advancement to:
+Proof of Relationship establishes that the proposed execution advancement is a valid causal continuation of exactly one predecessor under the selected profile. It binds that advancement to the predecessor, the required freshness/challenge state, the continuity position, and the profile-defined executor/holder/key relationship.
 
 - `predecessor_hash`
 - `challenge.previous_challenge`
@@ -628,7 +660,11 @@ It proves the relationship that led to the proposed authority state and binds th
 - `position`
 - profile-defined holder/key proof
 
-The verifier must be able to validate this proof independently. It must not trust previous verifiers.
+Where required by the selected profile, request/execution binding and executor-conformance evidence are validated as part of the advancement.
+
+Authenticated executor evidence or attestation proves or asserts the executor attributes accepted under the selected profile. Execution-contract conformance compares that authenticated executor evidence against the predecessor execution contract. PoR alone is not physical proof that an executor behaved correctly.
+
+The verifier must be able to validate the required proof and evidence independently. It must not trust previous verifiers.
 
 ## Verification
 
@@ -651,21 +687,22 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
 7. Verify `payload.position` equals the previous trusted continuity position + 1.
 8. Verify challenge continuity:
    - for the first advancement, `challenge.previous_challenge` equals `context_of_authority.root.pca_jwt.payload.challenge.next_challenge`;
-   - for later advancements, `challenge.previous_challenge` equals the current challenge material made available by the previous settled continuity artifact according to the selected profile/schema.
-9. Verify `proof_of_relationship` over `predecessor_hash`, `challenge.previous_challenge`, `challenge.next_challenge`, and `position`.
-10. Apply `attenuations.principal.remove_bitmap` when present.
-11. Apply `attenuations.attributes.remove_bitmap` when present.
-12. Apply `attenuations.invariants.remove_bitmap` when present.
-13. Read `attenuations.execution_contract.additions` when present.
-14. Validate each proposed execution-contract `[key, value]` tuple.
-15. Verify that accepted additions only further restrict execution.
-16. Sort accepted additions lexicographically by canonical key.
-17. Assign accepted additions their next section-local numeric indexes in that sorted order.
-18. Add accepted additions to the materialized/effective `execution_contract` section.
-19. Combine all execution-contract constraints using logical AND.
-20. Verify overall authority and non-expansion semantics.
-21. Verify revocation and local policy.
-22. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
+   - for later advancements, `challenge.previous_challenge` equals the authenticated current challenge material made available by the previous settled continuity artifact according to the selected profile/schema.
+9. Verify `proof_of_relationship` over `predecessor_hash`, `challenge.previous_challenge`, `challenge.next_challenge`, `position`, and the profile-defined holder/key relationship.
+10. Validate request/execution binding, authenticated executor evidence, and execution-contract conformance when required by the selected profile.
+11. Apply `attenuations.principal.remove_bitmap` when present.
+12. Apply `attenuations.attributes.remove_bitmap` when present.
+13. Apply `attenuations.invariants.remove_bitmap` when present.
+14. Read `attenuations.execution_contract.additions` when present.
+15. Validate each proposed execution-contract `[key, value]` tuple.
+16. Verify that accepted additions only further restrict execution.
+17. Sort accepted additions lexicographically by canonical key.
+18. Assign accepted additions their next section-local numeric indexes in that sorted order.
+19. Add accepted additions to the materialized/effective `execution_contract` section.
+20. Combine all execution-contract constraints using logical AND.
+21. Verify overall authority and non-expansion semantics.
+22. Verify revocation and local policy.
+23. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
 
 Profile 0.2 does not transport multiple prior transitions for independent replay. PIC-X validates each single advancement centrally and issues the next trusted continuity artifact.
 
@@ -714,7 +751,7 @@ candidate
 → validate previous trusted continuity
 → validate candidate signer / PoR key relationship
 → validate one transition
-→ validate predecessor, challenge, attenuation, execution-contract additions, non-expansion, revocation/policy
+→ validate predecessor, challenge, executor evidence/conformance when required, attenuation, execution-contract additions, non-expansion, revocation/policy
 → issue PIC Continuity JWT N+1
 → no `continuity_transition_jwt`
 ```

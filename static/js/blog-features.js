@@ -200,6 +200,27 @@
     updateActive();
   }
 
+  /* ── 4b. Responsive Tables ────────────────────────────────────────────── */
+  function initResponsiveTables() {
+    var post = document.querySelector('.postWrapper');
+    if (!post) return;
+
+    post.querySelectorAll('table').forEach(function (table) {
+      if (table.closest('.table-scroll') || table.classList.contains('source-entry')) {
+        return;
+      }
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'table-scroll';
+      wrapper.setAttribute('tabindex', '0');
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', 'Scrollable table');
+
+      table.parentNode.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    });
+  }
+
   /* ── 5. Callout / Admonition Blocks ───────────────────────────────────── */
   function initCallouts() {
     var post = document.querySelector('.postWrapper');
@@ -571,6 +592,7 @@
     initProgressBar();
     initBackToTop();
     initAnchorLinks();
+    initResponsiveTables();
     initTOC();
     initCallouts();
     initTerminalBlocks();
