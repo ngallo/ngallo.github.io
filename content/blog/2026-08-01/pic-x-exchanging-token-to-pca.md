@@ -363,7 +363,7 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
 }
 ```
 
-The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as an Indexed Authority Map so that authority can be hashed deterministically, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by key, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
+The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is transformed into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as a compact tuple-based Indexed Authority Map so that authority can be hashed deterministically, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by section-local numeric index, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
 
 > **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
 
@@ -461,7 +461,7 @@ Example proposal before Base64url encoding:
 
 PIC-X extracts the validated `executionContract` from the initial Continuity Proposal and places it in the logical PCA before serialization.
 
-When the PCA is serialized into the PIC PCA JWT, the logical Context of Authority is transformed into the Profile 0.2 Indexed Authority Map defined by the JWT article. The logical `execution.contract` value becomes the canonical `execution_contract` section.
+When the PCA is serialized into the PIC PCA JWT, the logical Context of Authority is transformed into the Profile 0.2 Indexed Authority Map defined by the JWT article. The logical `execution.contract` value becomes the canonical `execution_contract` section. Entries use compact tuples with explicit section-local numeric indexes; JSON object member order is not the index.
 
 The logical input remains normalized:
 

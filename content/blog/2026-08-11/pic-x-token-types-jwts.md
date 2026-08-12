@@ -168,67 +168,31 @@ Indexed Authority Map
 PIC PCA JWT
 ```
 
-Profile 0.2 uses section-local numeric indexes. Each indexed entry has `key` and `value`.
+Profile 0.2 uses section-local numeric indexes starting at `0`. The identity addressed by removal bitmaps is `(section, numeric index)`, for example `principal/0` or `invariants/1`; JSON object member order has no protocol meaning.
+
+For `principal`, `attributes`, and `execution_contract`, each indexed entry is `[key, value]`. For `invariants`, each indexed entry is `[scope, operation, resourceType, resourceId]`.
 
 ```json
 {
   "format": "indexed-authority-map",
   "value": {
     "principal": {
-      "1": {
-        "key": "principal:id",
-        "value": "user-123"
-      },
-      "2": {
-        "key": "principal:roles:payment-approver",
-        "value": true
-      },
-      "3": {
-        "key": "principal:groups:finance",
-        "value": true
-      }
+      "0": ["id", "user-123"],
+      "1": ["roles:payment-approver", true],
+      "2": ["groups:finance", true]
     },
     "attributes": {
-      "1": {
-        "key": "attributes:department",
-        "value": "finance"
-      },
-      "2": {
-        "key": "attributes:region",
-        "value": "EU"
-      }
+      "0": ["department", "finance"],
+      "1": ["region", "EU"]
     },
     "invariants": {
-      "1": {
-        "key": "payments:read",
-        "value": {
-          "operation": "read",
-          "resourceType": "payments",
-          "resourceId": "*"
-        }
-      },
-      "2": {
-        "key": "payments:approve",
-        "value": {
-          "operation": "approve",
-          "resourceType": "payments",
-          "resourceId": "*"
-        }
-      }
+      "0": ["payments:read", "read", "payments", "*"],
+      "1": ["payments:approve", "approve", "payments", "*"]
     },
     "execution_contract": {
-      "1": {
-        "key": "contract:purpose",
-        "value": "payment-approval"
-      },
-      "2": {
-        "key": "contract:currency",
-        "value": "EUR"
-      },
-      "3": {
-        "key": "contract:departments:finance",
-        "value": true
-      }
+      "0": ["purpose", "payment-approval"],
+      "1": ["currency", "EUR"],
+      "2": ["departments:finance", true]
     }
   }
 }
@@ -251,6 +215,8 @@ hash(canonical/materialized authority state)
 ```
 
 They are not directly comparable.
+
+When hashing a canonical/materialized authority state, Profile 0.2 uses deterministic canonical serialization of the Indexed Authority Map: sections are serialized as `principal`, `attributes`, `invariants`, then `execution_contract`, and entries within each section are serialized by ascending numeric index. Hashing never relies on arbitrary JSON object member order.
 
 ## PIC PCA JWT
 
@@ -305,60 +271,22 @@ Decoded PIC PCA JWT example, shown for readability
       "format": "indexed-authority-map",
       "value": {
         "principal": {
-          "1": {
-            "key": "principal:id",
-            "value": "user-123"
-          },
-          "2": {
-            "key": "principal:roles:payment-approver",
-            "value": true
-          },
-          "3": {
-            "key": "principal:groups:finance",
-            "value": true
-          }
+          "0": ["id", "user-123"],
+          "1": ["roles:payment-approver", true],
+          "2": ["groups:finance", true]
         },
         "attributes": {
-          "1": {
-            "key": "attributes:department",
-            "value": "finance"
-          },
-          "2": {
-            "key": "attributes:region",
-            "value": "EU"
-          }
+          "0": ["department", "finance"],
+          "1": ["region", "EU"]
         },
         "invariants": {
-          "1": {
-            "key": "payments:read",
-            "value": {
-              "operation": "read",
-              "resourceType": "payments",
-              "resourceId": "*"
-            }
-          },
-          "2": {
-            "key": "payments:approve",
-            "value": {
-              "operation": "approve",
-              "resourceType": "payments",
-              "resourceId": "*"
-            }
-          }
+          "0": ["payments:read", "read", "payments", "*"],
+          "1": ["payments:approve", "approve", "payments", "*"]
         },
         "execution_contract": {
-          "1": {
-            "key": "contract:purpose",
-            "value": "payment-approval"
-          },
-          "2": {
-            "key": "contract:currency",
-            "value": "EUR"
-          },
-          "3": {
-            "key": "contract:departments:finance",
-            "value": true
-          }
+          "0": ["purpose", "payment-approval"],
+          "1": ["currency", "EUR"],
+          "2": ["departments:finance", true]
         }
       }
     },
@@ -559,10 +487,7 @@ Decoded PIC Continuity Transition JWT example, shown for readability
       },
       "execution_contract": {
         "additions": [
-          {
-            "key": "contract:region",
-            "value": "EU"
-          }
+          ["region", "EU"]
         ]
       }
     },
@@ -580,7 +505,7 @@ Existing execution-contract constraints must not be removed, replaced, or weaken
 
 New execution-contract constraints introduced by an accepted transition become additional entries in the materialized/effective `execution_contract` Indexed Authority Map section after PIC-X validates the transition and issues the next settled continuity state. The signed root PIC PCA JWT is not mutated, and no new PIC PCA JWT is created for the new continuity position.
 
-The workload proposes execution-contract additions as canonical Indexed Authority Map contract key/value entries in `attenuations.execution_contract.additions`. Each addition contains only `key` and `value`. The workload does not assign a numeric index. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index in `execution_contract` only after accepting the transition. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `{ "key": "contract:departments:engineering", "value": true }` and `{ "key": "contract:departments:operations", "value": true }`.
+The workload proposes execution-contract additions as canonical Indexed Authority Map `[key, value]` tuple entries in `attenuations.execution_contract.additions`. Each addition contains only the two tuple elements `key` and `value`. The workload does not assign a numeric index. PIC-X centrally validates each proposed addition and assigns the next section-local numeric index in `execution_contract` only after accepting the transition. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `["departments:engineering", true]` and `["departments:operations", true]`.
 
 ## Predecessor and Challenge Semantics
 
@@ -654,7 +579,7 @@ attenuations.invariants.remove_bitmap
 
 attenuations.execution_contract.additions
 → additive restriction
-→ additions array of key/value constraints
+→ additions array of `[key, value]` tuple constraints
 → PIC-X assigns indexes after validation
 → all constraints combined with logical AND
 ```
@@ -722,7 +647,7 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
 11. Apply `attenuations.attributes.remove_bitmap` when present.
 12. Apply `attenuations.invariants.remove_bitmap` when present.
 13. Read `attenuations.execution_contract.additions` when present.
-14. Validate each proposed execution-contract `key` / `value`.
+14. Validate each proposed execution-contract `[key, value]` tuple.
 15. Verify that accepted additions only further restrict execution.
 16. Assign accepted additions their next section-local numeric indexes.
 17. Add accepted additions to the materialized/effective `execution_contract` section.
