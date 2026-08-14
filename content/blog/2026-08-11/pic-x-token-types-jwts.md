@@ -129,18 +129,16 @@ The Logical Context of Authority is application-facing.
 
 ```json
 {
-  "principal": {
+  "identity_context": {
+    "type": "user",
     "id": "user-123",
     "roles": [
       "payment-approver"
     ],
     "groups": [
       "finance"
-    ]
-  },
-  "attributes": {
-    "department": "finance",
-    "region": "EU"
+    ],
+    "securityDomain": "tenant-a"
   },
   "execution": {
     "invariants": [
@@ -168,7 +166,11 @@ The Logical Context of Authority is application-facing.
 }
 ```
 
-For signing and hashing, the Logical Context of Authority is transformed into a canonical authority representation according to the selected profile. In PIC Profile 0.2, the PIC PCA JWT `context_of_authority` contains an Indexed Authority Map, not the normalized Logical Context of Authority directly.
+`identity_context` is optional. A valid PCA may contain only `execution`.
+
+`identity_context.type` identifies the kind of identity or context, such as `user`, `workload`, `service`, `agent`, or `device`. It is descriptive and does not grant authority. Authority remains exclusively in `execution.invariants`; execution restrictions remain in `execution.contract`.
+
+For signing and hashing, the Logical Context of Authority is transformed into a canonical PCA representation according to the selected profile. In PIC Profile 0.2, the PIC PCA JWT `context_of_authority` contains an Indexed Authority Map, not the normalized Logical Context of Authority directly.
 
 ```text
 Logical Context of Authority
@@ -185,26 +187,24 @@ PIC PCA JWT
 
 Profile 0.2 uses section-local numeric indexes starting at `0`. Initial index assignment is deterministic and is separate from canonical serialization of an already indexed map. Implementations first denormalize the Logical Context of Authority into canonical tuple candidates, sort those candidates within each section, then assign section-local indexes `0`, `1`, `2`, and so on.
 
-For `principal`, `attributes`, and `execution_contract`, each indexed entry is `[key, value]`. For `invariants`, each indexed entry is `[scope, operation, resourceType, resourceId]`.
+For `identity_context` and `execution_contract`, each indexed entry is `[key, value]`. For `invariants`, each indexed entry is `[scope, operation, resourceType, resourceId]`.
 
-For initial index assignment, `principal`, `attributes`, and `execution_contract` candidates are sorted lexicographically by canonical `key`, using Unicode code point order. Collection memberships are denormalized before sorting; each member becomes its own `[key, true]` tuple, and the final canonical membership key determines its position. `true` is used only to represent presence in a denormalized collection-membership entry. Scalar entries retain their actual scalar value. Profile 0.2 defines no false-valued membership semantics.
+For initial index assignment, `identity_context` and `execution_contract` candidates are sorted lexicographically by canonical `key`, using Unicode code point order. Collection memberships are denormalized before sorting; each member becomes its own `[key, true]` tuple, and the final canonical membership key determines its position. `true` is used only to represent presence in a denormalized collection-membership entry. Scalar entries retain their actual scalar value. Profile 0.2 defines no false-valued membership semantics.
 
 For `invariants`, candidates are sorted lexicographically by tuple elements in this order: `scope`, `operation`, `resourceType`, `resourceId`, using Unicode code point order for each element.
 
-The identity addressed by removal bitmaps is `(section, numeric index)`, for example `principal/0` or `invariants/1`; JSON object member order has no protocol meaning.
+The entry addressed by removal bitmaps is `(section, numeric index)`, for example `identity_context/0` or `invariants/1`; JSON object member order has no protocol meaning.
 
 ```json
 {
   "format": "indexed-authority-map",
   "value": {
-    "principal": {
+    "identity_context": {
       "0": ["groups:finance", true],
       "1": ["id", "user-123"],
-      "2": ["roles:payment-approver", true]
-    },
-    "attributes": {
-      "0": ["department", "finance"],
-      "1": ["region", "EU"]
+      "2": ["roles:payment-approver", true],
+      "3": ["securityDomain", "tenant-a"],
+      "4": ["type", "user"]
     },
     "invariants": {
       "0": ["payments:approve", "approve", "payments", "*"],
@@ -221,7 +221,7 @@ The identity addressed by removal bitmaps is `(section, numeric index)`, for exa
 
 Logical `execution.contract` maps to the flattened canonical `execution_contract` section.
 
-`principal`, `attributes`, `invariants`, and `execution_contract` are all indexed and canonicalized. Indexing does not mean all sections use removal attenuation.
+`identity_context`, `invariants`, and `execution_contract` are all indexed and canonicalized. Indexing does not mean all sections use removal attenuation.
 
 Scalar logical values become one indexed entry. Set or list membership is denormalized so that each member becomes its own indexed boolean entry.
 
@@ -237,7 +237,7 @@ hash(canonical/materialized authority state)
 
 They are not directly comparable.
 
-Profile 0.2 defines the deterministic canonical structure and ordering of the materialized Indexed Authority Map: sections are ordered as `principal`, `attributes`, `invariants`, then `execution_contract`, and entries within each section are ordered by ascending numeric index. JSON object member order has no semantic meaning.
+Profile 0.2 defines the deterministic canonical structure and ordering of the materialized Indexed Authority Map: sections are ordered as `identity_context`, `invariants`, then `execution_contract`, and entries within each section are ordered by ascending numeric index. JSON object member order has no semantic meaning.
 
 An interoperable cryptographic hash over the materialized authority state requires the selected profile/schema to define the exact byte serialization used as hash input. This article does not define that byte-level encoding.
 
@@ -293,14 +293,12 @@ Decoded PIC PCA JWT example, shown for readability
     "context_of_authority": {
       "format": "indexed-authority-map",
       "value": {
-        "principal": {
+        "identity_context": {
           "0": ["groups:finance", true],
           "1": ["id", "user-123"],
-          "2": ["roles:payment-approver", true]
-        },
-        "attributes": {
-          "0": ["department", "finance"],
-          "1": ["region", "EU"]
+          "2": ["roles:payment-approver", true],
+          "3": ["securityDomain", "tenant-a"],
+          "4": ["type", "user"]
         },
         "invariants": {
           "0": ["payments:approve", "approve", "payments", "*"],
@@ -503,10 +501,7 @@ Decoded PIC Continuity Transition JWT example, shown for readability
     },
 
     "attenuations": {
-      "principal": {
-        "remove_bitmap": "base64url-bitmap"
-      },
-      "attributes": {
+      "identity_context": {
         "remove_bitmap": "base64url-bitmap"
       },
       "invariants": {
@@ -607,13 +602,9 @@ The candidate is not an independently trusted continuity artifact. It is a signe
 Profile 0.2 uses two restriction mechanisms inside `attenuations`:
 
 ```text
-attenuations.principal.remove_bitmap
+attenuations.identity_context.remove_bitmap
 → removal attenuation
-→ remove_bitmap against principal section indexes
-
-attenuations.attributes.remove_bitmap
-→ removal attenuation
-→ remove_bitmap against attributes section indexes
+→ remove_bitmap against identity_context section indexes
 
 attenuations.invariants.remove_bitmap
 → removal attenuation
@@ -626,7 +617,7 @@ attenuations.execution_contract.additions
 → all constraints combined with logical AND
 ```
 
-Removal attenuation removes entries from the indexed `principal`, `attributes`, and `invariants` sections in the materialized authority state. It must never add authority.
+Removal attenuation removes entries from the indexed `identity_context` and `invariants` sections in the materialized PCA state. It must never add identity context or authority.
 
 ```text
 root authority
@@ -644,11 +635,11 @@ For each attenuation, the verifier must ensure:
 new authority ⊆ previous authority
 ```
 
-In Profile 0.2, `attenuations.principal.remove_bitmap`, `attenuations.attributes.remove_bitmap`, and `attenuations.invariants.remove_bitmap` are interpreted against their own section-local numeric indexes. Removed entries must never reappear later in the same continuity. `execution_contract` does not use removal bitmaps. Execution-contract restrictions are monotonic additions through `attenuations.execution_contract.additions`: they add constraints that are combined with logical AND and therefore can only reduce the set of allowed executions.
+In Profile 0.2, `attenuations.identity_context.remove_bitmap` and `attenuations.invariants.remove_bitmap` are interpreted against their own section-local numeric indexes. Removed entries must never reappear later in the same continuity. `execution_contract` does not use removal bitmaps. Execution-contract restrictions are monotonic additions through `attenuations.execution_contract.additions`: they add constraints that are combined with logical AND and therefore can only reduce the set of allowed executions.
 
 ## Proof of Relationship
 
-Challenge continuity establishes the selected profile's freshness and predecessor-continuation condition. It does not prove executor attributes.
+Challenge continuity establishes the selected profile's freshness and predecessor-continuation condition. It does not prove executor properties.
 
 In this model, `proof_of_relationship` is inside each PIC Continuity Transition JWT.
 
@@ -662,7 +653,7 @@ Proof of Relationship establishes that the proposed execution advancement is a v
 
 Where required by the selected profile, request/execution binding and executor-conformance evidence are validated as part of the advancement.
 
-Authenticated executor evidence or attestation proves or asserts the executor attributes accepted under the selected profile. Execution-contract conformance compares that authenticated executor evidence against the predecessor execution contract. PoR alone is not physical proof that an executor behaved correctly.
+Authenticated executor evidence or attestation proves or asserts the executor properties accepted under the selected profile. Execution-contract conformance compares that authenticated executor evidence against the predecessor execution contract. PoR alone is not physical proof that an executor behaved correctly.
 
 The verifier must be able to validate the required proof and evidence independently. It must not trust previous verifiers.
 
@@ -690,19 +681,18 @@ PIC-X, when processing an advancement candidate, additionally verifies one propo
    - for later advancements, `challenge.previous_challenge` equals the authenticated current challenge material made available by the previous settled continuity artifact according to the selected profile/schema.
 9. Verify `proof_of_relationship` over `predecessor_hash`, `challenge.previous_challenge`, `challenge.next_challenge`, `position`, and the profile-defined holder/key relationship.
 10. Validate request/execution binding, authenticated executor evidence, and execution-contract conformance when required by the selected profile.
-11. Apply `attenuations.principal.remove_bitmap` when present.
-12. Apply `attenuations.attributes.remove_bitmap` when present.
-13. Apply `attenuations.invariants.remove_bitmap` when present.
-14. Read `attenuations.execution_contract.additions` when present.
-15. Validate each proposed execution-contract `[key, value]` tuple.
-16. Verify that accepted additions only further restrict execution.
-17. Sort accepted additions lexicographically by canonical key.
-18. Assign accepted additions their next section-local numeric indexes in that sorted order.
-19. Add accepted additions to the materialized/effective `execution_contract` section.
-20. Combine all execution-contract constraints using logical AND.
-21. Verify overall authority and non-expansion semantics.
-22. Verify revocation and local policy.
-23. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
+11. Apply `attenuations.identity_context.remove_bitmap` when present.
+12. Apply `attenuations.invariants.remove_bitmap` when present.
+13. Read `attenuations.execution_contract.additions` when present.
+14. Validate each proposed execution-contract `[key, value]` tuple.
+15. Verify that accepted additions only further restrict execution.
+16. Sort accepted additions lexicographically by canonical key.
+17. Assign accepted additions their next section-local numeric indexes in that sorted order.
+18. Add accepted additions to the materialized/effective `execution_contract` section.
+19. Combine all execution-contract constraints using logical AND.
+20. Verify overall authority and non-expansion semantics.
+21. Verify revocation and local policy.
+22. If validation succeeds, issue PIC Continuity JWT N+1 signed by PIC-X with no `continuity_transition_jwt`.
 
 Profile 0.2 does not transport multiple prior transitions for independent replay. PIC-X validates each single advancement centrally and issues the next trusted continuity artifact.
 

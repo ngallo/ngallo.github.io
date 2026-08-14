@@ -181,7 +181,10 @@ exchangeProfile:
       requireTokenType: at+jwt
 
   claims:
-    principal:
+    identity_context:
+      type:
+        value: user
+
       id:
         from: sub
 
@@ -193,7 +196,6 @@ exchangeProfile:
         from: groups
         type: set
 
-    attributes:
       securityDomain:
         from: tenant_id
 
@@ -265,7 +267,8 @@ For the sample token, the Exchange Profile produces the following mapped result:
 
 ```json
 {
-  "principal": {
+  "identity_context": {
+    "type": "user",
     "id": "user-123",
     "roles": [
       "document-manager"
@@ -273,10 +276,7 @@ For the sample token, the Exchange Profile produces the following mapped result:
     "groups": [
       "document-management",
       "eu-employees"
-    ]
-  },
-
-  "attributes": {
+    ],
     "securityDomain": "tenant-a"
   },
 
@@ -303,9 +303,9 @@ For the sample token, the Exchange Profile produces the following mapped result:
 }
 ```
 
-> **Note:** `principal` is optional. A valid exchange result must contain `principal`, `privileges`, or both.
+> **Note:** The mapped `identity_context` is optional. When no identity context is produced, the resulting PCA may contain only `execution`. Identity-context fields are descriptive and do not grant authority; authority is produced from execution invariants.
 
-Each privilege is one atomic authority item:
+Each privilege maps to one atomic execution-invariant authority item:
 
 ```text
 privilege = (scope, operation, resourceType, resourceId)
@@ -317,7 +317,8 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
 
 ```json
 {
-  "principal": {
+  "identity_context": {
+    "type": "user",
     "id": "user-123",
     "roles": [
       "document-manager"
@@ -325,10 +326,7 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
     "groups": [
       "document-management",
       "eu-employees"
-    ]
-  },
-
-  "attributes": {
+    ],
     "securityDomain": "tenant-a"
   },
 
@@ -365,9 +363,9 @@ Below is an example of the `context_of_authority` value for PCA 0. A PCA is the 
 }
 ```
 
-The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is deterministically denormalized and ordered into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as a compact tuple-based Indexed Authority Map so that authority can be deterministically canonicalized, `principal`, `attributes`, and `execution.invariants` can use removal attenuation by section-local numeric index, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
+The JSON shown above is the logical application-facing Context of Authority. When the PCA is serialized into a PIC PCA JWT, the logical context is deterministically denormalized and ordered into a Canonical Authority Map. PIC Profile 0.2 represents that canonical form as a compact tuple-based Indexed Authority Map so that authority can be deterministically canonicalized, `identity_context` and `execution.invariants` can use removal attenuation by section-local numeric index, and the result can be transported compactly. In that flattened canonical representation, logical `execution.contract` maps to `execution_contract`. The normalized logical example is not embedded directly in the PIC PCA JWT.
 
-> **Warning:** `principal` and `attributes` are optional. Either field may be omitted when the Exchange Profile does not produce it.
+> **Warning:** `identity_context` is optional. It may be omitted when the Exchange Profile does not produce it. The field describes identity or context; it does not grant authority.
 
 Protocol metadata such as `profile`, the standard JWT issuer claim `iss`, and the standard JWT issued-at claim `iat` belong to the signed PIC PCA JWT and PIC Continuity JWT artifacts, not to the logical context alone.
 
@@ -547,7 +545,7 @@ Invalid examples:
 
 Numbers, booleans, objects, null values, empty strings, empty arrays, and arrays containing empty or non-string values are not supported.
 
-> **Warning:** `execution.contract` does not replace `principal`, `attributes`, or `execution.invariants`. It adds execution constraints to the authority already carried by the PCA.
+> **Warning:** `execution.contract` does not grant authority and does not replace `execution.invariants`. It adds execution constraints to the authority carried by `execution.invariants`.
 
 During continuity advancement, later contract restrictions may only add constraints combined with logical AND. They do not remove or weaken constraints established by the root PCA.
 
@@ -562,18 +560,19 @@ requiredScope = "documents:write"
 A developer might use code as simple as the following:
 
 ```text
-principal = selectPrincipal(effectiveAuthorityContext)
+identityContext = selectIdentityContext(effectiveAuthorityContext)
 
-privilege = selectInvariantByScope(
+invariant = selectInvariantByScope(
     effectiveAuthorityContext,
     "documents:write"
 )
 ```
 
-Selected principal:
+Selected identity context:
 
 ```json
 {
+  "type": "user",
   "id": "user-123",
   "roles": [
     "document-manager"
@@ -581,11 +580,12 @@ Selected principal:
   "groups": [
     "document-management",
     "eu-employees"
-  ]
+  ],
+  "securityDomain": "tenant-a"
 }
 ```
 
-Selected privilege:
+Selected invariant:
 
 ```json
 {
@@ -599,9 +599,9 @@ Selected privilege:
 The [AuthZEN](https://openid.net/wg/authzen/specifications/) request values are derived from the selected authority-context values:
 
 ```text
-subject  = toAuthZenSubject(principal)
-action   = selectOperation(privilege)
-resource = selectResource(privilege)
+subject  = toAuthZenSubject(identityContext)
+action   = selectOperation(invariant)
+resource = selectResource(invariant)
 ```
 
 Derived action:
@@ -628,27 +628,27 @@ Derived resource:
 In this article, PIC supplies the current authority context, while AuthZEN is used only as the application-facing request and response interface to the PDP.
 
 
-Once the authority has selected the privilege, the application can invoke the PDP interface:
+Once the authority has selected the invariant, the application can invoke the PDP interface:
 
 ```text
-principal = selectPrincipal(effectiveAuthorityContext)
+identityContext = selectIdentityContext(effectiveAuthorityContext)
 
-privilege = selectInvariantByScope(
+invariant = selectInvariantByScope(
     effectiveAuthorityContext,
     "documents:write"
 )
 
-subject = toAuthZenSubject(principal)
-action = selectOperation(privilege)
-resource = selectResource(privilege)
+subject = toAuthZenSubject(identityContext)
+action = selectOperation(invariant)
+resource = selectResource(invariant)
 
 decision = pdp.authzen.evaluate(
     subject,
     action,
     resource,
     {
-        scope: privilege.scope,
-        securityDomain: effectiveAuthorityContext.attributes.securityDomain
+        scope: invariant.scope,
+        securityDomain: identityContext.securityDomain
     }
 )
 ```
@@ -703,14 +703,15 @@ X-Request-ID: bfe9eb29-ab87-4ca3-be83-a1d5d8305716
 The mapping is direct:
 
 ```text
-principal.id           → subject.id
-principal.roles        → subject.properties.roles
-principal.groups       → subject.properties.groups
-privilege.operation    → action.name
-privilege.resourceType → resource.type
-privilege.resourceId   → resource.id
-privilege.scope        → context.scope
-securityDomain         → context.securityDomain
+identity_context.type           → subject.type
+identity_context.id             → subject.id
+identity_context.roles          → subject.properties.roles
+identity_context.groups         → subject.properties.groups
+identity_context.securityDomain → context.securityDomain
+invariant.operation             → action.name
+invariant.resourceType          → resource.type
+invariant.resourceId            → resource.id
+invariant.scope                 → context.scope
 ```
 
 ## 8. Evaluating PCA-Derived Authorization with Cedar
@@ -731,20 +732,7 @@ when {
 };
 ```
 
-A policy may also use principal attributes:
-
-```cedar
-permit (
-    principal is User,
-    action == Action::"write",
-    resource is Document
-)
-when {
-    context.scope == "documents:write" &&
-    context.securityDomain == resource.securityDomain &&
-    principal.roles.contains("document-manager")
-};
-```
+A policy may also use subject metadata derived from `identity_context` for local policy checks. That metadata does not create PIC authority; the PIC authority being evaluated is still the selected `execution.invariants` entry.
 
 The application may require access to a specific resource:
 
@@ -811,8 +799,7 @@ Exchange Profile
         v
 PCA 0
 +-- logical PIC Context of Authority
-+-- optional principal
-+-- optional attributes
++-- optional identity_context
 +-- execution invariants
 `-- execution contract from the Initial Continuity Proposal
         |

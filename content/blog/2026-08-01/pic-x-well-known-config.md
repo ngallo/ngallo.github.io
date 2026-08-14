@@ -600,7 +600,7 @@ continuity attenuation → attenuations.execution_contract.additions
 
 In the canonical PIC PCA JWT representation, `execution_contract` uses compact tuple entries with explicit section-local numeric indexes. Proposed additions in `attenuations.execution_contract.additions` carry compact `[key, value]` tuples without numeric indexes; PIC-X canonically orders accepted additions and assigns indexes only after accepting the transition.
 
-Removal attenuation may apply to `principal`, `attributes`, and `execution.invariants` according to the selected profile/schema. Execution-contract restriction does not use a removal bitmap.
+Removal attenuation may apply to `identity_context` and `execution.invariants` according to the selected profile/schema. Execution-contract restriction does not use a removal bitmap.
 
 ### Continuity modes
 
