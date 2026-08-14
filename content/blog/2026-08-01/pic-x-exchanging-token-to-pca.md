@@ -25,23 +25,13 @@ signed PIC Context of Authority
         |
         v
 PIC Continuity COSE 0
-settled, no pending transition
+settled, transitions = null
         |
         v
 PIC Token JWT 0
 external transport envelope
         |
         +-- application PDP evaluation over the effective PIC authority context
-        |
-        v
-later, non-initial workload transition
-        |
-        v
-PIC-X exchange
-        |
-        v
-PIC Token JWT N+1
-with settled PIC Continuity COSE N+1 in `pic.root`
 ```
 
 
@@ -54,9 +44,9 @@ The application developer is not expected to implement these protocol mechanics 
 
 The remaining sections explain how PIC-X performs the first exchange.
 
-The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. The profile uses a `continuity_proposal` input for initialization and for centralized advancement support. The proposal type identifies which schema and validation rules apply; those schemas will be defined in a dedicated protocol article.
+The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. Initialization uses a `continuity_proposal` input. Current Profile 0.2 PIC-to-PIC advancement carries the workload-signed candidate PIC Token JWT as the standard RFC 8693 `subject_token` and omits `continuity_proposal`; future profiles may define optional Continuation Proposal support material. The proposal type identifies which schema and validation rules apply when proposal material is present.
 
-The Initial Continuity Proposal is used before PIC continuity exists. Continuation Proposal support material may be used later for centralized advancement when required by the selected profile/schema; it is not the PIC Token JWT or the PIC Continuity Transition COSE.
+The Initial Continuity Proposal is used before PIC continuity exists. Continuation Proposal support material may be used later for centralized advancement when required by a future selected profile/schema; it is not the PIC Token JWT or the PIC Continuity Transition COSE.
 
 The value of `continuity_proposal` is produced by serializing the proposal as compact UTF-8 JSON and applying unpadded Base64url encoding. The exact proposal schemas and any future cryptographic protection applied to a proposal are outside the scope of this article.
 
@@ -74,13 +64,14 @@ PCA
 → logical PIC Context of Authority
 
 PIC PCA COSE
-→ signed representation of one PCA
+→ signed trusted authority checkpoint representation
 → format: pic-pca+cose
+→ contains position
 → contains context_of_authority
-→ carries the root challenge
+→ carries challenge.next_challenge
 ```
 
-A **PIC Token JWT** is the external artifact returned by PIC-X. Its `pic.root` value carries the current **PIC Continuity COSE**. During advancement, a workload-produced **PIC Continuity Transition COSE** proposes exactly one non-root advancement for PIC-X validation.
+A **PIC Token JWT** is the external PIC envelope. In the initialization flow, PIC-X returns a PIC-X-signed settled PIC Token JWT whose `pic.root` value carries the current **PIC Continuity COSE**. During later advancement, a workload-produced candidate PIC Token JWT carries a candidate Continuity and exactly one Transition for PIC-X validation; that flow is defined in the token/artifact article.
 
 ```text
 PIC Token JWT
@@ -90,8 +81,9 @@ PIC Token JWT
 
 PIC Continuity COSE
 → format: pic-continuity+cose
-→ signed settled continuity artifact when issued by PIC-X
-→ binds the trusted root PCA required by the profile
+→ signed continuity container
+→ carries the current trusted PCA checkpoint
+→ uses transitions = null when settled
 ```
 
 For initialization, PIC-X issues the initial PIC PCA COSE and PIC Continuity COSE, then returns the initial PIC Token JWT:
@@ -99,13 +91,14 @@ For initialization, PIC-X issues the initial PIC PCA COSE and PIC Continuity COS
 ```text
 PIC PCA COSE 0
 ├── protected COSE header
+├── position = 0
 ├── context_of_authority
 └── challenge
-    → initializes the first continuity transition
+    → next_challenge initializes the first transition
 
 PIC Continuity COSE 0
-├── carries root.pca
-└── no pending transition
+├── root.pca = PCA 0
+└── transitions = null
 
 PIC Token JWT 0
 └── carries PIC Continuity COSE 0 in `pic.root`
@@ -384,12 +377,13 @@ After constructing PCA 0, PIC-X issues the initial PIC PCA COSE:
 ```text
 PIC PCA COSE 0
 ├── protected COSE header
+├── position = 0
 ├── context_of_authority: Indexed Authority Map derived from PCA 0
 └── challenge
-    → initializes the first continuity transition
+    → next_challenge initializes the first transition
 ```
 
-The PIC PCA COSE signs the root authority state and carries the root challenge used to initialize the first continuity transition.
+The PIC PCA COSE signs the initial authority checkpoint and carries `challenge.next_challenge` for the first transition.
 
 PIC-X then issues the initial PIC Continuity COSE, wraps it as `pic.root` in the PIC Token JWT, and returns that PIC Token JWT.
 
@@ -398,8 +392,8 @@ PIC Continuity COSE protected header
 → identifies the signing algorithm and key
 
 PIC Continuity COSE payload
-→ carries the trusted root PCA binding required by the profile
-→ has no pending transition
+→ root.pca = PCA 0
+→ transitions = null
 
 PIC Token JWT payload
 → carries the PIC Continuity COSE in `pic.root`
@@ -412,12 +406,13 @@ PCA 0
 → logical Context of Authority
 
 PIC PCA COSE 0
-→ signed representation of PCA 0
-→ carries the root challenge
+→ signed checkpoint representation of PCA 0
+→ position = 0
+→ carries challenge.next_challenge
 
 PIC Continuity COSE 0
-→ carries root.pca
-→ no pending transition
+→ root.pca = PCA 0
+→ transitions = null
 
 PIC Token JWT 0
 → carries PIC Continuity COSE 0 in `pic.root`
@@ -426,14 +421,14 @@ PIC Token JWT 0
 
 The internal COSE structures are intentionally deferred to a dedicated protocol article.
 
-A **Continuity Proposal** is structured input used when continuity is initialized or when centralized advancement needs profile-defined support material. The Initial Continuity Proposal and Continuation Proposal use different type identifiers and may have different schemas:
+A **Continuity Proposal** is structured input used when continuity is initialized or when a future centralized advancement profile needs support material. Current Profile 0.2 PIC-to-PIC advancement omits it. The Initial Continuity Proposal and Continuation Proposal use different type identifiers and may have different schemas:
 
 ```text
 https://pic-protocol.org/definitions/proposal-types/continuity-initial
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-In this article, the Initial Continuity Proposal contains the execution contract and is used before PIC continuity exists. Continuation Proposal details are intentionally deferred to a dedicated protocol article; a Continuation Proposal is support material, not the PIC Token JWT or the PIC Continuity Transition COSE.
+In this article, the Initial Continuity Proposal contains the execution contract and is used before PIC continuity exists. Continuation Proposal details are intentionally deferred to a dedicated protocol article; a Continuation Proposal is optional support material, not the PIC Token JWT, the candidate PIC Token JWT, or the PIC Continuity Transition COSE.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -560,7 +555,7 @@ Numbers, booleans, objects, null values, empty strings, empty arrays, and arrays
 
 > **Warning:** `execution.contract` does not grant authority and does not replace `execution.invariants`. It adds execution constraints to the authority carried by `execution.invariants`.
 
-During continuity advancement, later contract restrictions may only add constraints combined with logical AND. They do not remove or weaken constraints established by the root PCA.
+During continuity advancement, later contract restrictions may only add constraints combined with logical AND. They do not remove or weaken constraints established by the predecessor PCA checkpoint.
 
 ## 6. Selecting Authority by Scope
 
@@ -819,12 +814,12 @@ PCA 0
         v
 PIC PCA COSE 0
 +-- context_of_authority: Indexed Authority Map derived from PCA 0
-`-- root challenge
+`-- position = 0, challenge.next_challenge
         |
         v
 PIC Continuity COSE 0
-+-- carries root.pca
-`-- no pending transition
++-- root.pca = PCA 0
+`-- transitions = null
         |
         v
 PIC Token JWT 0
@@ -834,21 +829,8 @@ PIC Token JWT 0
 Application
 +-- uses the effective PIC authority context
 +-- performs application authorization
-`-- prepares one advancement transition when continuity advances
-        |
-        v
-PIC Continuity Transition COSE N+1
-+-- signed with the private key accepted from the SD-JWT PoR
-`-- predecessor.type = continuity
-        |
-        v
-PIC-X
-+-- validates previous trusted PIC Token JWT and pic.root Continuity COSE
-+-- validates transition signature and SD-JWT Proof of Relationship / key binding
-+-- validates predecessor and challenge continuity
-+-- validates executor evidence / execution-contract conformance when required
-+-- validates attenuation, authority non-expansion, revocation, and local policy
-`-- returns PIC Token JWT N+1 signed by PIC-X
+`-- later advancement uses the candidate PIC Token JWT flow
+    defined by the token/artifact article
 ```
 
 PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.

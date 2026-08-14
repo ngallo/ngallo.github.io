@@ -169,15 +169,15 @@ revocation_endpoint
 → requests revocation according to the PIC revocation specification
 
 jwks_uri
-→ publishes PIC-X public signing keys used to verify PIC Token JWTs
-  and PIC-X-signed COSE artifacts, according to the selected profile
+→ publishes PIC-X public signing keys used to verify PIC-X-signed settled
+  PIC Token JWTs and PIC-X-signed settled COSE artifacts
 ```
 
 The token endpoint and the discovery document are both exposed by PIC-X.
 
 JWK is the published key representation. Implementations use the corresponding key material for the advertised JOSE and COSE algorithms. If a PIC PCA COSE is signed by an authority other than PIC-X, signer trust and key resolution follow the applicable trusted-authority/profile mechanism rather than automatically assuming the PIC-X JWKS.
 
-PIC Continuity Transition COSE artifacts are signed by workloads, not by PIC-X. PIC-X therefore does not verify their signatures using its own JWKS. Instead, PIC-X verifies the transition signature using the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules. A workload key is not trusted merely because a key identifier is present in the COSE artifact.
+Candidate PIC Token JWT, candidate PIC Continuity COSE, and PIC Continuity Transition COSE artifacts are signed by workloads, not by PIC-X. PIC-X therefore does not verify their signatures using its own JWKS. Instead, PIC-X verifies candidate and transition signatures using the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules. A workload key is not trusted merely because a key identifier is present in a signed artifact.
 
 ## 3. PIC Profile of OAuth Token Exchange
 
@@ -200,12 +200,14 @@ PIC Context of Authority (PCA)
 → represented in Profile 0.2 by a PIC PCA COSE
 
 PIC PCA COSE
-→ trusted signed representation of the root PCA
-→ issued during initialization
+→ signed trusted authority checkpoint representation
+→ initial checkpoint has position 0
+→ later checkpoints may have position > 0
 
 PIC Token JWT
 → external OAuth-compatible transport envelope
-→ carries `pic.root` as the current PIC Continuity COSE
+→ carries `pic.root` as PIC Continuity COSE
+→ may be workload-signed candidate or PIC-X-signed settled result
 → may carry future `pic.compositions[]` values as additional PIC Continuity COSE artifacts
 
 Initial Continuity Proposal
@@ -217,13 +219,15 @@ Continuation Proposal
 → is not the transition and is not the settled result
 
 PIC Continuity COSE
-→ trusted settled continuity artifact when issued by PIC-X
-→ carried by `pic.root` in the PIC Token JWT
+→ signed continuity container
+→ carries current trusted PCA checkpoint in `root.pca`
+→ carries `transitions: null` when settled
+→ carries a proposed transition chain when candidate
 
 PIC Continuity Transition COSE
-→ workload-signed proposal for exactly one non-root advancement
-→ submitted for centralized validation according to the selected profile/schema
-→ not carried forward in the settled result after PIC-X accepts the advancement
+→ workload-signed causal authority transition
+→ Profile 0.2 accepts exactly one transition in a candidate
+→ not carried forward after PIC-X checkpoints it into a new PCA
 ```
 
 The profile and definition identifiers used in this article are:
@@ -237,11 +241,11 @@ https://pic-protocol.org/definitions/proposal-types/continuity
 
 The initial and continuation proposal types may use different schemas. Their exact fields, supporting evidence, cryptographic binding, and validation rules are intentionally deferred to a dedicated protocol article. Proof of Relationship is carried by PIC Continuity Transition COSE artifacts according to the selected profile.
 
-The Initial Continuity Proposal is used by the OAuth-based initialization flow before PIC continuity exists. A Continuation Proposal is support material used only when required by the selected centralized advancement profile/schema; it is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE.
+The Initial Continuity Proposal is used by the OAuth-based initialization flow before PIC continuity exists. A Continuation Proposal is optional support material used only when required by a selected advancement profile/schema; it is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE. Current Profile 0.2 PIC-to-PIC advancement omits both `continuity_proposal` and `continuity_proposal_type`.
 
-The value of `continuity_proposal` is the unpadded Base64url encoding of the compact UTF-8 JSON serialization of the proposal object. This transport encoding does not by itself make the proposal a JWT, COSE artifact, or signed object.
+When present, the value of `continuity_proposal` is the unpadded Base64url encoding of the compact UTF-8 JSON serialization of the proposal object. This transport encoding does not by itself make the proposal a JWT, COSE artifact, or signed object.
 
-The exchange always returns a PIC Token JWT:
+The PIC-X exchange response returns a PIC Token JWT:
 
 ```json
 {
@@ -262,31 +266,46 @@ The exchange always returns a PIC Token JWT:
 }
 ```
 
+`subject_token_types_supported` means:
+
+```text
+urn:ietf:params:oauth:token-type:access_token
+→ supported as `subject_token` for OAuth-to-PIC initialization
+
+https://pic-protocol.org/definitions/token-types/pic
+→ supported as `subject_token` for PIC-to-PIC continuity advancement
+  using a workload-signed candidate PIC Token JWT
+```
+
+`token_exchange_parameters_supported` advertises extension parameters supported by this profile. The initial exchange uses `continuity_proposal` and `continuity_proposal_type`; current Profile 0.2 PIC-to-PIC advancement omits them unless a future profile defines Continuation Proposal support material.
+
 PIC-X exposes one exchange interface with two continuity flows:
 
 ```text
-OAuth access token + Initial Continuity Proposal
-→ initializes PIC execution
-→ the proposal supplies the execution contract
-→ PIC-X issues PIC PCA COSE 0 and PIC Continuity COSE 0
-→ PIC-X returns PIC Token JWT 0 with `pic.root`
+INITIAL EXCHANGE
 
-PIC Token JWT N
-+ profile-required continuation support material, when applicable
-+ workload-signed PIC Continuity Transition COSE N+1
-→ PIC-X validates one proposed advancement
-→ PIC-X returns PIC Token JWT N+1 with settled `pic.root`
+subject_token = OAuth access token
+continuity_proposal = Initial Continuity Proposal
+→ PIC-X
+→ settled PIC Token JWT 0
+
+CONTINUITY ADVANCEMENT
+
+subject_token = workload-signed candidate PIC Token JWT
+continuity_proposal = omitted in current Profile 0.2
+→ PIC-X
+→ settled PIC Token JWT N+1
 ```
 
 The returned artifact is therefore always a PIC Token JWT.
 
-For the first exchange, PIC-X issues the initial PIC PCA COSE and embeds it in the root PIC Continuity COSE carried as `pic.root`.
+For the first exchange, PIC-X issues the initial PIC PCA COSE and embeds it as the current checkpoint in the settled PIC Continuity COSE carried as `pic.root`.
 
 The returned PIC Token JWT is the external transport envelope. Its `pic.root` value is the centrally trusted PIC Continuity COSE.
 
-For advancement, the workload-produced material carries one PIC Continuity Transition COSE according to the selected profile/schema.
+For advancement, the workload produces a candidate PIC Token JWT carrying a candidate Continuity. The candidate PIC Token JWT itself is the RFC 8693 `subject_token`. Profile 0.2 candidate Continuity carries the current trusted PCA checkpoint and exactly one PIC Continuity Transition COSE.
 
-The initial PIC PCA COSE becomes `root.pca` in the initial PIC Continuity COSE.
+In a settled Continuity, `root.pca` is the current trusted PCA checkpoint. After advancement, it changes from PCA N to PCA N+1.
 
 ## 4. Initial Exchange: OAuth Access Token to PIC Token JWT 0
 
@@ -321,7 +340,7 @@ Conceptual Initial Continuity Proposal before Base64url encoding:
 }
 ```
 
-PIC-X validates the access token through the configured Exchange Profile and validates the Initial Continuity Proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, issues the initial PIC PCA COSE and PIC Continuity COSE 0, and returns the initial PIC Token JWT. The PIC PCA COSE signs the root authority state and carries the root challenge used to initialize the first continuity transition.
+PIC-X validates the access token through the configured Exchange Profile and validates the Initial Continuity Proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, issues the initial PIC PCA COSE and settled PIC Continuity COSE 0 with `transitions: null`, and returns the initial PIC Token JWT. The PIC PCA COSE signs the initial authority checkpoint and carries `challenge.next_challenge` used to initialize the first continuity transition.
 
 Conceptually:
 
@@ -347,9 +366,9 @@ Example response:
 
 ## 5. Centralized Continuity Advancement
 
-In PIC Profile 0.2, continuity advancement is PIC-X-mediated. The current trusted PIC Token JWT is sent to PIC-X as the standard OAuth Token Exchange `subject_token`; its `pic.root` carries the trusted PIC Continuity COSE N. The workload supplies one signed PIC Continuity Transition COSE N+1 according to the selected profile/schema.
+In PIC Profile 0.2, continuity advancement is PIC-X-mediated. The workload assembles a workload-signed candidate PIC Token JWT. That candidate carries a workload-signed candidate PIC Continuity COSE whose `root.pca` is the current trusted PCA checkpoint and whose `transitions` array contains exactly one workload-signed PIC Continuity Transition COSE.
 
-Continuation Proposal support material may also be supplied when required by the selected profile/schema. It is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE.
+Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal` and `continuity_proposal_type`. A future profile may define optional Continuation Proposal support material; it is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE.
 
 When Continuation Proposal support material is used, its type is:
 
@@ -357,7 +376,7 @@ When Continuation Proposal support material is used, its type is:
 https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-The exact OAuth form parameter used to carry the workload-produced transition is not assigned in this article. The selected profile/schema definition must specify how the transition is submitted.
+The workload-signed candidate PIC Token JWT is carried as the standard RFC 8693 `subject_token`.
 
 ```http
 POST /pic-x/token HTTP/1.1
@@ -367,46 +386,51 @@ Content-Type: application/x-www-form-urlencoded
 
 ```text
 grant_type=urn:ietf:params:oauth:grant-type:token-exchange
-&subject_token=<signed-pic-token-jwt-n>
+&subject_token=<workload-signed-candidate-pic-token-jwt>
 &subject_token_type=https://pic-protocol.org/definitions/token-types/pic
 &requested_token_type=https://pic-protocol.org/definitions/token-types/pic
 ```
 
 ```text
 subject_token
-→ trusted PIC Token JWT N issued by PIC-X
-→ carries trusted PIC Continuity COSE N in `pic.root`
+→ workload-signed candidate PIC Token JWT
+→ carries workload-signed candidate PIC Continuity COSE in `pic.root`
+→ candidate Continuity carries current trusted PCA checkpoint and exactly one Transition
 
-workload-produced transition
-→ signed PIC Continuity Transition COSE N+1
-→ submitted according to the selected profile/schema definition
+continuity_proposal
+→ omitted in current Profile 0.2 PIC-to-PIC advancement
 
 requested_token_type
 → PIC Token JWT N+1
 ```
 
-PIC-X validates the previous trusted PIC Token JWT and its `pic.root` PIC Continuity COSE, the proposed PIC Continuity Transition COSE, the Profile 0.2 SD-JWT Proof of Relationship and key binding, predecessor binding, challenge continuity, executor evidence and execution-contract conformance when required, attenuation, authority non-expansion, revocation/local policy, and other applicable profile rules.
+PIC-X parses the candidate PIC Token JWT, candidate PIC Continuity COSE, and embedded Transition as untrusted input. It validates the issuer-signed SD-JWT Proof of Relationship first to obtain the accepted workload verification key, then verifies the workload signatures over the Transition, candidate Continuity, and candidate JWT before applying predecessor, position, challenge, evidence, execution-contract, attenuation, non-expansion, revocation, and policy checks.
 
 ```text
-PIC Token JWT N
-`-- pic.root = trusted PIC Continuity COSE N
+candidate PIC Token JWT
+`-- pic.root = candidate PIC Continuity COSE
+    +-- root.pca = current trusted PCA checkpoint N
+    `-- transitions = [Transition N+1]
         |
         v
-workload creates and signs PIC Continuity Transition COSE N+1
+workload signs candidate token, candidate Continuity, and Transition
 with the private key accepted from the SD-JWT PoR
         |
         v
 PIC-X token exchange
         |
-        +-- validates previous trusted PIC Token and Continuity
-        +-- validates transition signature
-        +-- validates SD-JWT PoR/key binding
-        +-- validates one proposed transition
-        +-- validates predecessor, challenge, PoR/conformance, attenuation, non-expansion, and policy
+  +-- parses candidate token, Continuity, and Transition as untrusted
+  +-- validates SD-JWT PoR/key binding and obtains workload key
+  +-- verifies transition, candidate Continuity, and candidate token signatures
+  +-- validates trusted current PCA checkpoint
+  +-- validates predecessor, position, challenge, PoR/conformance, attenuation, non-expansion, and policy
+  +-- checkpoints accepted authority into a new PIC PCA COSE
         |
         v
 PIC Token JWT N+1 signed by PIC-X
 `-- pic.root = settled PIC Continuity COSE N+1
+    +-- root.pca = new PCA checkpoint N+1
+    `-- transitions = null
 ```
 
 Example response:
@@ -419,7 +443,7 @@ Example response:
 }
 ```
 
-The current PIC Token JWT N is carried as the standard `subject_token`. `actor_token` is not used unless a distinct OAuth actor credential is introduced. PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
+`actor_token` is not used unless a distinct OAuth actor credential is introduced. PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
 
 ## 6. Token Exchange Response
 
@@ -584,6 +608,8 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
 }
 ```
 
+Profile 0.2 uses a shared advertised signing algorithm set where the same artifact family has both PIC-X-signed settled and workload-signed candidate forms. This is a Profile 0.2 simplification; future profiles may distinguish PIC-X outbound signing algorithms from externally accepted workload-signature algorithms without defining that future metadata here.
+
 ```text
 artifact_hash_alg_values_supported
 → cryptographic hash algorithms supported for PIC signed-artifact references
@@ -596,7 +622,9 @@ pic_token.formats_supported
 → serialization formats supported for PIC Token JWTs
 
 pic_token.signing_alg_values_supported
-→ algorithms used to sign PIC Token JWTs
+→ shared Profile 0.2 algorithms for PIC Token JWT signatures
+→ used by PIC-X for settled PIC Token JWTs
+→ accepted by PIC-X for workload-signed candidate PIC Token JWTs
 
 pca.formats_supported
 → serialization formats supported for PIC PCA COSE artifacts
@@ -608,31 +636,35 @@ continuity.formats_supported
 → serialization formats supported for PIC Continuity COSE artifacts
 
 continuity.signing_alg_values_supported
-→ algorithms used to sign PIC Continuity COSE artifacts
+→ shared Profile 0.2 algorithms for PIC Continuity COSE signatures
+→ used by PIC-X for settled PIC Continuity COSE artifacts
+→ accepted by PIC-X for workload-signed candidate PIC Continuity COSE artifacts
 
 continuity_transition.formats_supported
 → serialization formats supported for PIC Continuity Transition COSE artifacts
 
 continuity_transition.signing_alg_values_supported
-→ signing algorithms accepted for workload-signed PIC Continuity Transition COSE artifacts
-→ Profile 0.2 continuity proof of possession is provided by the Transition COSE signature
-→ workload key must be accepted or bound by the SD-JWT PoR
+→ signing algorithms accepted by PIC-X for workload-signed PIC Continuity Transition COSE artifacts
+→ Transition COSE signature proves possession/control of the PoR-bound workload private key
+→ workload key must be accepted from the SD-JWT PoR
 
 pca.execution_contract_binding_methods_supported
 → methods used to place or bind the validated execution contract in the PCA
 
 continuity_proposals.types_supported
-→ proposal types accepted for initialization and centralized advancement support
+→ proposal types accepted when proposal support material is present
+→ current initialization uses `continuity-initial`
+→ current PIC-to-PIC advancement omits Continuation Proposal parameters
 
 ```
 
 PIC Profile 0.2 uses a JWT/JWS envelope for the external PIC Token JWT and native CBOR/COSE for PIC PCA COSE, PIC Continuity COSE, and PIC Continuity Transition COSE. When COSE artifacts are embedded inside the textual JWT envelope, the enclosing JWT transport must encode those binary values, but the native COSE artifacts remain binary.
 
-PCAs are represented as PIC PCA COSE artifacts. PIC-X-issued PIC Continuity COSE artifacts are centrally trusted continuity artifacts. Workload-produced PIC Continuity Transition COSE artifacts propose exactly one advancement for the current exchange.
+PCAs are represented as PIC PCA COSE checkpoint artifacts. A workload-produced candidate PIC Continuity COSE carries the current trusted PCA checkpoint and, in Profile 0.2, exactly one workload-signed PIC Continuity Transition COSE. A PIC-X-issued settled PIC Continuity COSE carries the new trusted PCA checkpoint and `transitions: null`.
 
-With the `embedded` binding method, PIC-X validates the `executionContract` supplied by the Initial Continuity Proposal and incorporates it into the logical root PCA as `execution.contract`. When that PCA is serialized as a PIC PCA COSE, the contract is represented in the canonical `execution_contract` section and is therefore protected by the root PIC PCA COSE signature.
+With the `embedded` binding method, PIC-X validates the `executionContract` supplied by the Initial Continuity Proposal and incorporates it into the logical initial PCA as `execution.contract`. When that PCA is serialized as a PIC PCA COSE, the contract is represented in the canonical `execution_contract` section and is therefore protected by the PIC PCA COSE signature.
 
-The root contract is immutable. Later continuity advancements do not replace or modify it. They may only introduce additional execution constraints through `attenuations.execution_contract.additions`. Accepted additions are accumulated with the existing constraints using logical AND, producing the effective execution contract for the new continuity state.
+Existing execution-contract constraints are not removed, replaced, or weakened during continuity advancement. Accepted transitions may only introduce additional execution constraints through `attenuations.execution_contract.additions`; accepted additions are combined with existing constraints using logical AND and materialized into the new PCA checkpoint.
 
 ```text
 initial proposal input → executionContract
@@ -650,33 +682,34 @@ Removal attenuation may apply to `identity_context` and `execution.invariants` a
 ```text
 centralized-continuity
 → PIC-X validates each proposed advancement
-→ each advancement submits exactly one PIC Continuity Transition COSE
-→ PIC-X issues the next settled PIC Continuity COSE inside a PIC Token JWT
-→ receiver/PIC-X maintains effective authority state locally
-→ local state is not serialized into settled PIC Continuity COSE
+→ each candidate Continuity carries exactly one PIC Continuity Transition COSE
+→ PIC-X materializes the accepted transition into a new PCA checkpoint
+→ PIC-X issues the next settled PIC Continuity COSE with `transitions: null`
+→ PIC-X returns the next settled PIC Token JWT
 ```
 
 The Profile 0.2 continuity model uses the following conceptual structure:
 
 ```text
-PIC Token JWT N
-→ carries PIC-X-issued PIC Continuity COSE N in `pic.root`
-→ trusted settled continuity artifact
-→ contains no PIC Continuity Transition COSE
+PIC-X-signed PIC Token JWT N
+→ carries settled PIC Continuity COSE N in `pic.root`
+→ root.pca is current trusted PCA checkpoint N
+→ transitions = null
 
-workload-produced transition
-→ exactly one PIC Continuity Transition COSE
-→ submitted to PIC-X for validation
+workload-signed candidate PIC Token JWT
+→ carries candidate PIC Continuity COSE
+→ root.pca is current trusted PCA checkpoint N
+→ transitions = [Transition N+1]
 
-PIC Token JWT N+1
-→ carries PIC-X-issued PIC Continuity COSE N+1 in `pic.root`
-→ next trusted settled continuity artifact
-→ contains no PIC Continuity Transition COSE
+PIC-X-signed PIC Token JWT N+1
+→ carries settled PIC Continuity COSE N+1 in `pic.root`
+→ root.pca is new trusted PCA checkpoint N+1
+→ transitions = null
 ```
 
 A **PIC PCA COSE** is the signed representation of one PCA.
 
-The PCA is the logical Context of Authority. The PIC PCA COSE signs the root authority state and carries the root challenge used to initialize the first continuity transition.
+The PCA is the logical Context of Authority. The PIC PCA COSE signs the current authority checkpoint and carries `challenge.next_challenge` for the next transition.
 
 PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
 
@@ -714,7 +747,7 @@ PIC-Token
 → carries the PIC Token JWT
 → carries `pic.root` as the PIC Continuity COSE for the current execution state
 → may carry future `pic.compositions[]` values as additional PIC Continuity COSE artifacts
-→ binds the execution to its trusted root authority and continuity state
+→ binds the execution to its current trusted PCA checkpoint and continuity state
 → preserves verifiable continuity across the execution path
 ```
 
@@ -787,7 +820,7 @@ The transport binding may change, but the authorization semantics represented by
 
 ## 10. Security Considerations
 
-PIC Token JWTs are signed JWT envelopes. PCAs are represented by signed PIC PCA COSE artifacts. PIC-X-issued PIC Continuity COSE artifacts are trusted settled continuity artifacts.
+PIC Token JWTs are signed JWT envelopes. PCAs are represented by signed PIC PCA COSE checkpoint artifacts. Candidate PIC Token JWT and Continuity artifacts are workload-signed proposals; PIC-X-issued PIC Token JWT and Continuity artifacts are trusted settled artifacts after validation.
 
 Signatures protect integrity and authenticate a signer only after the signing key and its identity binding have been validated. They do not provide confidentiality and do not prevent copying by themselves.
 
@@ -806,7 +839,7 @@ broker authentication and authorization for Kafka and messaging systems
 revocation validation
 execution-contract and continuity validation
 audience or execution-domain restrictions when defined
-Transition COSE proof of possession for continuity advancement
+Transition COSE signature proving PoR-bound workload key control
 ```
 
 A PCA has no mandatory independent expiration. Any expiration policy is profile-defined. A PIC PCA COSE is usable only as part of a valid PIC Continuity COSE carried by a PIC Token JWT and remains subject to revocation, continuity rules, execution-contract constraints, local policy, and any declared token or profile expiration.
@@ -822,7 +855,7 @@ exp
 → optional on the signed PIC Token JWT when defined by the selected profile
 ```
 
-A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, and any additional or future proof-of-possession mechanisms remain design topics. Profile 0.2 continuity advancement already defines proof of possession through the PIC Continuity Transition COSE signature using the private key corresponding to the workload verification key accepted from the SD-JWT PoR.
+A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, and any additional or future proof-of-possession mechanisms remain design topics. Profile 0.2 already uses the PIC Continuity Transition COSE signature as proof of possession/control of the private key corresponding to the workload verification key accepted from the SD-JWT PoR; continuity validation still also depends on predecessor, hash, position, challenge, attenuation, evidence, revocation, and policy checks.
 
 ## References
 
