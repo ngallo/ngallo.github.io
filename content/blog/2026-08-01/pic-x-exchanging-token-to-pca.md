@@ -385,7 +385,7 @@ PIC PCA COSE 0
     → next_challenge initializes the first transition
 ```
 
-The PIC PCA COSE signs the initial authority checkpoint and carries `challenge.next_challenge` for the first transition.
+The realm-signed PIC PCA COSE is the signed representation of the initial authority checkpoint and carries `challenge.next_challenge` for the first transition.
 
 PIC-X then creates the initial realm-signed PIC Continuity COSE, wraps it as `pic.root` in the realm-signed PIC Token JWT, and returns that PIC Token JWT.
 

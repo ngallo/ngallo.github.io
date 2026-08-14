@@ -375,7 +375,7 @@ Conceptual Initial Continuity Proposal before Base64url encoding:
 }
 ```
 
-PIC-X validates the access token through the configured Exchange Profile and validates the Initial Continuity Proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, issues the initial PIC PCA COSE and settled PIC Continuity COSE 0 with `transitions: null`, and returns the initial PIC Token JWT. The PIC PCA COSE signs the initial authority checkpoint and carries `challenge.next_challenge` used to initialize the first continuity transition.
+PIC-X validates the access token through the configured Exchange Profile and validates the Initial Continuity Proposal. In the flow described here, that proposal contains the execution contract. PIC-X then derives PCA 0, issues the initial PIC PCA COSE and settled PIC Continuity COSE 0 with `transitions: null`, and returns the initial PIC Token JWT. The realm-signed PIC PCA COSE is the signed representation of the initial authority checkpoint and carries `challenge.next_challenge` used to initialize the first continuity transition.
 
 Conceptually:
 
@@ -744,7 +744,7 @@ realm-signed PIC Token JWT N+1
 
 A **PIC PCA COSE** is the signed representation of one PCA.
 
-The PCA is the logical Context of Authority. The PIC PCA COSE signs the current authority checkpoint and carries `challenge.next_challenge` for the next transition.
+The PCA is the logical Context of Authority. The realm-signed PIC PCA COSE is the signed representation of the current authority checkpoint and carries `challenge.next_challenge` for the next transition.
 
 PIC Profile 0.2 defines only centralized PIC-X-mediated continuity advancement.
 
