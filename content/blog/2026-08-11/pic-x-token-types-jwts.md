@@ -53,12 +53,12 @@ Non-initial advancement is candidate-based:
 ```text
 realm-signed PIC Token JWT N
 └── realm-signed settled PIC Continuity COSE N
-    ├── root.pca = current trusted PCA checkpoint N
+    ├── root.pca = exact signed PIC PCA COSE N bytes
     └── transitions = null
 
 workload-signed candidate PIC Token JWT
 └── workload-signed candidate PIC Continuity COSE
-    ├── root.pca = current trusted PCA checkpoint N
+    ├── root.pca = exact signed PIC PCA COSE N bytes
     └── transitions = [
           workload-signed PIC Continuity Transition COSE N+1
         ]
@@ -68,7 +68,7 @@ PIC-X validates the candidate
         v
 realm-signed PIC Token JWT N+1
 └── realm-signed settled PIC Continuity COSE N+1
-    ├── root.pca = new trusted PCA checkpoint N+1
+    ├── root.pca = exact signed PIC PCA COSE N+1 bytes
     └── transitions = null
 ```
 
@@ -112,7 +112,7 @@ settled
 → PIC-X/trusted-authority accepted checkpoint state
 ```
 
-`root.pca` means the current trusted PCA checkpoint carried by that Continuity. It is not permanently the initial genesis PCA: after advancement, `root.pca` changes from PCA N to PCA N+1.
+`root.pca` means the exact signed PIC PCA COSE bytes for the current trusted checkpoint carried by that Continuity. It is not permanently the initial genesis checkpoint: after advancement, `root.pca` changes from PIC PCA COSE N to PIC PCA COSE N+1.
 
 ## Signer Roles
 
@@ -569,7 +569,7 @@ PCA N
 Transition N+1
 ├── position = N+1
 ├── predecessor.type = "pca" in Profile 0.2
-├── predecessor.hash = SHA-256(exact signed PCA N COSE bytes)
+├── predecessor.hash = SHA-256(exact signed PIC PCA COSE N bytes)
 ├── challenge.previous_challenge = Cn
 └── challenge.next_challenge = Cn+1
 
@@ -684,6 +684,8 @@ The Transition signature is proof of key control, not continuity by itself. Cont
 
 `executor_evidence` remains separate from PoR. PoR alone does not prove runtime behavior or execution-contract conformance.
 
+The configured PoR issuer/schema and concrete relationship checks are assumed to soundly witness the abstract single-hop PoR relation. The PIC model and Lean refinement prove safety under that bridge assumption; they do not prove the cryptographic soundness of a deployment-specific SD-JWT, issuer, runtime, or attestation construction.
+
 ## Centralized Advancement
 
 Profile 0.2 centralized advancement accepts one transition per candidate.
@@ -707,11 +709,11 @@ Validation and checkpointing:
 14. verify the candidate Continuity COSE signature using the same workload key
 15. verify the candidate PIC Token JWT signature using the same workload key
 16. verify signer consistency across candidate JWT, candidate Continuity, and Transition
-17. verify `root.pca` as the currently trusted PCA checkpoint
-18. verify SHA-256(exact signed root.pca bytes) == root.pca_hash
+17. verify `root.pca` as the exact signed PIC PCA COSE bytes for the currently trusted checkpoint
+18. verify SHA-256(exact signed root.pca PIC PCA COSE bytes) == root.pca_hash
 19. verify Transition.position = PCA.position + 1
 20. verify predecessor.type = "pca"
-21. verify predecessor.hash = SHA-256(exact signed predecessor PCA COSE bytes)
+21. verify predecessor.hash = SHA-256(exact signed predecessor PIC PCA COSE bytes)
 22. verify Transition.challenge.previous_challenge = PCA.challenge.next_challenge
 23. validate Transition.challenge.next_challenge
 24. validate attenuation bitmaps
@@ -739,7 +741,7 @@ validate candidate chain
 → issue new settled token
 ```
 
-PIC-X validates the specific lineage it checkpoints in the selected realm context. In Profile 0.2 that lineage is the current trusted PCA checkpoint plus exactly one Transition. The realm signature on the new PCA certifies validation of that selected lineage, and the settled Continuity contains only the new root PCA checkpoint with `transitions = null`; previous PCA and Transition artifacts do not remain embedded. A sibling branch from the same predecessor does not automatically invalidate the selected branch.
+PIC-X validates the specific lineage it checkpoints in the selected realm context. In Profile 0.2 that lineage is the current trusted PIC PCA COSE checkpoint artifact plus exactly one Transition. The realm signature on the new PIC PCA COSE certifies validation of that selected lineage, and the settled Continuity contains only the new root PIC PCA COSE checkpoint artifact with `transitions = null`; previous PCA and Transition artifacts do not remain embedded. A sibling branch from the same predecessor does not automatically invalidate the selected branch.
 
 PIC-to-PIC advancement uses RFC 8693 Token Exchange with the workload-signed candidate PIC Token JWT as the standard `subject_token`:
 

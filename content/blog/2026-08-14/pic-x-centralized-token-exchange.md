@@ -200,7 +200,7 @@ Exact CBOR integer labels and RFC 9596 `typ` values remain profile/spec-defined 
 
 ## 3. Settled PIC Token JWT 0
 
-PIC-X signs a settled Continuity whose root is the exact signed PCA 0 COSE bytes:
+PIC-X signs a settled Continuity whose root is the exact signed PIC PCA COSE 0 bytes:
 
 ```text
 PIC PCA COSE 0 bytes
@@ -328,6 +328,8 @@ Transition signature
 executor_evidence / conformance validation
 → separate when required
 ```
+
+The SD-JWT credential alone does not establish Proof of Continuity. In Profile 0.2, concrete relationship acceptance combines the validated PoR credential and PoR-bound workload key with predecessor binding, workload signature verification, position progression, challenge continuity, and any required evidence, revocation, policy, and conformance checks. The configured PoR issuer/schema and those concrete relationship checks are assumed to soundly witness the abstract single-hop PoR relation; the PIC mathematical model and Lean refinement do not prove the cryptographic soundness of that deployment-specific construction.
 
 This walkthrough uses RFC 9901's `cnf.jwk` form to carry the workload public verification key. PIC Profile 0.2 requires the selected PoR schema to bind or identify that key; it does not make this exact claim path normative here.
 
@@ -832,7 +834,9 @@ parse PIC JWT / Continuity / Transition
         +-- verify three workload signatures
         +-- verify trusted PCA 0 hash, position and challenge
         +-- apply remove_bitmap h'01'
-        +-- enforce execution contract / evidence / policy / revocation
+        +-- enforce execution-contract constraints
+        +-- validate executor evidence / conformance when required
+        +-- validate revocation and local policy
         +-- verify non-expansion
         |
         v
@@ -845,7 +849,7 @@ The Transition signature proves control of the PoR-bound workload private key. I
 
 Apply attenuation:
 
-```cbor-diag
+```text
 "invariants": {
   0: ["documents:read:document-42", "read", "documents", "document-42"],
   1: ["storage:save", "save", "storage", "*"]
@@ -1014,13 +1018,13 @@ Worker 2 private key
    `--> candidate PIC Token JWT JWS signature
 ```
 
-PIC-X applies the same Profile 0.2 validation pattern: RFC 9901 SD-JWT verification, accepted Worker 2 public key, three workload signatures, trusted PCA 1, predecessor hash, position, challenge continuity, attenuation, execution-contract conformance, revocation, policy, and non-expansion.
+PIC-X applies the same Profile 0.2 validation pattern: RFC 9901 SD-JWT verification, accepted Worker 2 public key, three workload signatures, trusted PCA 1, predecessor hash, position, challenge continuity, attenuation, execution-contract constraints, executor evidence/conformance when required, revocation, policy, and non-expansion.
 
 ### PCA 2 Materialized
 
 Before:
 
-```cbor-diag
+```text
 "invariants": {
   0: ["storage:save", "save", "storage", "*"]
 }
@@ -1084,7 +1088,7 @@ Final settled result:
 ```text
 realm-signed PIC Token JWT 2
 └── settled PIC Continuity COSE 2
-    ├── root.pca = PIC PCA COSE 2
+    ├── root.pca = exact signed PIC PCA COSE 2 bytes
     └── transitions = null
 ```
 
@@ -1167,7 +1171,7 @@ PCA 2
 └── invariants = {}
 ```
 
-Authority starts in OAuth and is checkpointed into PCA 0. Each validated continuation can only preserve or reduce that authority. Different workloads may continue the lineage, but none may replenish authority from privileges they independently hold.
+In this OAuth-based initialization flow, PIC authority is derived from the validated OAuth access token, Exchange Profile, execution contract, and local policy, then checkpointed into PCA 0. Each validated continuation can only preserve or reduce that authority. Different workloads may continue the lineage, but none may replenish authority from privileges they independently hold.
 
 ## Related
 

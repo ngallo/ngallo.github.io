@@ -255,7 +255,7 @@ Continuation Proposal
 
 PIC Continuity COSE
 → signed continuity container
-→ carries current trusted PCA checkpoint in `root.pca`
+→ carries exact signed PIC PCA COSE bytes for the current trusted checkpoint in `root.pca`
 → carries `transitions: null` when settled
 → carries a proposed transition chain when candidate
 
@@ -338,9 +338,9 @@ For the first exchange, PIC-X operates in the selected realm context to create t
 
 The returned PIC Token JWT is the external transport envelope. Its `pic.root` value is the centrally trusted PIC Continuity COSE.
 
-For advancement, the workload produces a candidate PIC Token JWT carrying a candidate Continuity. The candidate PIC Token JWT itself is the RFC 8693 `subject_token`. Profile 0.2 candidate Continuity carries the current trusted PCA checkpoint and exactly one PIC Continuity Transition COSE.
+For advancement, the workload produces a candidate PIC Token JWT carrying a candidate Continuity. The candidate PIC Token JWT itself is the RFC 8693 `subject_token`. Profile 0.2 candidate Continuity carries the exact signed PIC PCA COSE bytes for the current trusted checkpoint and exactly one PIC Continuity Transition COSE.
 
-In a settled Continuity, `root.pca` is the current trusted PCA checkpoint. After advancement, it changes from PCA N to PCA N+1.
+In a settled Continuity, `root.pca` contains the exact signed PIC PCA COSE bytes for the current trusted checkpoint. After advancement, it changes from PIC PCA COSE N to PIC PCA COSE N+1.
 
 ## 4. Initial Exchange: OAuth Access Token to PIC Token JWT 0
 
@@ -401,7 +401,7 @@ Example response:
 
 ## 5. Centralized Continuity Advancement
 
-In PIC Profile 0.2, continuity advancement is PIC-X-mediated. The workload assembles a workload-signed candidate PIC Token JWT. That candidate carries a workload-signed candidate PIC Continuity COSE whose `root.pca` is the current trusted PCA checkpoint and whose `transitions` array contains exactly one workload-signed PIC Continuity Transition COSE.
+In PIC Profile 0.2, continuity advancement is PIC-X-mediated. The workload assembles a workload-signed candidate PIC Token JWT. That candidate carries a workload-signed candidate PIC Continuity COSE whose `root.pca` contains the exact signed PIC PCA COSE bytes for the current trusted checkpoint and whose `transitions` array contains exactly one workload-signed PIC Continuity Transition COSE.
 
 Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal` and `continuity_proposal_type`. A future profile may define optional Continuation Proposal support material; it is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE.
 
@@ -430,7 +430,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 subject_token
 → workload-signed candidate PIC Token JWT
 → carries workload-signed candidate PIC Continuity COSE in `pic.root`
-→ candidate Continuity carries current trusted PCA checkpoint and exactly one Transition
+→ candidate Continuity carries exact signed PIC PCA COSE bytes for the current trusted checkpoint and exactly one Transition
 
 continuity_proposal
 → omitted in current Profile 0.2 PIC-to-PIC advancement
@@ -439,12 +439,12 @@ requested_token_type
 → PIC Token JWT N+1
 ```
 
-PIC-X parses the candidate PIC Token JWT, candidate PIC Continuity COSE, and embedded Transition as untrusted input. It validates the issuer-signed SD-JWT Proof of Relationship first to obtain the accepted workload verification key, then verifies the workload signatures over the Transition, candidate Continuity, and candidate JWT before applying predecessor, position, challenge, evidence, execution-contract, attenuation, non-expansion, revocation, and policy checks.
+PIC-X parses the candidate PIC Token JWT, candidate PIC Continuity COSE, and embedded Transition as untrusted input. It validates the issuer-signed SD-JWT Proof of Relationship first to obtain the accepted workload verification key, then verifies the workload signatures over the Transition, candidate Continuity, and candidate JWT before applying predecessor, position, challenge, execution-contract constraints, attenuation, non-expansion, revocation, local policy, and evidence/conformance checks when required.
 
 ```text
 candidate PIC Token JWT
 `-- pic.root = candidate PIC Continuity COSE
-    +-- root.pca = current trusted PCA checkpoint N
+    +-- root.pca = exact signed PIC PCA COSE N bytes
     `-- transitions = [Transition N+1]
         |
         v
@@ -457,14 +457,15 @@ PIC-X token exchange
   +-- parses candidate token, Continuity, and Transition as untrusted
   +-- validates SD-JWT PoR/key binding and obtains workload key
   +-- verifies transition, candidate Continuity, and candidate token signatures
-  +-- validates trusted current PCA checkpoint
-  +-- validates predecessor, position, challenge, PoR/conformance, attenuation, non-expansion, and policy
+  +-- validates the trusted current PIC PCA COSE checkpoint artifact
+  +-- validates predecessor, position, challenge, PoR, attenuation, non-expansion, and policy
+  +-- validates executor evidence / conformance when required
   +-- checkpoints accepted authority into a new PIC PCA COSE
         |
         v
 realm-signed PIC Token JWT N+1
 `-- pic.root = settled PIC Continuity COSE N+1
-    +-- root.pca = new PCA checkpoint N+1
+    +-- root.pca = exact signed PIC PCA COSE N+1 bytes
     `-- transitions = null
 ```
 
@@ -694,7 +695,7 @@ pic_continuity_proposals.types_supported
 
 PIC Profile 0.2 uses a JWT/JWS envelope for the external PIC Token JWT and native CBOR/COSE for PIC PCA COSE, PIC Continuity COSE, and PIC Continuity Transition COSE. When COSE artifacts are embedded inside the textual JWT envelope, the enclosing JWT transport must encode those binary values, but the native COSE artifacts remain binary.
 
-PCAs are represented as PIC PCA COSE checkpoint artifacts. A workload-produced candidate PIC Continuity COSE carries the current trusted PCA checkpoint and, in Profile 0.2, exactly one workload-signed PIC Continuity Transition COSE. A realm-issued settled PIC Continuity COSE carries the new trusted PCA checkpoint and `transitions: null`.
+PCAs are represented as PIC PCA COSE checkpoint artifacts. A workload-produced candidate PIC Continuity COSE carries the exact signed PIC PCA COSE bytes for the current trusted checkpoint and, in Profile 0.2, exactly one workload-signed PIC Continuity Transition COSE. A realm-issued settled PIC Continuity COSE carries the exact signed PIC PCA COSE bytes for the new trusted checkpoint and `transitions: null`.
 
 With the `embedded` binding method, PIC-X validates the `executionContract` supplied by the Initial Continuity Proposal and incorporates it into the logical initial PCA as `execution.contract`. When that PCA is serialized as a PIC PCA COSE, the contract is represented in the canonical `execution_contract` section and is therefore protected by the PIC PCA COSE signature.
 
@@ -727,17 +728,17 @@ The Profile 0.2 continuity model uses the following conceptual structure:
 ```text
 realm-signed PIC Token JWT N
 → carries settled PIC Continuity COSE N in `pic.root`
-→ root.pca is current trusted PCA checkpoint N
+→ root.pca is exact signed PIC PCA COSE N bytes
 → transitions = null
 
 workload-signed candidate PIC Token JWT
 → carries candidate PIC Continuity COSE
-→ root.pca is current trusted PCA checkpoint N
+→ root.pca is exact signed PIC PCA COSE N bytes
 → transitions = [Transition N+1]
 
 realm-signed PIC Token JWT N+1
 → carries settled PIC Continuity COSE N+1 in `pic.root`
-→ root.pca is new trusted PCA checkpoint N+1
+→ root.pca is exact signed PIC PCA COSE N+1 bytes
 → transitions = null
 ```
 
@@ -781,7 +782,7 @@ PIC-Token
 → carries the PIC Token JWT
 → carries `pic.root` as the PIC Continuity COSE for the current execution state
 → may carry future `pic.compositions[]` values as additional PIC Continuity COSE artifacts
-→ binds the execution to its current trusted PCA checkpoint and continuity state
+→ binds the execution to its current trusted PIC PCA COSE checkpoint artifact and continuity state
 → preserves verifiable continuity across the execution path
 ```
 

@@ -84,7 +84,7 @@ PIC Token JWT
 PIC Continuity COSE
 → format: pic-continuity+cose
 → signed continuity container
-→ carries the current trusted PCA checkpoint
+→ carries exact signed PIC PCA COSE bytes for the current trusted checkpoint
 → uses transitions = null when settled
 ```
 
@@ -99,7 +99,7 @@ PIC PCA COSE 0
     → next_challenge initializes the first transition
 
 PIC Continuity COSE 0
-├── root.pca = PCA 0
+├── root.pca = exact signed PIC PCA COSE 0 bytes
 └── transitions = null
 
 PIC Token JWT 0
@@ -394,7 +394,7 @@ PIC Continuity COSE protected header
 → identifies the signing algorithm and key
 
 PIC Continuity COSE payload
-→ root.pca = PCA 0
+→ root.pca = exact signed PIC PCA COSE 0 bytes
 → transitions = null
 
 PIC Token JWT payload
@@ -413,7 +413,7 @@ PIC PCA COSE 0
 → carries challenge.next_challenge
 
 PIC Continuity COSE 0
-→ root.pca = PCA 0
+→ root.pca = exact signed PIC PCA COSE 0 bytes
 → transitions = null
 
 PIC Token JWT 0
@@ -820,7 +820,7 @@ PIC PCA COSE 0
         |
         v
 PIC Continuity COSE 0
-+-- root.pca = PCA 0
++-- root.pca = exact signed PIC PCA COSE 0 bytes
 `-- transitions = null
         |
         v
