@@ -822,7 +822,7 @@ exp
 → optional on the signed PIC Token JWT when defined by the selected profile
 ```
 
-A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, and proof-of-possession mechanism are still design topics and should be treated in dedicated protocol articles.
+A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, and any additional or future proof-of-possession mechanisms remain design topics. Profile 0.2 continuity advancement already defines proof of possession through the PIC Continuity Transition COSE signature using the private key corresponding to the workload verification key accepted from the SD-JWT PoR.
 
 ## References
 
