@@ -318,6 +318,17 @@ These are distinct protocol roles.
 
 The disclosed workload attributes below belong to the illustrative deployment schema. Profile 0.2 does not define these claim names, and their presence in the PoR does not by itself establish execution-contract conformance.
 
+```text
+PoR
+→ issuer-authenticated workload relationship and accepted workload key material
+
+Transition signature
+→ proves control of the workload private key
+
+executor_evidence / conformance validation
+→ separate when required
+```
+
 This walkthrough uses RFC 9901's `cnf.jwk` form to carry the workload public verification key. PIC Profile 0.2 requires the selected PoR schema to bind or identify that key; it does not make this exact claim path normative here.
 
 ```text
@@ -407,16 +418,16 @@ The Issuer-signed JWT is a JWS. The compact serialization is omitted here; the d
   "exp": 1786704100,
   "_sd_alg": "sha-256",
   "_sd": [
-    "-5yFHv7xk48i7lwzGu_nnzWuPnXrVV6ftzpeweGplfU",
     "3CNTPr87PwmN0oW4tNoyswYdsgSUCc6R2B1JSC7I6pI",
-    "7-ke_umMp4uzpqy4cwMFQ8lDsIa4umvau93s2zlSgtI",
-    "MMKF-b7zD73vHo-4VFGICvv8aCQXub-tFfqRBJUkd18",
+    "62rjCYviAli2R9bOU8etQ2DWjOGJETL4L2_Vewqzl8I",
+    "6g3ffib_cNuBmTs4R3AyvyGK8dcZIteeRtw8yPAmDCU",
+    "POtp4eFO4TReywR0yahpwryzSO_dLgiK6Y8lbmdb7SA",
     "P_9_ewlbKJ-ddpy7LivbSPPCYO219Si_0pAj-iElZJQ",
-    "RyzJ_bLCPmljcAzN8XORIIx-BPoRop_0R2Jocw1kFNo",
-    "cWb6bIF-V5c1ZjY0T4YpO6e3seXfV_ei6S1EZemOpTA",
-    "sGa6TEk-cMlpTL86-W6hItSoEN3VSxgJehIgCcVZdUE",
-    "seppD8OgLT_gMur_ydPSGoiqjqp8Y4yDT2uxzOYI0ro",
-    "vHzCo0rxXAGe9Yh9tYGkmSwqH5Q1hEgZNrBmiA41KB8"
+    "Xn7kw6_wekrrpvjPLcrMOQWwVzvVgSsMla6892-qlx8",
+    "cmQs8BFsB9ejZrCaaXNbiq0iZW19oG0bTx-N5wLGm24",
+    "mzeyOGQIao4tTM8WvLC-qG2hQa1oxmCYl-wjz7GS0yo",
+    "vh7enFAhHilhjEs409goqcE44UWGuIgzcMNhDih_Cgc",
+    "yjForVdxBM3AP4GqLrN715bZbnrJ9XqzanJ4WeW5Ru4"
   ],
   "cnf": {
     "jwk": {
@@ -430,7 +441,7 @@ The Issuer-signed JWT is a JWS. The compact serialization is omitted here; the d
 }
 ```
 
-The `_sd` values above are sorted alphanumerically so their order does not reveal the original claim order.
+The `_sd` values above are ten real digest commitments for the ten issued Disclosures. They are sorted alphanumerically so their order does not reveal the original claim order.
 
 Issuance to Worker 1:
 
@@ -444,7 +455,7 @@ Issuer-signed JWT + all issued Disclosure strings
 Holder / Worker 1
 ```
 
-The Holder receives the issued Disclosure strings, but presents only the two required by the execution-contract policy for this hop.
+The Holder receives the issued Disclosure strings, but presents only the two required by the selected trust/conformance policy for this hop.
 
 Worker 1 presents only selected Disclosures:
 
@@ -465,6 +476,8 @@ not presented: 8
 ├── host_class
 └── internal_cluster
 ```
+
+The `not presented` list is explanatory documentation, not wire data visible to PIC-X.
 
 The omitted Disclosures, including their salts, are not transmitted to PIC-X. For omitted object-property claims, the cleartext claim names and values are not transmitted either. PIC-X learns only the selected Disclosures plus permanently disclosed claims such as issuer, validity information and `cnf.jwk`; the number of digest commitments may still reveal some metadata when no decoys are used.
 
@@ -563,6 +576,8 @@ not presented
 └── internal_cluster
 ```
 
+The `not presented` list is explanatory documentation, not wire data visible to PIC-X.
+
 Issuer-signed JWT payload:
 
 ```json
@@ -572,16 +587,16 @@ Issuer-signed JWT payload:
   "exp": 1786704200,
   "_sd_alg": "sha-256",
   "_sd": [
-    "ELDXq3pi9UPxVoZBVEhO1hbcv2glh_486qmAel30cuQ",
-    "Khj5S-GIv_ynIfY_7Izx7qtIk0l41h6MC95esrHCwvo",
-    "Q36mUtORZGQlG1EG80iqaNPldtDr3fhpQEUC8IfcMdM",
-    "QqgU_ckRR8qB8a5PSEt_fDZSV86ll8v68wC4RfLoKdw",
-    "S8IQeoO8SoW_Vh5uy1-2y0mlL5tyYtQAPKawPvBHx4I",
+    "3n0NhmZG6-aCGQ4rmfAzwDSHjdVXK93gl23p0DrE2NE",
+    "5jS4X8__1_bsn9BIGOHMFaaSAcrFC4QapluetUD3q9Y",
+    "7LZcdUaO9sx9SPw6HOLKucCgsLzgU1lXRUH-cyPMgZA",
+    "HLCCyUiFz4hWQc9UEs3CxJ0jJs3aWQsEKCDyu1WDSHk",
+    "Q0uqe1mYb0FWc8HHwxrXTAhvDF9r8yHiU68uB5ZhfvI",
+    "Qe7z-9SG7SSc4V4XQFsYtAVbBKKma-DkGf2VpVrXf9w",
     "WZL2Zh1LPIk4_CKq8XS8cifzcn9Acflj2kbA-j56R8E",
-    "bQCrajqDwnNn-DsNn85wibD5lEGg3nYQKXLBbHReOvI",
-    "esZAwf4l3x1n73cY7l8sNipj2qRuATGViUDPPFXGB5k",
-    "frlrvAA-w2Hd91DGQ62-rpAXwHB_2oF_Ubue2_b0kJQ",
-    "xvxYLW0iHI9eb0wzJbsOyrReb8HYJ_Pm8wnplSLrdrk"
+    "YdzFXlL-LbeoTudnQMtMmjI8jHe6GNQbLDqkXI1SoxA",
+    "xjMzpQA6cwywHrkPgKYcSEZ0wiP0WgvPRmElTrAXQfE",
+    "yOK0mbTnJYzeTizNrQU683ZcK6C5GtjsHnw_3hwop5E"
   ],
   "cnf": {
     "jwk": {
@@ -594,6 +609,8 @@ Issuer-signed JWT payload:
   }
 }
 ```
+
+The `_sd` values above are ten real digest commitments for the ten issued Disclosures, sorted independently of the source claim order.
 
 Selected Disclosure contents and strings:
 
@@ -608,7 +625,7 @@ Disclosure contents =
 ["PjCyltFjXbt5b7sr_OHlHA","department","sensitive-documents"]
 
 D_department =
-WyJQakN5bHRGanhidDViN3NyX09IbEhBIiwiZGVwYXJ0bWVudCIsInNlbnNpdGl2ZS1kb2N1bWVudHMiXQ
+WyJQakN5bHRGalhidDViN3NyX09IbEhBIiwiZGVwYXJ0bWVudCIsInNlbnNpdGl2ZS1kb2N1bWVudHMiXQ
 ```
 
 Presentation sent to PIC-X:
@@ -616,7 +633,7 @@ Presentation sent to PIC-X:
 ```text
 <Issuer-signed JWT>
 ~WyJMZllXSWN6VG9MSXNqV3JHZjNCU1d3IiwiY29ycG9yYXRpb24iLCJBQ01FIl0
-~WyJQakN5bHRGanhidDViN3NyX09IbEhBIiwiZGVwYXJ0bWVudCIsInNlbnNpdGl2ZS1kb2N1bWVudHMiXQ
+~WyJQakN5bHRGalhidDViN3NyX09IbEhBIiwiZGVwYXJ0bWVudCIsInNlbnNpdGl2ZS1kb2N1bWVudHMiXQ
 ~
 ```
 
