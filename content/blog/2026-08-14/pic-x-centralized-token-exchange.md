@@ -200,7 +200,7 @@ Exact CBOR integer labels and RFC 9596 `typ` values remain profile/spec-defined 
 
 ## 3. Settled PIC Token JWT 0
 
-PIC-X signs a settled Continuity whose root is the exact signed PIC PCA COSE 0 bytes:
+PIC-X signs a settled Continuity whose root carries the exact signed PIC PCA COSE 0 bytes and their SHA-256 hash:
 
 ```text
 PIC PCA COSE 0 bytes
@@ -286,13 +286,13 @@ SD-JWT Proof of Relationship
 PIC Token
 = JWT/JWS
 
-PIC PCA
+PIC PCA COSE
 = CBOR/COSE
 
-PIC Continuity
+PIC Continuity COSE
 = CBOR/COSE
 
-PIC Continuity Transition
+PIC Continuity Transition COSE
 = CBOR/COSE
 ```
 
@@ -311,7 +311,7 @@ Verifier / PIC-X
 → validates SD-JWT issuer signature, Disclosures and candidate PIC signatures
 
 PIC realm signer
-→ signs accepted PCA, settled Continuity and settled PIC Token JWT
+→ signs the new PIC PCA COSE checkpoint, settled PIC Continuity COSE and settled PIC Token JWT
 ```
 
 These are distinct protocol roles.

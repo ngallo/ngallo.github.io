@@ -125,7 +125,7 @@ settled
 
 The workload uses the private key corresponding to the verification key or key identity accepted from its issuer-signed SD-JWT Proof of Relationship. The same workload key intentionally signs the candidate PIC Token JWT, the candidate PIC Continuity COSE, and the PIC Continuity Transition COSE. These are distinct protocol objects with distinct verification boundaries, not duplicate signatures over the same object.
 
-PIC-X, acting for the selected realm, uses the realm signing authority for the new PCA checkpoint, settled Continuity, and settled PIC Token JWT after successful centralized validation.
+PIC-X, acting for the selected realm, uses the realm signing authority for the new PIC PCA COSE checkpoint, settled PIC Continuity COSE, and settled PIC Token JWT after successful centralized validation.
 
 ## Serialization
 
@@ -351,7 +351,7 @@ New PCA 1 after checkpointing:
 }
 ```
 
-PIC-X creates PCA N+1 in the selected realm context by validating the candidate chain, applying accepted attenuation and restrictions to PCA N authority, preserving non-expansion, and signing the resulting checkpoint with the realm signing authority.
+PIC-X creates logical PCA N+1 in the selected realm context by validating the candidate chain, applying accepted attenuation and restrictions to PCA N authority, preserving non-expansion, then serializes and signs that resulting checkpoint as PIC PCA COSE N+1 with the realm signing authority.
 
 ## PIC Continuity COSE
 
@@ -725,8 +725,8 @@ Validation and checkpointing:
 30. materialize the new authority
 31. create new PCA with position = Transition.position
 32. set new PCA.challenge.next_challenge = Transition.challenge.next_challenge
-33. sign new PCA with the selected realm signing authority
-34. create new settled Continuity with root = new PCA and transitions = null
+33. serialize and sign the new PCA as a PIC PCA COSE with the selected realm signing authority
+34. create the new settled Continuity with root.pca = exact signed new PIC PCA COSE bytes, root.pca_hash = SHA-256(exact signed new PIC PCA COSE bytes), and transitions = null
 35. sign settled Continuity with the selected realm signing authority
 36. create and sign new settled PIC Token JWT with the selected realm signing authority
 ```

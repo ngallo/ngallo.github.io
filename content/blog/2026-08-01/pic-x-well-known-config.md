@@ -212,7 +212,7 @@ For a realm document:
 
 `issuer` identifies the realm that issues settled PIC artifacts. Artifacts issued by that realm use the realm issuer identity according to the selected profile. The server-level control plane has no corresponding token issuer identity because it does not mint realm tokens.
 
-The realm's `jwks_uri` publishes the public keys used to verify realm-signed settled PIC Token JWTs, realm-signed settled PIC Continuity COSE artifacts, and realm-signed PCA checkpoints. Workload-signed candidate PIC Token JWT, candidate PIC Continuity COSE, and PIC Continuity Transition COSE artifacts are still verified through the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules, not through the realm JWKS.
+The realm's `jwks_uri` publishes the public keys used to verify realm-signed settled PIC Token JWTs, realm-signed settled PIC Continuity COSE artifacts, and realm-signed PIC PCA COSE checkpoints. Workload-signed candidate PIC Token JWT, candidate PIC Continuity COSE, and PIC Continuity Transition COSE artifacts are still verified through the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules, not through the realm JWKS.
 
 ## 3. PIC Profile of OAuth Token Exchange
 
