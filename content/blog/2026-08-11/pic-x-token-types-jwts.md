@@ -149,7 +149,7 @@ COSE header parameters such as `alg`, `kid`, and optional `typ` are distinct fro
 
 Inside native CBOR/COSE, hashes, challenges, bitmaps, signatures, and nested COSE artifacts are byte strings. Base64url encoding is used only when binary COSE bytes cross the JSON/JWT boundary.
 
-Artifact hashes over the PIC Token JWT are computed over the UTF-8 bytes of the compact serialized JWT. Artifact hashes over COSE values are computed over the native signed COSE artifact bytes, not over the decoded readable view.
+Profile 0.2 signed-artifact hashes use SHA-256. Hashes over COSE values are computed over the exact native signed COSE artifact bytes, not over the decoded readable view, CBOR Diagnostic Notation, JSON, YAML, Base64url text, or re-serialized structures.
 
 The examples in this article do not define integer CBOR labels, byte-level CBOR encoding, COSE content-type values, or exact serialized sizes.
 
@@ -261,16 +261,16 @@ Scalar logical values become one indexed entry. Set or list membership is denorm
 Artifact identity and authority-state identity are different domains.
 
 ```text
-hash(signed artifact bytes)
-→ cryptographic identity of the signed artifact
+SHA-256(exact signed artifact bytes)
+→ Profile 0.2 cryptographic identity of the signed artifact
 
 hash(canonical/materialized authority state)
-→ conceptual, profile-dependent identity of the resulting authority state
+→ separate conceptual, profile-dependent identity of the resulting authority state
 ```
 
 They are not directly comparable.
 
-> **Design note:** The cryptographic hash algorithm used for signed-artifact references is selected by the active PIC profile and MUST be unambiguous for that profile. These articles define the exact byte input for signed-artifact references, but Profile 0.2 does not yet assign the hash algorithm here. Interoperable implementations require the selected Profile 0.2 schema/specification to assign one unambiguous algorithm before these references are used on the wire.
+Profile 0.2 uses SHA-256 for signed-artifact references. The hash input remains the exact signed artifact bytes.
 
 Profile 0.2 defines the deterministic canonical structure and ordering of the materialized Indexed Authority Map: sections are ordered as `identity_context`, `invariants`, then `execution_contract`, and entries within each section are ordered by ascending numeric index. JSON object member order has no semantic meaning.
 
@@ -506,7 +506,7 @@ Readable PIC Continuity 0 payload instance in CBOR Diagnostic Notation:
   "position": 0,
 
   "root": {
-    "pca_hash": h'0123456789abcdef',
+    "pca_hash": h'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
     "pca": h'd28443a10126a0'
   }
 }
@@ -522,7 +522,7 @@ Readable PIC Continuity N payload instance in CBOR Diagnostic Notation, for N > 
   "position": 1,
 
   "root": {
-    "pca_hash": h'0123456789abcdef',
+    "pca_hash": h'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
     "pca": h'd28443a10126a0'
   },
 
@@ -535,15 +535,15 @@ Readable PIC Continuity N payload instance in CBOR Diagnostic Notation, for N > 
 | Field | Purpose |
 | --- | --- |
 | `position` | Identifies the current continuity position certified by this PIC Continuity COSE. |
-| `root.pca_hash` | Identifies the hash of the exact signed root PIC PCA COSE bytes. |
+| `root.pca_hash` | SHA-256 digest of the exact signed root PIC PCA COSE bytes; compact cryptographic identifier of the root PCA artifact for efficient comparison, lookup, indexing, cache correlation, and revocation correlation. |
 | `root.pca` | Carries the exact signed PIC PCA COSE bytes issued by the trusted authority. |
 | `challenge.next_challenge` | Absent at position 0; required for position > 0; carries authenticated challenge material for the next advancement. |
 
-Settled PIC Continuity COSE artifacts do not carry attenuation deltas, Proof of Relationship, executor evidence, or accepted transition artifacts. Profile 0.2 does not define an accumulated `state` wire object.
+Settled PIC Continuity COSE artifacts do not carry attenuation deltas, Proof of Relationship, executor evidence, accepted transition artifacts, prior Transition history, or a cumulative authority-state wire object. Profile 0.2 does not carry a cumulative authority-state object or prior Transition history in the PIC Token JWT or settled PIC Continuity COSE. A component that validates or consumes continuity maintains the effective authority state locally for the continuity it is processing.
 
-> **Design note:** A settled PIC Continuity COSE does not carry prior Transition artifacts or a materialized authority-state snapshot. Profile 0.2 therefore requires separate state persistence/reconstruction semantics for effective attenuated authority. The exact representation or retrieval mechanism is intentionally not assigned in this article.
+The local effective state is updated after each accepted transition by applying the transition to the previously materialized effective state: for Profile 0.2, `effective_state_0` is the materialized canonical authority from the root PIC PCA COSE, and `effective_state_N+1 = apply(effective_state_N, accepted Transition N+1)`. The implementation mechanism can be in-memory state, cache, local database, or distributed state store; the local state is not serialized back into the PIC Continuity COSE.
 
-> **Design note:** Because the exact signed `root.pca` bytes are embedded in the Continuity artifact, `root.pca_hash` is derivable. Its retention as a separate field should be justified by an explicit identifier, revocation, lookup, or interoperability requirement before Profile 0.2 is finalized.
+`root.pca_hash` is retained as the compact cryptographic identifier of the exact root PIC PCA COSE artifact. Verifiers MUST still validate that `SHA-256(exact signed root PIC PCA COSE bytes)` equals `root.pca_hash`; the hash is not a substitute for verifying `root.pca` as a signed PIC PCA COSE.
 
 After PIC-X validates a proposed transition and issues the next settled PIC Continuity COSE at position > 0, the authenticated challenge material required for the next transition is carried in `challenge.next_challenge`.
 
@@ -621,7 +621,7 @@ pic-continuity-transition-payload = {
     }
   },
 
-  proof_of_relationship: any,
+  proof_of_relationship: bstr,
   ? request_digest: bstr,
   ? executor_evidence: any
 }
@@ -636,7 +636,7 @@ Readable PIC Continuity Transition payload instance in CBOR Diagnostic Notation:
 
   "predecessor": {
     "type": "continuity",
-    "hash": h'0123456789abcdef'
+    "hash": h'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
   },
 
   "challenge": {
@@ -660,22 +660,21 @@ Readable PIC Continuity Transition payload instance in CBOR Diagnostic Notation:
     }
   },
 
-  "proof_of_relationship": {
-    "type": "profile-defined",
-    "presentation": h'01020304'
-  }
+  "proof_of_relationship": h'73642d6a77742d70726573656e746174696f6e'
 }
 ```
 
-The `proof_of_relationship` object shown above is illustrative and profile-defined. `proof_of_relationship` is present in every PIC Continuity Transition COSE. `request_digest` and `executor_evidence` are present only when required by the selected profile/schema. Their internal schemas remain profile-defined here.
+The diagnostic `h'...'` value shown for `proof_of_relationship` is an illustrative placeholder for the exact UTF-8 bytes of a Profile 0.2 SD-JWT presentation. It is not intended to be a complete valid SD-JWT example. The real SD-JWT presentation is carried directly as a CBOR byte string inside the signed PIC Continuity Transition COSE payload, without Base64url wrapping or an additional wrapper map. `request_digest` and `executor_evidence` are present only when required by the selected profile/schema. Their internal schemas remain profile-defined here.
 
 Existing execution-contract constraints must not be removed, replaced, or weakened during continuity advancement. Execution-contract restriction is additive: accepted transitions may introduce additional constraints through `attenuations.execution_contract.additions`, and all existing and newly added constraints are combined with logical AND.
 
 New execution-contract constraints introduced by an accepted transition become additional entries in the materialized/effective `execution_contract` Indexed Authority Map section after PIC-X validates the transition and issues the next settled continuity state. The signed root PIC PCA COSE is not mutated, and no new PIC PCA COSE is created for the new continuity position.
 
-The workload proposes execution-contract additions as canonical Indexed Authority Map `[key, value]` tuple entries in `attenuations.execution_contract.additions`. Each addition contains only the two tuple elements `key` and `value`. The workload does not assign a numeric index. Collection additions use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `["departments:engineering", true]` and `["departments:operations", true]`.
+The workload proposes execution-contract additions as canonical Indexed Authority Map `[key, value]` tuple entries in `attenuations.execution_contract.additions`. Each addition contains only the two tuple elements `key` and `value`. The workload does not assign a numeric index. `attenuations.execution_contract.additions` contains only canonical `[key, value]` tuples. Collection-valued logical proposal material, if accepted by a higher-level proposal mechanism, MUST be denormalized before constructing the Transition COSE. Collection additions therefore use the existing denormalized canonical form: for example, logical `departments` values become separate entries such as `["departments:engineering", true]` and `["departments:operations", true]`.
 
-When one PIC Continuity Transition COSE proposes multiple execution-contract additions, PIC-X validates the proposed additions, denormalizes any collection-valued logical proposal material into individual canonical tuple additions when applicable, sorts accepted additions lexicographically by canonical key using the same Unicode code point ordering defined for initial `execution_contract` assignment, assigns the next section-local numeric indexes in that sorted order, and then materializes the additions. Input array order is not normative; the same accepted additions materialize to the same canonical ordering for the same predecessor state. The workload is not required to pre-sort additions.
+Within one PIC Continuity Transition COSE, `attenuations.execution_contract.additions` MUST NOT contain more than one tuple with the same canonical key. Duplicate canonical keys are invalid and MUST cause the proposed transition to be rejected. An addition whose key already exists in the effective predecessor execution contract is valid only if the profile semantics explicitly allow that additional constraint to coexist without weakening or replacing the prior one.
+
+When one PIC Continuity Transition COSE proposes multiple execution-contract additions, PIC-X validates each canonical `[key, value]` tuple, sorts the accepted canonical additions lexicographically by canonical key using the same Unicode code point ordering defined for initial `execution_contract` assignment, assigns the next section-local numeric indexes in that sorted order, and then materializes the additions into the effective `execution_contract`. Input array order is not normative and is not used to derive semantics; the same accepted additions materialize to the same canonical ordering for the same predecessor state. The workload is not required to pre-sort additions.
 
 ## Predecessor and Challenge Semantics
 
@@ -685,7 +684,7 @@ For PIC Profile 0.2, a proposed transition is cryptographically bound to the pre
 trusted PIC-X-issued PIC Continuity COSE N
         |
         | predecessor.type = continuity
-        | predecessor.hash = hash(exact signed PIC Continuity COSE N bytes)
+        | predecessor.hash = SHA-256(exact signed PIC Continuity COSE N bytes)
         v
 PIC Continuity Transition COSE N+1
 ```
@@ -748,21 +747,21 @@ PIC Continuity Transition COSE 2
 
 For a non-initial continuity advancement, the workload produces and signs the PIC Continuity Transition COSE.
 
-The workload must use the private key whose corresponding public key or identity is bound or proven by `proof_of_relationship` in the proposed PIC Continuity Transition COSE.
+The workload must use the private key whose corresponding verification key or key identity is accepted from `proof_of_relationship` in the proposed PIC Continuity Transition COSE.
 
 PIC-X verifies:
 
 ```text
 PIC Continuity Transition COSE signature
 +
-PoR-authorized/bound workload key
-→ proves that the workload proposing the transition controls the key accepted
+workload key accepted from SD-JWT PoR
+→ proves possession of the corresponding workload private key
   for this advancement under the selected profile
 ```
 
 Settled PIC Continuity COSE artifacts are PIC-X-signed.
 
-Transition signer binding is part of `proof_of_relationship`. No additional binding object is defined here.
+Transition signer binding is part of `proof_of_relationship`. No additional binding object or KB-JWT is defined here.
 
 The transition is not an independently trusted continuity artifact. It is a signed proposal sent to PIC-X for centralized validation. PIC-X accepts it only after validating the previous PIC Token/Continuity, transition, PoR/key binding, challenge continuity, executor evidence and execution-contract conformance when required, attenuation/non-expansion, and applicable revocation/policy.
 
@@ -788,6 +787,52 @@ attenuations.execution_contract.additions
 
 Removal attenuation removes entries from the indexed `identity_context` and `invariants` sections in the materialized PCA state. It must never add identity context or authority.
 
+Profile 0.2 defines `remove_bitmap` bit numbering against section-local numeric indexes. For section-local index `i`:
+
+```text
+byte_index = floor(i / 8)
+bit_index  = i mod 8
+mask       = 1 << bit_index
+```
+
+Bits are least-significant-bit first within each byte:
+
+```text
+index 0 → byte 0, bit 0 → h'01'
+index 1 → byte 0, bit 1 → h'02'
+index 2 → byte 0, bit 2 → h'04'
+index 7 → byte 0, bit 7 → h'80'
+index 8 → byte 1, bit 0 → h'0001'
+```
+
+A missing byte is interpreted as all zero bits. Bits for indexes that do not exist in the predecessor effective section MUST be zero; a set bit targeting a non-existent index is invalid and causes transition rejection. The canonical wire representation MUST omit trailing zero bytes. An all-zero removal bitmap SHOULD therefore be omitted together with its optional attenuation member rather than encoded as an empty/no-op bitmap.
+
+For example, in the `identity_context` section:
+
+```text
+0 → groups:finance
+1 → id
+2 → roles:payment-approver
+3 → securityDomain
+4 → type
+```
+
+Then:
+
+```text
+remove_bitmap = h'04'
+```
+
+means:
+
+```text
+binary byte = 00000100
+set bit = 2
+remove index = 2
+```
+
+The removed entry is `roles:payment-approver`. This interpretation is section-local; the same byte string in `invariants.remove_bitmap` addresses the `invariants` section, not `identity_context`.
+
 ```text
 root authority
         |
@@ -810,15 +855,27 @@ In Profile 0.2, `attenuations.identity_context.remove_bitmap` and `attenuations.
 
 Challenge continuity establishes the selected profile's freshness and predecessor-continuation condition. It does not prove executor properties.
 
-In this model, `proof_of_relationship` is inside each PIC Continuity Transition COSE.
+In this model, `proof_of_relationship` is inside each PIC Continuity Transition COSE and contains the exact UTF-8 bytes of an issuer-signed Profile 0.2 SD-JWT presentation.
 
-Proof of Relationship establishes that the proposed execution advancement is a valid causal continuation of exactly one predecessor under the selected profile. It binds that advancement to the predecessor, the required freshness/challenge state, the continuity position, and the profile-defined executor/holder/key relationship.
+Profile 0.2 does not require a separate SD-JWT Key Binding JWT (KB-JWT) for continuity advancement. Proof of possession of the private key associated with the workload public key or key identity accepted from the SD-JWT PoR is provided by the signature of the enclosing PIC Continuity Transition COSE.
 
-- `predecessor.hash`
-- `challenge.previous_challenge`
-- `challenge.next_challenge`
-- `position`
-- profile-defined holder/key proof
+The Profile 0.2 SD-JWT PoR MUST bind or identify the workload verification key according to the selected Profile 0.2 SD-JWT schema. The exact claim or disclosure used to carry or identify that key is defined by the selected schema and is not assigned in this article.
+
+```text
+signature 1
+→ SD-JWT issuer signature
+→ proves the SD-JWT was issued by a trusted or accepted attestation issuer
+
+signature 2
+→ PIC Continuity Transition COSE workload signature
+→ proves possession/control of the workload private key
+
+Profile 0.2 does not add a KB-JWT workload signature between them.
+```
+
+The SD-JWT Proof of Relationship establishes the accepted holder/workload/key relationship and any profile-defined disclosed attributes. The PIC Continuity Transition COSE signature proves control of the private key authorized or bound by that PoR. The signed Transition payload binds that key to the exact predecessor, challenge values, position, attenuation, request digest, and executor evidence contained in this Transition.
+
+The key used to verify the PIC Continuity Transition COSE signature MUST be the key accepted or bound by the SD-JWT Proof of Relationship under Profile 0.2. The predecessor hash, challenge values, and position are carried by the signed Transition payload; they are not duplicated inside the SD-JWT unless the selected Profile 0.2 schema explicitly requires it.
 
 Where required by the selected profile, request/execution binding and executor-conformance evidence are validated as part of the advancement.
 
@@ -836,40 +893,54 @@ An ordinary verifier of a settled PIC-X-issued PIC Token JWT verifies the artifa
 4. Decode and read its payload.
 5. Read `root.pca` as the exact signed PIC PCA COSE bytes.
 6. Verify `root.pca` as PIC PCA COSE / COSE_Sign1.
-7. Verify that `hash(exact root.pca COSE bytes)` equals `root.pca_hash`.
+7. Verify that `SHA-256(exact signed root PIC PCA COSE bytes)` equals `root.pca_hash`.
 8. Verify the position-dependent challenge rule: if `position == 0`, `challenge` is absent and the root PIC PCA COSE carries `challenge.next_challenge`; if `position > 0`, `challenge.next_challenge` is present.
 9. Verify that the settled PIC Continuity COSE contains no attenuation deltas, Proof of Relationship, executor evidence, or accepted transition artifact.
-10. Apply profile-defined state, revocation, and policy validation.
+10. Apply revocation and local policy validation.
+
+These steps are artifact verification: they verify the JWT, Continuity COSE, root PIC PCA COSE, hashes, signatures, position, challenge rules, revocation, and policy. Effective-authority evaluation requires the receiver's locally maintained effective state for the continuity being evaluated. A receiver that has followed the continuity updates its local effective state incrementally; a fresh stateless receiver cannot reconstruct all prior attenuation solely from the current settled PIC Continuity COSE.
 
 PIC-X, when processing an advancement, additionally verifies one proposed transition:
 
 1. Verify the previous trusted PIC Token JWT N.
 2. Base64url-decode and verify its `pic.root` PIC Continuity COSE N.
-3. Verify the workload-produced PIC Continuity Transition COSE N+1 as COSE_Sign1.
-4. Verify that the transition signer is the key authorized or bound by `proof_of_relationship`.
-5. Verify `predecessor.type` equals `continuity`.
-6. Verify `predecessor.hash` equals `hash(exact signed PIC Continuity COSE N bytes)`.
-7. Verify `payload.position` equals PIC Continuity COSE N `position` + 1.
-8. Determine the expected previous challenge: if predecessor Continuity position is 0, use predecessor `root.pca` payload `challenge.next_challenge`; otherwise use predecessor Continuity `challenge.next_challenge`.
-9. Verify `transition.challenge.previous_challenge` equals the expected previous challenge.
-10. Verify `proof_of_relationship` over `predecessor.hash`, `challenge.previous_challenge`, `challenge.next_challenge`, `position`, and the profile-defined holder/key relationship.
-11. Validate request/execution binding when required by the selected profile.
-12. Validate authenticated executor evidence and execution-contract conformance when required by the selected profile.
-13. Apply `attenuations.identity_context.remove_bitmap` when present.
-14. Apply `attenuations.invariants.remove_bitmap` when present.
-15. Read `attenuations.execution_contract.additions` when present.
-16. Validate each proposed execution-contract `[key, value]` tuple.
-17. Verify that accepted additions only further restrict execution.
-18. Sort accepted additions lexicographically by canonical key.
-19. Assign accepted additions their next section-local numeric indexes in that sorted order.
-20. Add accepted additions to the materialized/effective `execution_contract` section.
-21. Combine all execution-contract constraints using logical AND.
-22. Verify overall authority and non-expansion semantics.
-23. Verify revocation and local policy.
-24. Persist/materialize effective state according to profile-defined semantics.
-25. Issue settled PIC Continuity COSE N+1.
-26. Base64url-encode that exact Continuity COSE into `pic.root`.
-27. Sign and return PIC Token JWT N+1.
+3. Decode the workload-produced PIC Continuity Transition COSE N+1 as COSE_Sign1.
+4. Parse `proof_of_relationship` as exact UTF-8 bytes of an issuer-signed Profile 0.2 SD-JWT presentation.
+5. Verify the SD-JWT issuer signature and issuer trust according to the selected trusted issuer and profile rules.
+6. Validate required PoR disclosures and claims.
+7. Resolve or obtain the workload verification key or key identity from the SD-JWT PoR.
+8. Verify the PIC Continuity Transition COSE signature with that key.
+9. Treat successful Transition COSE signature verification as proof of possession of the corresponding workload private key.
+10. Verify `predecessor.type` equals `continuity`.
+11. Verify `predecessor.hash` equals `SHA-256(exact signed PIC Continuity COSE N bytes)`.
+12. Verify `payload.position` equals PIC Continuity COSE N `position` + 1.
+13. Determine the expected previous challenge: if predecessor Continuity position is 0, use predecessor `root.pca` payload `challenge.next_challenge`; otherwise use predecessor Continuity `challenge.next_challenge`.
+14. Verify `transition.challenge.previous_challenge` equals the expected previous challenge.
+15. Validate request/execution binding when required by the selected profile.
+16. Validate authenticated executor evidence and execution-contract conformance when required by the selected profile.
+17. Decode any `remove_bitmap` using the Profile 0.2 bit-numbering rule.
+18. Verify every set bit targets an existing predecessor section index.
+19. Apply `attenuations.identity_context.remove_bitmap` when present.
+20. Apply `attenuations.invariants.remove_bitmap` when present.
+21. Read `attenuations.execution_contract.additions` when present.
+22. Verify additions are already canonical `[key, value]` tuples and do not use input array order to derive semantics.
+23. Reject duplicate canonical keys within the same additions array.
+24. Verify that an addition whose key already exists in the effective predecessor execution contract is allowed by profile semantics to coexist without weakening or replacing the prior constraint.
+25. Validate each proposed execution-contract `[key, value]` tuple.
+26. Verify that accepted additions only further restrict execution.
+27. Sort accepted additions lexicographically by canonical key.
+28. Assign accepted additions their next section-local numeric indexes in that sorted order.
+29. Add accepted additions to the materialized/effective `execution_contract` section.
+30. Combine all execution-contract constraints using logical AND.
+31. Verify overall authority and non-expansion semantics.
+32. Verify revocation and local policy.
+33. Update the receiver/PIC-X local effective authority state by applying the accepted Transition N+1 to the previously materialized effective state.
+34. Do not serialize that cumulative state into the new PIC Continuity COSE.
+35. Issue compact settled PIC Continuity COSE N+1.
+36. Base64url-encode that exact Continuity COSE into `pic.root`.
+37. Sign and return PIC Token JWT N+1.
+
+No separate KB-JWT verification step is required by Profile 0.2.
 
 Profile 0.2 does not transport multiple prior transitions for independent replay. PIC-X validates each single advancement centrally and issues the next trusted PIC Token JWT carrying the next trusted continuity artifact.
 
@@ -902,11 +973,11 @@ ADVANCEMENT CANDIDATE
 
 workload creates exactly one PIC Continuity Transition COSE N+1
 → predecessor.type = continuity
-→ predecessor.hash = hash(exact signed previous trusted PIC Continuity COSE N bytes)
+→ predecessor.hash = SHA-256(exact signed previous trusted PIC Continuity COSE N bytes)
 → challenge continuity
 → attenuation
 → Proof of Relationship
-→ transition signed using the PoR-bound private key
+→ transition signed using the private key accepted from the SD-JWT PoR
 ```
 
 ```text

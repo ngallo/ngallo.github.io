@@ -838,13 +838,13 @@ Application
         |
         v
 PIC Continuity Transition COSE N+1
-+-- signed with the PoR-bound private key
++-- signed with the private key accepted from the SD-JWT PoR
 `-- predecessor.type = continuity
         |
         v
 PIC-X
 +-- validates previous trusted PIC Token JWT and pic.root Continuity COSE
-+-- validates transition signature and Proof of Relationship / key binding
++-- validates transition signature and SD-JWT Proof of Relationship / key binding
 +-- validates predecessor and challenge continuity
 +-- validates executor evidence / execution-contract conformance when required
 +-- validates attenuation, authority non-expansion, revocation, and local policy

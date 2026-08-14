@@ -67,6 +67,10 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     "https://pic-protocol.org/definitions/token-types/pic"
   ],
 
+  "artifact_hash_alg_values_supported": [
+    "sha-256"
+  ],
+
   "token_endpoint_auth_methods_supported": [
     "none"
   ],
@@ -173,7 +177,7 @@ The token endpoint and the discovery document are both exposed by PIC-X.
 
 JWK is the published key representation. Implementations use the corresponding key material for the advertised JOSE and COSE algorithms. If a PIC PCA COSE is signed by an authority other than PIC-X, signer trust and key resolution follow the applicable trusted-authority/profile mechanism rather than automatically assuming the PIC-X JWKS.
 
-PIC Continuity Transition COSE artifacts are signed by workloads, not by PIC-X. PIC-X therefore does not verify their signatures using its own JWKS. Instead, PIC-X verifies the transition signature using the workload key accepted or proven through the selected Proof of Relationship and Profile 0.2 validation rules. A workload key is not trusted merely because a key identifier is present in the COSE artifact.
+PIC Continuity Transition COSE artifacts are signed by workloads, not by PIC-X. PIC-X therefore does not verify their signatures using its own JWKS. Instead, PIC-X verifies the transition signature using the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules. A workload key is not trusted merely because a key identifier is present in the COSE artifact.
 
 ## 3. PIC Profile of OAuth Token Exchange
 
@@ -381,7 +385,7 @@ requested_token_type
 → PIC Token JWT N+1
 ```
 
-PIC-X validates the previous trusted PIC Token JWT and its `pic.root` PIC Continuity COSE, the proposed PIC Continuity Transition COSE, the Proof of Relationship and key binding, predecessor binding, challenge continuity, executor evidence and execution-contract conformance when required, attenuation, authority non-expansion, revocation/local policy, and other applicable profile rules.
+PIC-X validates the previous trusted PIC Token JWT and its `pic.root` PIC Continuity COSE, the proposed PIC Continuity Transition COSE, the Profile 0.2 SD-JWT Proof of Relationship and key binding, predecessor binding, challenge continuity, executor evidence and execution-contract conformance when required, attenuation, authority non-expansion, revocation/local policy, and other applicable profile rules.
 
 ```text
 PIC Token JWT N
@@ -389,14 +393,14 @@ PIC Token JWT N
         |
         v
 workload creates and signs PIC Continuity Transition COSE N+1
-with the PoR-bound private key
+with the private key accepted from the SD-JWT PoR
         |
         v
 PIC-X token exchange
         |
         +-- validates previous trusted PIC Token and Continuity
         +-- validates transition signature
-        +-- validates PoR/key binding
+        +-- validates SD-JWT PoR/key binding
         +-- validates one proposed transition
         +-- validates predecessor, challenge, PoR/conformance, attenuation, non-expansion, and policy
         |
@@ -487,6 +491,8 @@ Example response from the attestations endpoint:
 
 Trusted Anchor capabilities belong to each anchor.
 
+Profile 0.2 uses issuer-signed SD-JWT presentation bytes for `proof_of_relationship` in PIC Continuity Transition COSE. SD-JWT support does not make every issuer automatically trusted for PoR; trust depends on the selected Profile 0.2 trust configuration and issuer/key validation rules. The `proof_of_possession_methods_supported` values shown for attestation issuers describe generic attestation issuance capabilities; they do not mean Profile 0.2 continuity advancement requires a separate JWS nonce proof or KB-JWT.
+
 Example response from the Trusted Anchors endpoint:
 
 ```json
@@ -514,12 +520,16 @@ Example response from the Trusted Anchors endpoint:
 
 ## 8. PIC Token and COSE Capabilities
 
-PIC Token JWT signing, PIC PCA COSE signing, PIC Continuity COSE signing, PIC Continuity Transition COSE signing, execution contract placement or binding, artifact format, and continuity modes are separate capabilities.
+PIC Token JWT signing, PIC PCA COSE signing, PIC Continuity COSE signing, PIC Continuity Transition COSE signing, execution contract placement or binding, artifact format, signed-artifact hash algorithm, and continuity modes are separate capabilities.
 
-The `formats_supported` values are PIC format identifiers. For COSE artifacts, they are not automatically RFC 9596 COSE `typ` values.
+The `formats_supported` values are PIC format identifiers. For COSE artifacts, they are not automatically RFC 9596 COSE `typ` values. Artifact hash algorithms describe PIC signed-artifact references, not JOSE/COSE signing algorithms or SD-JWT internal hashing.
 
 ```json
 {
+  "artifact_hash_alg_values_supported": [
+    "sha-256"
+  ],
+
   "pic_token": {
     "token_type": "https://pic-protocol.org/definitions/token-types/pic",
     "formats_supported": [
@@ -575,6 +585,10 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
 ```
 
 ```text
+artifact_hash_alg_values_supported
+→ cryptographic hash algorithms supported for PIC signed-artifact references
+→ Profile 0.2 currently uses SHA-256
+
 pic_token.token_type
 → OAuth Token Exchange token type identifier of the external PIC Token JWT
 
@@ -601,6 +615,8 @@ continuity_transition.formats_supported
 
 continuity_transition.signing_alg_values_supported
 → signing algorithms accepted for workload-signed PIC Continuity Transition COSE artifacts
+→ Profile 0.2 continuity proof of possession is provided by the Transition COSE signature
+→ workload key must be accepted or bound by the SD-JWT PoR
 
 pca.execution_contract_binding_methods_supported
 → methods used to place or bind the validated execution contract in the PCA
@@ -625,7 +641,7 @@ canonical PIC PCA COSE Indexed Authority Map → execution_contract
 continuity attenuation → attenuations.execution_contract.additions
 ```
 
-In the canonical PIC PCA COSE representation, `execution_contract` uses compact tuple entries with explicit section-local numeric indexes. Proposed additions in `attenuations.execution_contract.additions` carry compact `[key, value]` tuples without numeric indexes; PIC-X canonically orders accepted additions and assigns indexes only after accepting the transition.
+In the canonical PIC PCA COSE representation, `execution_contract` uses compact tuple entries with explicit section-local numeric indexes. Proposed additions in `attenuations.execution_contract.additions` carry canonical compact `[key, value]` tuples without numeric indexes; PIC-X validates and orders accepted canonical additions and assigns indexes only after accepting the transition.
 
 Removal attenuation may apply to `identity_context` and `execution.invariants` according to the selected profile/schema. Execution-contract restriction does not use a removal bitmap.
 
@@ -636,7 +652,8 @@ centralized-continuity
 → PIC-X validates each proposed advancement
 → each advancement submits exactly one PIC Continuity Transition COSE
 → PIC-X issues the next settled PIC Continuity COSE inside a PIC Token JWT
-→ state persistence requirements are profile-defined
+→ receiver/PIC-X maintains effective authority state locally
+→ local state is not serialized into settled PIC Continuity COSE
 ```
 
 The Profile 0.2 continuity model uses the following conceptual structure:
@@ -789,7 +806,7 @@ broker authentication and authorization for Kafka and messaging systems
 revocation validation
 execution-contract and continuity validation
 audience or execution-domain restrictions when defined
-proof of possession or another continuation-authorization proof
+Transition COSE proof of possession for continuity advancement
 ```
 
 A PCA has no mandatory independent expiration. Any expiration policy is profile-defined. A PIC PCA COSE is usable only as part of a valid PIC Continuity COSE carried by a PIC Token JWT and remains subject to revocation, continuity rules, execution-contract constraints, local policy, and any declared token or profile expiration.
