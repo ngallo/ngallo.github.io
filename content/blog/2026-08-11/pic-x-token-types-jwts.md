@@ -39,20 +39,20 @@ OAuth access token + Initial Continuity Proposal
 PIC-X
         |
         v
-PIC-X/trusted-authority-signed PIC PCA COSE 0
+realm-signed PIC PCA COSE 0
         |
         v
-PIC-X-signed settled PIC Continuity COSE 0
+realm-signed settled PIC Continuity COSE 0
         |
         v
-PIC-X-signed PIC Token JWT 0
+realm-signed PIC Token JWT 0
 ```
 
 Non-initial advancement is candidate-based:
 
 ```text
-PIC-X-signed PIC Token JWT N
-└── PIC-X-signed settled PIC Continuity COSE N
+realm-signed PIC Token JWT N
+└── realm-signed settled PIC Continuity COSE N
     ├── root.pca = current trusted PCA checkpoint N
     └── transitions = null
 
@@ -66,8 +66,8 @@ workload-signed candidate PIC Token JWT
 PIC-X validates the candidate
         |
         v
-PIC-X-signed PIC Token JWT N+1
-└── PIC-X-signed settled PIC Continuity COSE N+1
+realm-signed PIC Token JWT N+1
+└── realm-signed settled PIC Continuity COSE N+1
     ├── root.pca = new trusted PCA checkpoint N+1
     └── transitions = null
 ```
@@ -118,14 +118,14 @@ settled
 
 | Artifact | Candidate / workload-produced | Settled / trusted |
 | --- | --- | --- |
-| PIC Token JWT | workload-signed | PIC-X-signed |
-| PIC PCA COSE | normally not workload-produced in Profile 0.2 centralized flow | PIC-X/trusted-authority-signed checkpoint |
-| PIC Continuity COSE | workload-signed candidate | PIC-X-signed settled |
+| PIC Token JWT | workload-signed | realm-signed |
+| PIC PCA COSE | normally not workload-produced in Profile 0.2 centralized flow | realm-signed checkpoint |
+| PIC Continuity COSE | workload-signed candidate | realm-signed settled |
 | PIC Continuity Transition COSE | workload-signed | not carried as a settled transition after checkpointing |
 
 The workload uses the private key corresponding to the verification key or key identity accepted from its issuer-signed SD-JWT Proof of Relationship. The same workload key intentionally signs the candidate PIC Token JWT, the candidate PIC Continuity COSE, and the PIC Continuity Transition COSE. These are distinct protocol objects with distinct verification boundaries, not duplicate signatures over the same object.
 
-PIC-X signs the new PCA checkpoint, settled Continuity, and settled PIC Token JWT after successful centralized validation.
+PIC-X, acting for the selected realm, uses the realm signing authority for the new PCA checkpoint, settled Continuity, and settled PIC Token JWT after successful centralized validation.
 
 ## Serialization
 
@@ -159,7 +159,7 @@ Settled PIC Token JWT payload shape:
 
 ```json
 {
-  "iss": "http://127.0.0.1:5556/pic-x",
+  "iss": "http://127.0.0.1:5556/realms/acme",
   "sub": "pic-execution-123",
   "aud": "payment-service",
   "iat": 1786422000,
@@ -187,8 +187,8 @@ candidate PIC Token JWT
 → not trusted settled continuity
 
 settled PIC Token JWT
-→ PIC-X-signed
-→ `iss` identifies the PIC-X issuer
+→ realm-signed
+→ `iss` identifies the realm issuer
 → carries settled PIC Continuity COSE
 → trusted after normal signature, revocation, and policy validation
 ```
@@ -351,7 +351,7 @@ New PCA 1 after checkpointing:
 }
 ```
 
-PIC-X creates PCA N+1 by validating the candidate chain, applying accepted attenuation and restrictions to PCA N authority, preserving non-expansion, and signing the resulting checkpoint.
+PIC-X creates PCA N+1 in the selected realm context by validating the candidate chain, applying accepted attenuation and restrictions to PCA N authority, preserving non-expansion, and signing the resulting checkpoint with the realm signing authority.
 
 ## PIC Continuity COSE
 
@@ -674,7 +674,7 @@ PIC Continuity Transition COSE workload signature
 candidate PIC Continuity COSE and candidate PIC Token JWT workload signatures
 → authenticate the workload-produced candidate containers
 
-PIC-X signatures
+realm signatures
 → certify successful centralized validation and checkpointing
 ```
 
@@ -723,10 +723,10 @@ Validation and checkpointing:
 30. materialize the new authority
 31. create new PCA with position = Transition.position
 32. set new PCA.challenge.next_challenge = Transition.challenge.next_challenge
-33. sign new PCA with PIC-X
+33. sign new PCA with the selected realm signing authority
 34. create new settled Continuity with root = new PCA and transitions = null
-35. sign settled Continuity with PIC-X
-36. create and sign new settled PIC Token JWT with PIC-X
+35. sign settled Continuity with the selected realm signing authority
+36. create and sign new settled PIC Token JWT with the selected realm signing authority
 ```
 
 This is checkpointing/compaction:
@@ -739,7 +739,7 @@ validate candidate chain
 → issue new settled token
 ```
 
-PIC-X validates the specific lineage it checkpoints. In Profile 0.2 that lineage is the current trusted PCA checkpoint plus exactly one Transition. The PIC-X signature on the new PCA certifies validation of that selected lineage, and the settled Continuity contains only the new root PCA checkpoint with `transitions = null`; previous PCA and Transition artifacts do not remain embedded. A sibling branch from the same predecessor does not automatically invalidate the selected branch.
+PIC-X validates the specific lineage it checkpoints in the selected realm context. In Profile 0.2 that lineage is the current trusted PCA checkpoint plus exactly one Transition. The realm signature on the new PCA certifies validation of that selected lineage, and the settled Continuity contains only the new root PCA checkpoint with `transitions = null`; previous PCA and Transition artifacts do not remain embedded. A sibling branch from the same predecessor does not automatically invalidate the selected branch.
 
 PIC-to-PIC advancement uses RFC 8693 Token Exchange with the workload-signed candidate PIC Token JWT as the standard `subject_token`:
 

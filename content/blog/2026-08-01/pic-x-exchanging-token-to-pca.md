@@ -2,7 +2,7 @@
 author = "Nicola Gallo"
 title = "Designing PIC-X: Deriving an Initial PIC Context of Authority"
 date = "2026-08-01T10:00:00+02:00"
-description = "This article defines the initial continuity exchange flow of PIC-X. It explains how PIC-X validates an OAuth access token and the initial Continuity Proposal, derives the initial PIC Context of Authority (PCA), issues the initial PIC PCA COSE and PIC Continuity COSE, and returns the first PIC Token JWT. The article describes authority propagation, execution-contract enforcement, authority non-expansion, and the complete lifecycle of the initial exchange. The internal COSE artifact structures are intentionally deferred to a dedicated protocol article."
+description = "This article defines the initial continuity exchange flow of PIC-X. It explains how PIC-X validates an OAuth access token and the initial Continuity Proposal in the selected realm, derives the initial PIC Context of Authority (PCA), issues the initial PIC PCA COSE and PIC Continuity COSE, and returns the first PIC Token JWT. The article describes authority propagation, execution-contract enforcement, authority non-expansion, and the complete lifecycle of the initial exchange. The internal COSE artifact structures are intentionally deferred to a dedicated protocol article."
 tags = ["pic", "pic-x", "authority continuity", "oauth", "token exchange", "exchange profile", "configuration", "security", "authorization", "software engineering", "design"]
 +++
 
@@ -11,7 +11,9 @@ tags = ["pic", "pic-x", "authority continuity", "oauth", "token exchange", "exch
   <figcaption>Designing PIC-X. Deriving an Initial PIC Context of Authority.</figcaption>
 </figure>
 
-PIC-X receives an OAuth access token, validates it, and derives the initial PIC Context of Authority, or PCA. A PCA is the logical Context of Authority. Its signed representation is a PIC PCA COSE. PIC-X then returns a PIC Token JWT carrying a settled PIC Continuity COSE in `pic.root`.
+PIC-X receives an OAuth access token at the selected realm token endpoint, validates it, and derives the initial PIC Context of Authority, or PCA. A PCA is the logical Context of Authority. Its signed representation is a PIC PCA COSE. PIC-X then returns a realm-signed PIC Token JWT carrying a settled PIC Continuity COSE in `pic.root`.
+
+The realm is selected by the endpoint path, for example `POST /realms/acme/token`; no separate realm form parameter is introduced.
 
 ```text
 OAuth access token
@@ -35,7 +37,7 @@ external transport envelope
 ```
 
 
-The application developer is not expected to implement these protocol mechanics by hand. PIC libraries, SDKs, runtimes, or infrastructure components provide the applicable construction, selection, exchange, and verification operations, while PIC-X performs the server-side authority derivation, validation, and signing required by the selected flow.
+The application developer is not expected to implement these protocol mechanics by hand. PIC libraries, SDKs, runtimes, or infrastructure components provide the applicable construction, selection, exchange, and verification operations, while PIC-X performs the server-side authority derivation, validation, and realm-scoped signing required by the selected flow.
 
 > **Info:** The exchange can also be performed by an API gateway, service mesh, or another infrastructure component. In that model, PIC-X remains transparent to the application: the application receives the PIC Token JWT without implementing the exchange flow.
 
@@ -71,7 +73,7 @@ PIC PCA COSE
 → carries challenge.next_challenge
 ```
 
-A **PIC Token JWT** is the external PIC envelope. In the initialization flow, PIC-X returns a PIC-X-signed settled PIC Token JWT whose `pic.root` value carries the current **PIC Continuity COSE**. During later advancement, a workload-produced candidate PIC Token JWT carries a candidate Continuity and exactly one Transition for PIC-X validation; that flow is defined in the token/artifact article.
+A **PIC Token JWT** is the external PIC envelope. In the initialization flow, PIC-X returns a realm-signed settled PIC Token JWT whose `pic.root` value carries the current **PIC Continuity COSE**. During later advancement, a workload-produced candidate PIC Token JWT carries a candidate Continuity and exactly one Transition for PIC-X validation; that flow is defined in the token/artifact article.
 
 ```text
 PIC Token JWT
@@ -86,7 +88,7 @@ PIC Continuity COSE
 → uses transitions = null when settled
 ```
 
-For initialization, PIC-X issues the initial PIC PCA COSE and PIC Continuity COSE, then returns the initial PIC Token JWT:
+For initialization, PIC-X operates in the selected realm context to create the initial PIC PCA COSE and PIC Continuity COSE, then returns the initial PIC Token JWT:
 
 ```text
 PIC PCA COSE 0
@@ -372,7 +374,7 @@ The JSON shown above is the logical application-facing Context of Authority. Whe
 
 Protocol metadata such as `profile`, issuer identity, and issuance metadata belong to the signed PIC Token JWT and PIC COSE artifacts, not to the logical context alone.
 
-After constructing PCA 0, PIC-X issues the initial PIC PCA COSE:
+After constructing PCA 0, PIC-X creates the initial realm-signed PIC PCA COSE:
 
 ```text
 PIC PCA COSE 0
@@ -385,7 +387,7 @@ PIC PCA COSE 0
 
 The PIC PCA COSE signs the initial authority checkpoint and carries `challenge.next_challenge` for the first transition.
 
-PIC-X then issues the initial PIC Continuity COSE, wraps it as `pic.root` in the PIC Token JWT, and returns that PIC Token JWT.
+PIC-X then creates the initial realm-signed PIC Continuity COSE, wraps it as `pic.root` in the realm-signed PIC Token JWT, and returns that PIC Token JWT.
 
 ```text
 PIC Continuity COSE protected header

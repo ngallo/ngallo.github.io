@@ -2,7 +2,7 @@
 author = "Nicola Gallo"
 title = "Designing PIC-X: Exposing Configuration through .well-known/pic-x-configuration"
 date = "2026-08-01T11:00:00+02:00"
-description = "This article defines the PIC-X discovery document exposed through .well-known/pic-x-configuration. It explains the PIC profile of OAuth Token Exchange, PCA initialization and continuity propagation, execution contract binding, supported continuity modes, transport bindings, attestation services, Trusted Anchors, revocation, and transport security."
+description = "This article defines the public discovery architecture of PIC-X. It explains the server-level control-plane discovery document and the per-realm PIC-X discovery document, including issuer metadata, token endpoints, JWKS, PIC authority and continuity capabilities, and the multi-realm trust model."
 tags = ["pic", "pic-x", "authority continuity", "pts", "well-known", "discovery", "configuration", "metadata", "oauth", "token exchange", "pca", "continuity", "security", "software engineering", "design"]
 +++
 
@@ -11,48 +11,96 @@ tags = ["pic", "pic-x", "authority continuity", "pts", "well-known", "discovery"
   <figcaption>Designing PIC-X. Exposing Configuration through .well-known/pic-x-configuration.</figcaption>
 </figure>
 
-When PIC-X starts, it exposes its public configuration at:
+PIC-X exposes public discovery at two levels: the **server control plane** and the **realm issuer plane**.
+
+The server itself is not an issuer. It does not publish token-signing keys and does not issue PIC Token JWTs. Its public discovery document describes the PIC-X instance, its version, the PIC-X profiles it supports, and the realms that the deployment chooses to enumerate publicly.
 
 ```text
-http://127.0.0.1:5556/pic-x/.well-known/pic-x-configuration
+/.well-known/server-configuration
 ```
 
-The document exposes public PIC-X endpoints and supported protocol capabilities. Internal Exchange Profiles are not exposed.
-
-## PIC-X as an Exchange into PIC
-
-PIC-X provides the exchange interface into PIC.
-
-It receives authorization material from an external mechanism, derives PIC authority, and returns a PIC Token JWT.
-
-In the OAuth-based flow described here, the PIC-X token endpoint implements the PIC profile of OAuth Token Exchange.
+Each realm is an isolated trust domain and an issuer in its own right. A realm has its own path, for example:
 
 ```text
-external authorization material
+/realms/acme/
+```
+
+and exposes its own PIC-X discovery document at:
+
+```text
+/realms/acme/.well-known/pic-x-configuration
+```
+
+That realm document publishes the issuer metadata and protocol capabilities needed to interact with that realm, including its `token_endpoint`, `jwks_uri`, supported grants and token types, and PIC-specific authority and continuity capabilities.
+
+The separation is intentional:
+
+- the PIC-X server orchestrates and catalogs; it is not itself an issuer;
+- each realm is an isolated trust domain;
+- each realm owns its token-signing keys;
+- each realm owns its audit trail, pseudonymisation key, and operational lifecycle;
+- a realm may be listed by the server control plane or remain non-enumerated while still being reachable by clients that already know its path.
+
+Conceptually:
+
+```text
+Client
+  |
+  v
+/.well-known/server-configuration
+  |
+  +--> profile: https://pic-protocol.org/profiles/0.2
         |
-        v
-PIC-X
-+-- validates the incoming material
-+-- issues or validates a PIC PCA COSE
-+-- issues a PIC Continuity COSE
-`-- returns a PIC Token JWT
+        +--> realm: acme
+              |
+              v
+        /realms/acme/.well-known/pic-x-configuration
+              |
+              +--> token_endpoint
+              +--> jwks_uri
+              +--> pic_context_of_authority
+              +--> pic_continuity_proposals
+              +--> pic_continuity
 ```
 
-The PIC-X discovery document exposes the public endpoints and protocol capabilities required to perform and verify this exchange.
+## Server-Level Discovery
 
-## PIC-X Discovery Document
+The server-level document is control-plane metadata. It tells a client which PIC-X instance it is talking to, which version is running, which PIC-X profiles are supported, and which realms are publicly listed.
+
+It is deliberately **not** an issuer metadata document:
+
+```text
+/.well-known/server-configuration
+→ describes the PIC-X server/control plane
+→ does not identify a token issuer
+→ does not publish token-signing keys
+→ does not issue PIC Token JWTs
+→ may enumerate public realms
+```
+
+A deployment is not required to enumerate every realm. Non-enumerated realms remain discoverable to clients that know the realm path through their realm-specific PIC-X discovery endpoint. The exact server-configuration JSON schema is outside the scope of this article.
+
+## Realm-Level Discovery
+
+The realm is the issuer boundary. For the example realm `acme`, discovery is exposed at:
+
+```text
+/realms/acme/.well-known/pic-x-configuration
+```
+
+The realm document contains issuer-scoped endpoints, keys, token-exchange metadata, and PIC-specific capabilities. The following example keeps the existing Profile 0.2 capability model but scopes it to the realm:
 
 ```json
 {
-  "issuer": "http://127.0.0.1:5556/pic-x",
+  "issuer": "http://127.0.0.1:5556/realms/acme",
   "profile": "https://pic-protocol.org/profiles/0.2",
 
-  "token_endpoint": "http://127.0.0.1:5556/pic-x/token",
-  "revocation_endpoint": "http://127.0.0.1:5556/pic-x/revoke",
-  "jwks_uri": "http://127.0.0.1:5556/pic-x/keys",
+  "token_endpoint": "http://127.0.0.1:5556/realms/acme/token",
+  "revocation_endpoint": "http://127.0.0.1:5556/realms/acme/revoke",
+  "jwks_uri": "http://127.0.0.1:5556/realms/acme/keys",
 
-  "attestations_endpoint": "http://127.0.0.1:5556/pic-x/attestations",
-  "trust_anchors_endpoint": "http://127.0.0.1:5556/pic-x/trust-anchors",
+  "attestations_endpoint": "http://127.0.0.1:5556/realms/acme/attestations",
+  "trust_anchors_endpoint": "http://127.0.0.1:5556/realms/acme/trust-anchors",
 
   "grant_types_supported": [
     "urn:ietf:params:oauth:grant-type:token-exchange"
@@ -80,26 +128,7 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     "continuity_proposal_type"
   ],
 
-  "continuity_proposals": {
-    "parameter": "continuity_proposal",
-    "type_parameter": "continuity_proposal_type",
-    "types_supported": [
-      "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
-      "https://pic-protocol.org/definitions/proposal-types/continuity"
-    ]
-  },
-
-  "pic_token": {
-    "token_type": "https://pic-protocol.org/definitions/token-types/pic",
-    "formats_supported": [
-      "pic+jwt"
-    ],
-    "signing_alg_values_supported": [
-      "ES256"
-    ]
-  },
-
-  "pca": {
+  "pic_context_of_authority": {
     "formats_supported": [
       "pic-pca+cose"
     ],
@@ -111,7 +140,16 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     ]
   },
 
-  "continuity": {
+  "pic_continuity_proposals": {
+    "parameter": "continuity_proposal",
+    "type_parameter": "continuity_proposal_type",
+    "types_supported": [
+      "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
+      "https://pic-protocol.org/definitions/proposal-types/continuity"
+    ]
+  },
+
+  "pic_continuity": {
     "formats_supported": [
       "pic-continuity+cose"
     ],
@@ -120,12 +158,21 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
     ],
     "continuity_modes_supported": [
       "centralized-continuity"
-    ]
+    ],
+    "transition": {
+      "formats_supported": [
+        "pic-continuity-transition+cose"
+      ],
+      "signing_alg_values_supported": [
+        "ES256"
+      ]
+    }
   },
 
-  "continuity_transition": {
+  "pic_token": {
+    "token_type": "https://pic-protocol.org/definitions/token-types/pic",
     "formats_supported": [
-      "pic-continuity-transition+cose"
+      "pic+jwt"
     ],
     "signing_alg_values_supported": [
       "ES256"
@@ -134,50 +181,38 @@ The PIC-X discovery document exposes the public endpoints and protocol capabilit
 }
 ```
 
-## 1. Issuer and Protocol Profile
+The `pic_context_of_authority`, `pic_continuity_proposals`, and `pic_continuity` names are intentionally explicit. They identify PIC-X profile capabilities rather than generic OAuth server capabilities.
+
+The realm owns the cryptographic and operational trust state behind these endpoints. In particular, `jwks_uri` publishes the realm's token-signing keys, not server-level keys. Realm-local audit data, pseudonymisation key material, and lifecycle state are likewise isolated to that realm and are not part of the server-level discovery document.
+
+## Discovery Flow
+
+A client that starts from the PIC-X server performs discovery in two steps:
+
+```text
+1. GET /.well-known/server-configuration
+2. inspect supported PIC-X profiles and public realm entries
+3. select/follow a realm, for example `acme`
+4. GET /realms/acme/.well-known/pic-x-configuration
+5. read issuer, token_endpoint, jwks_uri, token types, and PIC capabilities
+```
+
+A client that already knows the realm path may start directly from the realm discovery endpoint; server-level enumeration is not a prerequisite for reachability.
+
+## Issuer and Realm Trust Boundary
+
+For a realm document:
 
 ```json
 {
-  "issuer": "http://127.0.0.1:5556/pic-x",
+  "issuer": "http://127.0.0.1:5556/realms/acme",
   "profile": "https://pic-protocol.org/profiles/0.2"
 }
 ```
 
-`issuer` identifies the PIC-X server deployment that publishes this discovery document. It is the server identifier clients use to associate endpoints, keys, and PIC-X-issued artifacts with this deployment.
+`issuer` identifies the realm that issues settled PIC artifacts. Artifacts issued by that realm use the realm issuer identity according to the selected profile. The server-level control plane has no corresponding token issuer identity because it does not mint realm tokens.
 
-`profile` identifies the PIC protocol profile implemented by this PIC-X server configuration and selects the applicable schemas, processing rules, and validation behavior.
-
-PIC-X-issued PIC Token JWTs use the corresponding server identity in their standard JWT `iss` claim according to the selected profile.
-
-The issuer must match the public URL exposed to clients.
-
-## 2. PIC-X Endpoints
-
-```json
-{
-  "token_endpoint": "http://127.0.0.1:5556/pic-x/token",
-  "revocation_endpoint": "http://127.0.0.1:5556/pic-x/revoke",
-  "jwks_uri": "http://127.0.0.1:5556/pic-x/keys"
-}
-```
-
-```text
-token_endpoint
-→ exposes the PIC profile of OAuth Token Exchange
-
-revocation_endpoint
-→ requests revocation according to the PIC revocation specification
-
-jwks_uri
-→ publishes PIC-X public signing keys used to verify PIC-X-signed settled
-  PIC Token JWTs and PIC-X-signed settled COSE artifacts
-```
-
-The token endpoint and the discovery document are both exposed by PIC-X.
-
-JWK is the published key representation. Implementations use the corresponding key material for the advertised JOSE and COSE algorithms. If a PIC PCA COSE is signed by an authority other than PIC-X, signer trust and key resolution follow the applicable trusted-authority/profile mechanism rather than automatically assuming the PIC-X JWKS.
-
-Candidate PIC Token JWT, candidate PIC Continuity COSE, and PIC Continuity Transition COSE artifacts are signed by workloads, not by PIC-X. PIC-X therefore does not verify their signatures using its own JWKS. Instead, PIC-X verifies candidate and transition signatures using the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules. A workload key is not trusted merely because a key identifier is present in a signed artifact.
+The realm's `jwks_uri` publishes the public keys used to verify realm-signed settled PIC Token JWTs, realm-signed settled PIC Continuity COSE artifacts, and realm-signed PCA checkpoints. Workload-signed candidate PIC Token JWT, candidate PIC Continuity COSE, and PIC Continuity Transition COSE artifacts are still verified through the workload key accepted from the issuer-signed SD-JWT Proof of Relationship and Profile 0.2 validation rules, not through the realm JWKS.
 
 ## 3. PIC Profile of OAuth Token Exchange
 
@@ -207,7 +242,7 @@ PIC PCA COSE
 PIC Token JWT
 → external OAuth-compatible transport envelope
 → carries `pic.root` as PIC Continuity COSE
-→ may be workload-signed candidate or PIC-X-signed settled result
+→ may be workload-signed candidate or realm-signed settled result
 → may carry future `pic.compositions[]` values as additional PIC Continuity COSE artifacts
 
 Initial Continuity Proposal
@@ -299,7 +334,7 @@ continuity_proposal = omitted in current Profile 0.2
 
 The returned artifact is therefore always a PIC Token JWT.
 
-For the first exchange, PIC-X issues the initial PIC PCA COSE and embeds it as the current checkpoint in the settled PIC Continuity COSE carried as `pic.root`.
+For the first exchange, PIC-X operates in the selected realm context to create the initial realm-signed PIC PCA COSE and embed it as the current checkpoint in the settled PIC Continuity COSE carried as `pic.root`.
 
 The returned PIC Token JWT is the external transport envelope. Its `pic.root` value is the centrally trusted PIC Continuity COSE.
 
@@ -312,7 +347,7 @@ In a settled Continuity, `root.pca` is the current trusted PCA checkpoint. After
 The initial exchange receives an OAuth access token and an Initial Continuity Proposal, then returns the first PIC Token JWT.
 
 ```http
-POST /pic-x/token HTTP/1.1
+POST /realms/acme/token HTTP/1.1
 Host: 127.0.0.1:5556
 Content-Type: application/x-www-form-urlencoded
 ```
@@ -379,7 +414,7 @@ https://pic-protocol.org/definitions/proposal-types/continuity
 The workload-signed candidate PIC Token JWT is carried as the standard RFC 8693 `subject_token`.
 
 ```http
-POST /pic-x/token HTTP/1.1
+POST /realms/acme/token HTTP/1.1
 Host: 127.0.0.1:5556
 Content-Type: application/x-www-form-urlencoded
 ```
@@ -427,7 +462,7 @@ PIC-X token exchange
   +-- checkpoints accepted authority into a new PIC PCA COSE
         |
         v
-PIC Token JWT N+1 signed by PIC-X
+realm-signed PIC Token JWT N+1
 `-- pic.root = settled PIC Continuity COSE N+1
     +-- root.pca = new PCA checkpoint N+1
     `-- transitions = null
@@ -463,8 +498,8 @@ Every successful exchange returns a PIC Token JWT.
 
 ```json
 {
-  "attestations_endpoint": "http://127.0.0.1:5556/pic-x/attestations",
-  "trust_anchors_endpoint": "http://127.0.0.1:5556/pic-x/trust-anchors"
+  "attestations_endpoint": "http://127.0.0.1:5556/realms/acme/attestations",
+  "trust_anchors_endpoint": "http://127.0.0.1:5556/realms/acme/trust-anchors"
 }
 ```
 
@@ -564,7 +599,7 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     ]
   },
 
-  "pca": {
+  "pic_context_of_authority": {
     "formats_supported": [
       "pic-pca+cose"
     ],
@@ -576,7 +611,7 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     ]
   },
 
-  "continuity_proposals": {
+  "pic_continuity_proposals": {
     "parameter": "continuity_proposal",
     "type_parameter": "continuity_proposal_type",
     "types_supported": [
@@ -585,7 +620,7 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     ]
   },
 
-  "continuity": {
+  "pic_continuity": {
     "formats_supported": [
       "pic-continuity+cose"
     ],
@@ -594,21 +629,20 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     ],
     "continuity_modes_supported": [
       "centralized-continuity"
-    ]
-  },
-
-  "continuity_transition": {
-    "formats_supported": [
-      "pic-continuity-transition+cose"
     ],
-    "signing_alg_values_supported": [
-      "ES256"
-    ]
+    "transition": {
+      "formats_supported": [
+        "pic-continuity-transition+cose"
+      ],
+      "signing_alg_values_supported": [
+        "ES256"
+      ]
+    }
   }
 }
 ```
 
-Profile 0.2 uses a shared advertised signing algorithm set where the same artifact family has both PIC-X-signed settled and workload-signed candidate forms. This is a Profile 0.2 simplification; future profiles may distinguish PIC-X outbound signing algorithms from externally accepted workload-signature algorithms without defining that future metadata here.
+Profile 0.2 uses a shared advertised signing algorithm set where the same artifact family has both realm-signed settled and workload-signed candidate forms. This is a Profile 0.2 simplification; future profiles may distinguish realm outbound signing algorithms from externally accepted workload-signature algorithms without defining that future metadata here.
 
 ```text
 artifact_hash_alg_values_supported
@@ -623,35 +657,35 @@ pic_token.formats_supported
 
 pic_token.signing_alg_values_supported
 → shared Profile 0.2 algorithms for PIC Token JWT signatures
-→ used by PIC-X for settled PIC Token JWTs
+→ used by the realm for settled PIC Token JWTs
 → accepted by PIC-X for workload-signed candidate PIC Token JWTs
 
-pca.formats_supported
+pic_context_of_authority.formats_supported
 → serialization formats supported for PIC PCA COSE artifacts
 
-pca.signing_alg_values_supported
+pic_context_of_authority.signing_alg_values_supported
 → algorithms used to sign PIC PCA COSE artifacts
 
-continuity.formats_supported
+pic_continuity.formats_supported
 → serialization formats supported for PIC Continuity COSE artifacts
 
-continuity.signing_alg_values_supported
+pic_continuity.signing_alg_values_supported
 → shared Profile 0.2 algorithms for PIC Continuity COSE signatures
-→ used by PIC-X for settled PIC Continuity COSE artifacts
+→ used by the realm for settled PIC Continuity COSE artifacts
 → accepted by PIC-X for workload-signed candidate PIC Continuity COSE artifacts
 
-continuity_transition.formats_supported
+pic_continuity.transition.formats_supported
 → serialization formats supported for PIC Continuity Transition COSE artifacts
 
-continuity_transition.signing_alg_values_supported
+pic_continuity.transition.signing_alg_values_supported
 → signing algorithms accepted by PIC-X for workload-signed PIC Continuity Transition COSE artifacts
 → Transition COSE signature proves possession/control of the PoR-bound workload private key
 → workload key must be accepted from the SD-JWT PoR
 
-pca.execution_contract_binding_methods_supported
+pic_context_of_authority.execution_contract_binding_methods_supported
 → methods used to place or bind the validated execution contract in the PCA
 
-continuity_proposals.types_supported
+pic_continuity_proposals.types_supported
 → proposal types accepted when proposal support material is present
 → current initialization uses `continuity-initial`
 → current PIC-to-PIC advancement omits Continuation Proposal parameters
@@ -660,7 +694,7 @@ continuity_proposals.types_supported
 
 PIC Profile 0.2 uses a JWT/JWS envelope for the external PIC Token JWT and native CBOR/COSE for PIC PCA COSE, PIC Continuity COSE, and PIC Continuity Transition COSE. When COSE artifacts are embedded inside the textual JWT envelope, the enclosing JWT transport must encode those binary values, but the native COSE artifacts remain binary.
 
-PCAs are represented as PIC PCA COSE checkpoint artifacts. A workload-produced candidate PIC Continuity COSE carries the current trusted PCA checkpoint and, in Profile 0.2, exactly one workload-signed PIC Continuity Transition COSE. A PIC-X-issued settled PIC Continuity COSE carries the new trusted PCA checkpoint and `transitions: null`.
+PCAs are represented as PIC PCA COSE checkpoint artifacts. A workload-produced candidate PIC Continuity COSE carries the current trusted PCA checkpoint and, in Profile 0.2, exactly one workload-signed PIC Continuity Transition COSE. A realm-issued settled PIC Continuity COSE carries the new trusted PCA checkpoint and `transitions: null`.
 
 With the `embedded` binding method, PIC-X validates the `executionContract` supplied by the Initial Continuity Proposal and incorporates it into the logical initial PCA as `execution.contract`. When that PCA is serialized as a PIC PCA COSE, the contract is represented in the canonical `execution_contract` section and is therefore protected by the PIC PCA COSE signature.
 
@@ -684,14 +718,14 @@ centralized-continuity
 → PIC-X validates each proposed advancement
 → each candidate Continuity carries exactly one PIC Continuity Transition COSE
 → PIC-X materializes the accepted transition into a new PCA checkpoint
-→ PIC-X issues the next settled PIC Continuity COSE with `transitions: null`
-→ PIC-X returns the next settled PIC Token JWT
+→ the realm issues the next settled PIC Continuity COSE with `transitions: null`
+→ PIC-X returns the next realm-signed settled PIC Token JWT
 ```
 
 The Profile 0.2 continuity model uses the following conceptual structure:
 
 ```text
-PIC-X-signed PIC Token JWT N
+realm-signed PIC Token JWT N
 → carries settled PIC Continuity COSE N in `pic.root`
 → root.pca is current trusted PCA checkpoint N
 → transitions = null
@@ -701,7 +735,7 @@ workload-signed candidate PIC Token JWT
 → root.pca is current trusted PCA checkpoint N
 → transitions = [Transition N+1]
 
-PIC-X-signed PIC Token JWT N+1
+realm-signed PIC Token JWT N+1
 → carries settled PIC Continuity COSE N+1 in `pic.root`
 → root.pca is new trusted PCA checkpoint N+1
 → transitions = null
@@ -820,7 +854,7 @@ The transport binding may change, but the authorization semantics represented by
 
 ## 10. Security Considerations
 
-PIC Token JWTs are signed JWT envelopes. PCAs are represented by signed PIC PCA COSE checkpoint artifacts. Candidate PIC Token JWT and Continuity artifacts are workload-signed proposals; PIC-X-issued PIC Token JWT and Continuity artifacts are trusted settled artifacts after validation.
+PIC Token JWTs are signed JWT envelopes. PCAs are represented by signed PIC PCA COSE checkpoint artifacts. Candidate PIC Token JWT and Continuity artifacts are workload-signed proposals; realm-issued PIC Token JWT and Continuity artifacts are trusted settled artifacts after validation.
 
 Signatures protect integrity and authenticate a signer only after the signing key and its identity binding have been validated. They do not provide confidentiality and do not prevent copying by themselves.
 
@@ -856,6 +890,10 @@ exp
 ```
 
 A profile supporting long-lived PCAs must define how recipients obtain revocation status. The status-list format, offline verification model, detailed replay defenses, and any additional or future proof-of-possession mechanisms remain design topics. Profile 0.2 already uses the PIC Continuity Transition COSE signature as proof of possession/control of the private key corresponding to the workload verification key accepted from the SD-JWT PoR; continuity validation still also depends on predecessor, hash, position, challenge, attenuation, evidence, revocation, and policy checks.
+
+## Multi-Realm PIC-X
+
+PIC-X is therefore orchestrated as a multi-realm platform. The server-level control plane makes the public topology readable; realm discovery defines the issuer boundary and exposes the cryptographic and semantic capabilities of that trust domain. The server catalogs and coordinates, while each realm retains authority over its own keys, audit trail, pseudonymisation state, token lifecycle, and PIC trust semantics.
 
 ## References
 
