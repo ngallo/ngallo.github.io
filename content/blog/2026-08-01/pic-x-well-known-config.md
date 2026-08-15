@@ -178,7 +178,7 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
 }
 ```
 
-The `pic_context_of_authority`, `pic_continuity_proposals`, `pic_continuity_transition`, and `pic_continuity` names are intentionally explicit. They identify PIC-X profile capabilities rather than generic OAuth server capabilities.
+The `pic_context_of_authority`, `pic_continuity_proposals`, `pic_continuity_transition`, `pic_continuity`, and `pic_token` names are intentionally explicit. They identify PIC-X profile capabilities rather than generic OAuth server capabilities.
 
 The realm owns the cryptographic and operational trust state behind these endpoints. In particular, `jwks_uri` publishes the realm's token-signing keys, not server-level keys. Realm-local audit data and lifecycle state are likewise isolated to that realm and are not part of the server-level discovery document.
 
