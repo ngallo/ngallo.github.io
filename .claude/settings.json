@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(hugo --quiet -d /private/tmp/claude-501/-Users-nicolagallo-source-ngallo-ngallo-github-io/b10cf290-6256-4d4c-a1c4-8ba4b568eea0/scratchpad/hugo-build)",
+      "Bash(echo \"BUILD_EXIT=$?\")",
+      "Bash(tamarin-prover --version)",
+      "Bash(proverif -help)",
+      "Bash(brew info *)",
+      "Bash(brew search *)",
+      "Bash(brew tap *)",
+      "Bash(brew install *)",
+      "Bash(set -e)",
+      "Bash(./proverif -help)"
+    ],
+    "additionalDirectories": [
+      "/opt/homebrew/bin"
+    ]
+  }
+}

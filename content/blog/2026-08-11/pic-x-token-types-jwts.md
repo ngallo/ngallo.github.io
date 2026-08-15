@@ -604,6 +604,8 @@ MUST equal accepted Transition.challenge.next_challenge
 
 Position monotonicity is per lineage, not globally unique. Two sibling branches from the same PCA checkpoint may both propose position N+1 with the same `challenge.previous_challenge`; the challenge binds the Transition to the stated predecessor's challenge state, not to a global single-use counter.
 
+Sibling branches are an intentional property of the centralized profile, not a validation gap. They support fan-out and worker-pool patterns in which the successor is unknown when the settled token is emitted: each branch continues the predecessor individually, subject to the full Profile 0.2 advancement validation, and no branch imports or recovers authority from another branch. The residual risk — an unintended eligible workload advancing a disclosed token — is bounded by the realm trust policy, execution-contract conformance, applicable temporal and freshness bounds, revocation, and deployment-level confidentiality of token delivery.
+
 ## Attenuation And Contract Additions
 
 Authority continuity must not expand authority:
@@ -672,6 +674,8 @@ proof_of_relationship.evidence
 ```
 
 Future profiles may define additional Proof of Relationship types, but this article defines only `"sd-jwt"`.
+
+Profile 0.2 `proof_of_relationship` carries relationship evidence; it does not designate the successor. It provides profile-selected evidence from which the verifier validates the accepted issuer/schema relationship and obtains or identifies the PoR-bound workload verification key. The advancing workload then proves control of that key through the required workload signatures. The PoR relation does not prove that the predecessor selected this specific workload as its successor, and it does not by itself establish execution-contract conformance: conformance, non-expansion, request binding, revocation, and policy remain separate validation steps, which may consume attributes disclosed in the PoR evidence. Successor-designating advancement — for example, a profile-defined mechanism that selectively transfers freshness material to a chosen successor — may be defined by a future profile for point-to-point handoffs.
 
 No separate SD-JWT Key Binding JWT (KB-JWT) is required for continuity advancement.
 

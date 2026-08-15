@@ -278,7 +278,7 @@ OAuth Access Token
 Initial Continuity Proposal
 = JSON
 
-SD-JWT Proof of Relationship
+SD-JWT Proof of Relationship evidence
 = RFC 9901 SD-JWT
 = Issuer-signed JWT/JWS + selected Disclosures
 = textual JOSE serialization
@@ -302,7 +302,7 @@ Signer roles stay separate:
 
 ```text
 SD-JWT Issuer / attestation issuer
-→ signs workload Proof of Relationship as JWT/JWS
+→ signs workload relationship evidence as JWT/JWS
 
 Holder / workload runtime
 → selects Disclosures and signs candidate PIC artifacts
@@ -319,8 +319,8 @@ These are distinct protocol roles.
 The disclosed workload attributes below belong to the illustrative deployment schema. Profile 0.2 does not define these claim names, and their presence in the PoR does not by itself establish execution-contract conformance.
 
 ```text
-PoR
-→ issuer-authenticated workload relationship and accepted workload key material
+PoR evidence / validation
+→ supports the accepted workload relationship and identifies accepted workload key material
 
 Transition signature
 → proves control of the workload private key
@@ -329,7 +329,7 @@ executor_evidence / conformance validation
 → separate when required
 ```
 
-The SD-JWT credential alone does not establish Proof of Continuity. In Profile 0.2, concrete relationship acceptance combines the validated PoR credential and PoR-bound workload key with predecessor binding, workload signature verification, position progression, challenge continuity, and any required evidence, revocation, policy, and conformance checks. The configured PoR issuer/schema and those concrete relationship checks are assumed to soundly witness the abstract single-hop PoR relation; the PIC mathematical model and Lean refinement do not prove the cryptographic soundness of that deployment-specific construction.
+The SD-JWT credential alone does not establish Proof of Continuity. In Profile 0.2, the configured PoR issuer/schema and the concrete relationship checks are assumed to soundly witness the abstract single-hop PoR relation. A transition is accepted only when that PoR relation holds and the separate applicable validation checks, including non-expansion, evidence or conformance, request binding, revocation, and policy, also succeed. The PIC mathematical model and Lean refinement prove safety under the PoR bridge assumption; they do not prove the cryptographic soundness of that deployment-specific construction.
 
 This walkthrough uses RFC 9901's `cnf.jwk` form to carry the workload public verification key. PIC Profile 0.2 requires the selected PoR schema to bind or identify that key; it does not make this exact claim path normative here.
 
@@ -944,7 +944,7 @@ transitions = null
 realm-signed PIC Token JWT 1
 ```
 
-The read privilege is gone and cannot reappear later in the same lineage.
+The read privilege is gone and cannot reappear later in the same lineage branch. A sibling branch continued from PCA 0 may still carry it; terminating the predecessor checkpoint itself is a revocation decision.
 
 ## 6. Worker 2: Save And Attenuate
 

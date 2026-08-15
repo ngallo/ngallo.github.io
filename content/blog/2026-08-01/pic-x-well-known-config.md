@@ -300,7 +300,7 @@ The underlying PIC Token JWT and embedded COSE artifacts are transport-independe
 
 PIC artifacts are signed, not encrypted. Signatures protect integrity and identify a signer only after key identity and trust binding have been validated. They do not provide confidentiality and do not prevent copying by themselves.
 
-Possessing a copied PIC Token JWT is distinct from being able to advance continuity. Advancement requires a valid Profile 0.2 relationship, accepted workload key, workload signatures, predecessor, challenge, position, attenuation, revocation, and policy validation.
+Possession of a PIC Token JWT alone is not sufficient to advance continuity: advancement additionally requires an accepted Proof of Relationship, workload signatures verified against the PoR-bound key, predecessor, challenge, and position validation, non-expansive attenuation, execution-contract conformance where required, revocation, and policy validation. Within the set of workloads that can pass those checks, however, the settled PIC Token JWT exposes a continuation opportunity: an eligible workload that receives it may propose its own sibling continuation. Confidentiality of token delivery is therefore an important deployment security control, because disclosure can expose an eligible continuation opportunity to unintended workloads; it is not a substitute for, or a source of, PIC continuity validation.
 
 Deployments still need transport security: TLS for HTTP, mTLS or equivalent peer authentication when required, broker authentication and authorization for messaging systems, and revocation validation for relevant PIC artifacts or continuity state.
 
