@@ -38,7 +38,7 @@ The separation is intentional:
 - the PIC-X server orchestrates and catalogs; it is not itself an issuer;
 - each realm is an isolated trust domain;
 - each realm owns its token-signing keys;
-- each realm owns its audit trail, pseudonymisation key, and operational lifecycle;
+- each realm owns its audit trail and operational lifecycle;
 - a realm may be listed by the server control plane or remain non-enumerated while still being reachable by clients that already know its path.
 
 Conceptually:
@@ -60,6 +60,7 @@ Client
               +--> jwks_uri
               +--> pic_context_of_authority
               +--> pic_continuity_proposals
+              +--> pic_continuity_transition
               +--> pic_continuity
 ```
 
@@ -133,9 +134,6 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
     ],
     "signing_alg_values_supported": [
       "ES256"
-    ],
-    "execution_contract_binding_methods_supported": [
-      "embedded"
     ]
   },
 
@@ -143,6 +141,15 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
     "parameter": "continuity_proposal",
     "types_supported": [
       "https://pic-protocol.org/definitions/proposal-types/continuity-initial"
+    ]
+  },
+
+  "pic_continuity_transition": {
+    "formats_supported": [
+      "pic-continuity-transition+cose"
+    ],
+    "signing_alg_values_supported": [
+      "ES256"
     ]
   },
 
@@ -155,15 +162,7 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
     ],
     "continuity_modes_supported": [
       "centralized-continuity"
-    ],
-    "transition": {
-      "formats_supported": [
-        "pic-continuity-transition+cose"
-      ],
-      "signing_alg_values_supported": [
-        "ES256"
-      ]
-    }
+    ]
   },
 
   "pic_token": {
@@ -178,9 +177,9 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
 }
 ```
 
-The `pic_context_of_authority`, `pic_continuity_proposals`, and `pic_continuity` names are intentionally explicit. They identify PIC-X profile capabilities rather than generic OAuth server capabilities.
+The `pic_context_of_authority`, `pic_continuity_proposals`, `pic_continuity_transition`, and `pic_continuity` names are intentionally explicit. They identify PIC-X profile capabilities rather than generic OAuth server capabilities.
 
-The realm owns the cryptographic and operational trust state behind these endpoints. In particular, `jwks_uri` publishes the realm's token-signing keys, not server-level keys. Realm-local audit data, pseudonymisation key material, and lifecycle state are likewise isolated to that realm and are not part of the server-level discovery document.
+The realm owns the cryptographic and operational trust state behind these endpoints. In particular, `jwks_uri` publishes the realm's token-signing keys, not server-level keys. Realm-local audit data and lifecycle state are likewise isolated to that realm and are not part of the server-level discovery document.
 
 ## Discovery Flow
 
@@ -570,7 +569,7 @@ Example response from the Trusted Anchors endpoint:
 
 ## 8. PIC Token and COSE Capabilities
 
-PIC Token JWT signing, PIC PCA COSE signing, PIC Continuity COSE signing, PIC Continuity Transition COSE signing, execution contract placement or binding, artifact format, signed-artifact hash algorithm, and continuity modes are separate capabilities.
+PIC Token JWT signing, PIC PCA COSE signing, PIC Continuity COSE signing, PIC Continuity Transition COSE signing, artifact format, signed-artifact hash algorithm, and continuity modes are separate capabilities.
 
 The `formats_supported` values are PIC format identifiers. For COSE artifacts, they are not automatically RFC 9596 COSE `typ` values. Artifact hash algorithms describe PIC signed-artifact references, not JOSE/COSE signing algorithms or SD-JWT internal hashing.
 
@@ -580,25 +579,12 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     "sha-256"
   ],
 
-  "pic_token": {
-    "token_type": "https://pic-protocol.org/definitions/token-types/pic",
-    "formats_supported": [
-      "pic+jwt"
-    ],
-    "signing_alg_values_supported": [
-      "ES256"
-    ]
-  },
-
   "pic_context_of_authority": {
     "formats_supported": [
       "pic-pca+cose"
     ],
     "signing_alg_values_supported": [
       "ES256"
-    ],
-    "execution_contract_binding_methods_supported": [
-      "embedded"
     ]
   },
 
@@ -606,6 +592,15 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     "parameter": "continuity_proposal",
     "types_supported": [
       "https://pic-protocol.org/definitions/proposal-types/continuity-initial"
+    ]
+  },
+
+  "pic_continuity_transition": {
+    "formats_supported": [
+      "pic-continuity-transition+cose"
+    ],
+    "signing_alg_values_supported": [
+      "ES256"
     ]
   },
 
@@ -618,15 +613,17 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
     ],
     "continuity_modes_supported": [
       "centralized-continuity"
+    ]
+  },
+
+  "pic_token": {
+    "token_type": "https://pic-protocol.org/definitions/token-types/pic",
+    "formats_supported": [
+      "pic+jwt"
     ],
-    "transition": {
-      "formats_supported": [
-        "pic-continuity-transition+cose"
-      ],
-      "signing_alg_values_supported": [
-        "ES256"
-      ]
-    }
+    "signing_alg_values_supported": [
+      "ES256"
+    ]
   }
 }
 ```
@@ -637,6 +634,34 @@ Profile 0.2 uses a shared advertised signing algorithm set where the same artifa
 artifact_hash_alg_values_supported
 → cryptographic hash algorithms supported for PIC signed-artifact references
 → Profile 0.2 currently uses SHA-256
+
+pic_context_of_authority.formats_supported
+→ serialization formats supported for PIC PCA COSE artifacts
+
+pic_context_of_authority.signing_alg_values_supported
+→ algorithms used to sign PIC PCA COSE artifacts
+
+pic_continuity_proposals.types_supported
+→ proposal `type` values accepted by the realm
+→ each value identifies the applicable proposal schema and semantics
+→ current initialization uses `continuity-initial`
+→ current PIC-to-PIC advancement omits `continuity_proposal`
+
+pic_continuity_transition.formats_supported
+→ serialization formats supported for PIC Continuity Transition COSE artifacts
+
+pic_continuity_transition.signing_alg_values_supported
+→ signing algorithms accepted by PIC-X for workload-signed PIC Continuity Transition COSE artifacts
+→ Transition COSE signature proves possession/control of the PoR-bound workload private key
+→ workload key must be accepted from the SD-JWT PoR
+
+pic_continuity.formats_supported
+→ serialization formats supported for PIC Continuity COSE artifacts
+
+pic_continuity.signing_alg_values_supported
+→ shared Profile 0.2 algorithms for PIC Continuity COSE signatures
+→ used by the realm for settled PIC Continuity COSE artifacts
+→ accepted by PIC-X for workload-signed candidate PIC Continuity COSE artifacts
 
 pic_token.token_type
 → OAuth Token Exchange token type identifier of the external PIC Token JWT
@@ -649,44 +674,13 @@ pic_token.signing_alg_values_supported
 → used by the realm for settled PIC Token JWTs
 → accepted by PIC-X for workload-signed candidate PIC Token JWTs
 
-pic_context_of_authority.formats_supported
-→ serialization formats supported for PIC PCA COSE artifacts
-
-pic_context_of_authority.signing_alg_values_supported
-→ algorithms used to sign PIC PCA COSE artifacts
-
-pic_continuity.formats_supported
-→ serialization formats supported for PIC Continuity COSE artifacts
-
-pic_continuity.signing_alg_values_supported
-→ shared Profile 0.2 algorithms for PIC Continuity COSE signatures
-→ used by the realm for settled PIC Continuity COSE artifacts
-→ accepted by PIC-X for workload-signed candidate PIC Continuity COSE artifacts
-
-pic_continuity.transition.formats_supported
-→ serialization formats supported for PIC Continuity Transition COSE artifacts
-
-pic_continuity.transition.signing_alg_values_supported
-→ signing algorithms accepted by PIC-X for workload-signed PIC Continuity Transition COSE artifacts
-→ Transition COSE signature proves possession/control of the PoR-bound workload private key
-→ workload key must be accepted from the SD-JWT PoR
-
-pic_context_of_authority.execution_contract_binding_methods_supported
-→ methods used to place or bind the validated execution contract in the PCA
-
-pic_continuity_proposals.types_supported
-→ proposal `type` values accepted by the realm
-→ each value identifies the applicable proposal schema and semantics
-→ current initialization uses `continuity-initial`
-→ current PIC-to-PIC advancement omits `continuity_proposal`
-
 ```
 
 PIC Profile 0.2 uses a JWT/JWS envelope for the external PIC Token JWT and native CBOR/COSE for PIC PCA COSE, PIC Continuity COSE, and PIC Continuity Transition COSE. When COSE artifacts are embedded inside the textual JWT envelope, the enclosing JWT transport must encode those binary values, but the native COSE artifacts remain binary.
 
 PCAs are represented as PIC PCA COSE checkpoint artifacts. A workload-produced candidate PIC Continuity COSE carries the exact signed PIC PCA COSE bytes for the current trusted checkpoint and, in Profile 0.2, exactly one workload-signed PIC Continuity Transition COSE. A realm-issued settled PIC Continuity COSE carries the exact signed PIC PCA COSE bytes for the new trusted checkpoint and `transitions: null`.
 
-With the `embedded` binding method, PIC-X validates the `executionContract` supplied by the Initial Continuity Proposal and incorporates it into the logical initial PCA as `execution.contract`. When that PCA is serialized as a PIC PCA COSE, the contract is represented in the canonical `execution_contract` section and is therefore protected by the PIC PCA COSE signature.
+In Profile 0.2, PIC-X validates the `executionContract` supplied by the Initial Continuity Proposal and incorporates it into the logical initial PCA as `execution.contract`. When that PCA is serialized as a PIC PCA COSE, the contract is represented in the canonical `execution_contract` section and is therefore protected by the PIC PCA COSE signature.
 
 Existing execution-contract constraints are not removed, replaced, or weakened during continuity advancement. Accepted transitions may only introduce additional execution constraints through `attenuations.execution_contract.additions`; accepted additions are combined with existing constraints using logical AND and materialized into the new PCA checkpoint.
 
@@ -702,6 +696,8 @@ In the canonical PIC PCA COSE representation, `execution_contract` uses compact 
 Removal attenuation may apply to `identity_context` and `execution.invariants` according to the selected profile/schema. Execution-contract restriction does not use a removal bitmap.
 
 ### Continuity modes
+
+`continuity_modes_supported` describes the supported continuity advancement model. It is not a generic feature or policy bag.
 
 ```text
 centralized-continuity
@@ -883,7 +879,7 @@ A profile supporting long-lived PCAs must define how recipients obtain revocatio
 
 ## Multi-Realm PIC-X
 
-PIC-X is therefore orchestrated as a multi-realm platform. The server-level control plane makes the public topology readable; realm discovery defines the issuer boundary and exposes the cryptographic and semantic capabilities of that trust domain. The server catalogs and coordinates, while each realm retains authority over its own keys, audit trail, pseudonymisation state, token lifecycle, and PIC trust semantics.
+PIC-X is therefore orchestrated as a multi-realm platform. The server-level control plane makes the public topology readable; realm discovery defines the issuer boundary and exposes the cryptographic and semantic capabilities of that trust domain. The server catalogs and coordinates, while each realm retains authority over its own keys, audit trail, token lifecycle, and PIC trust semantics.
 
 ## References
 
