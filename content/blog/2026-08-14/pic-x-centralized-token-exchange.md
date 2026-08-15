@@ -1188,7 +1188,7 @@ PCA 2
 └── invariants = {}
 ```
 
-In this OAuth-based initialization flow, PIC authority is derived from the validated OAuth access token, Exchange Profile, execution contract, and local policy, then checkpointed into PCA 0. Each validated continuation can only preserve or reduce that authority. Different workloads may continue the lineage, but none may replenish authority from privileges they independently hold.
+In this OAuth-based initialization flow, PIC authority is derived from the validated OAuth access token under the Exchange Profile and local policy, constrained by the execution contract, then checkpointed into PCA 0. Each validated continuation can only preserve or reduce that authority. Different workloads may continue the lineage, but none may replenish authority from privileges they independently hold.
 
 ## Related
 

@@ -12,7 +12,8 @@
       "Bash(set -e)",
       "Bash(./proverif -help)",
       "Bash(tamarin-prover --prove PICContinuity.spthy)",
-      "Bash(proverif pic_continuity.pv)"
+      "Bash(proverif pic_continuity.pv)",
+      "Bash(_ZO_DOCTOR=0 proverif pic_continuity.pv)"
     ],
     "additionalDirectories": [
       "/opt/homebrew/bin",
