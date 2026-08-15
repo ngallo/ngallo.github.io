@@ -203,7 +203,7 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
 | --- | --- | --- |
 | PIC Token JWT | `pic+jwt` | External OAuth-compatible envelope carrying `pic.root` and optional future `pic.compositions[]`. |
 | PIC PCA COSE | `pic-pca+cose` | Signed representation of one PIC Context of Authority checkpoint. |
-| PIC Continuity COSE | `pic-continuity+cose` | Signed continuity container carrying `root.pca` and either no proposed transition or one candidate transition. |
+| PIC Continuity COSE | `pic-continuity+cose` | Signed continuity container carrying `root.pca` and, in Profile 0.2, either no proposed transition or exactly one candidate transition. |
 | PIC Continuity Transition COSE | `pic-continuity-transition+cose` | Workload-signed causal authority transition. |
 | Initial Continuity Proposal | `application/json` | Self-describing JSON proposal used before PIC continuity exists. |
 
