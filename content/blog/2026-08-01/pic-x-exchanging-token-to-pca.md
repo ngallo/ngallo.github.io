@@ -46,11 +46,11 @@ The application developer is not expected to implement these protocol mechanics 
 
 The remaining sections explain how PIC-X performs the first exchange.
 
-The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. Initialization uses a `continuity_proposal` input. Current Profile 0.2 PIC-to-PIC advancement carries the workload-signed candidate PIC Token JWT as the standard RFC 8693 `subject_token` and omits `continuity_proposal`; future profiles may define optional Continuation Proposal support material. The proposal type identifies which schema and validation rules apply when proposal material is present.
+The `exchange` operation will be exposed through a PIC-specific OAuth Token Exchange Profile. Initialization uses a self-describing `continuity_proposal` input. Current Profile 0.2 PIC-to-PIC advancement carries the workload-signed candidate PIC Token JWT as the standard RFC 8693 `subject_token` and omits `continuity_proposal`; future profiles may define additional self-describing Continuity Proposal types with their own definition URIs and schemas.
 
-The Initial Continuity Proposal is used before PIC continuity exists. Continuation Proposal support material may be used later for centralized advancement when required by a future selected profile/schema; it is not the PIC Token JWT or the PIC Continuity Transition COSE.
+The Initial Continuity Proposal is used before PIC continuity exists. It carries a `type` member whose value identifies the proposal definition/schema and determines how the remaining proposal payload is interpreted and validated. Current Profile 0.2 defines `https://pic-protocol.org/definitions/proposal-types/continuity-initial` for this purpose.
 
-The value of `continuity_proposal` is produced by serializing the proposal as compact UTF-8 JSON and applying unpadded Base64url encoding. The exact proposal schemas and any future cryptographic protection applied to a proposal are outside the scope of this article.
+The value of `continuity_proposal` is produced by serializing the proposal object as compact UTF-8 JSON and applying unpadded Base64url encoding. The proposal object is not a JWT or COSE artifact, and the exact schemas for any future proposal types are outside the scope of this article.
 
 
 ## PCA and PIC Token
@@ -423,14 +423,13 @@ PIC Token JWT 0
 
 The internal COSE structures are intentionally deferred to a dedicated protocol article.
 
-A **Continuity Proposal** is structured input used when continuity is initialized or when a future centralized advancement profile needs support material. Current Profile 0.2 PIC-to-PIC advancement omits it. The Initial Continuity Proposal and Continuation Proposal use different type identifiers and may have different schemas:
+A **Continuity Proposal** is structured input used when continuity is initialized or when a future centralized advancement profile needs support material. The proposal object is self-describing: its `type` member identifies the applicable proposal definition/schema, required and optional payload members, and validation rules. Current Profile 0.2 defines only the Initial Continuity Proposal type:
 
 ```text
 https://pic-protocol.org/definitions/proposal-types/continuity-initial
-https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-In this article, the Initial Continuity Proposal contains the execution contract and is used before PIC continuity exists. Continuation Proposal details are intentionally deferred to a dedicated protocol article; a Continuation Proposal is optional support material, not the PIC Token JWT, the candidate PIC Token JWT, or the PIC Continuity Transition COSE.
+In this article, the Initial Continuity Proposal contains the execution contract and is used before PIC continuity exists. Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal`; future profiles may define additional self-describing Continuity Proposal types when a concrete schema exists.
 
 
 `execution.invariants` carries the authority that must be preserved or attenuated across continuity.  
@@ -438,13 +437,13 @@ In this article, the Initial Continuity Proposal contains the execution contract
 
 ## 5. Providing the Initial Continuity Proposal
 
-The initialization exchange uses a `continuity_proposal` whose type is:
+The initialization exchange uses a self-describing `continuity_proposal`. Its JSON object carries:
 
 ```text
-https://pic-protocol.org/definitions/proposal-types/continuity-initial
+type = https://pic-protocol.org/definitions/proposal-types/continuity-initial
 ```
 
-The initial proposal contains the execution contract and may contain additional initialization material when defined by the selected PIC profile. Its complete schema is intentionally deferred to a dedicated protocol article.
+That definition URI identifies the Initial Continuity Proposal schema and validation semantics. The Initial Continuity Proposal contains the execution contract and may contain additional initialization material defined by its proposal type and permitted by the selected PIC profile.
 
 ```text
 picToken0 = picX.exchange(
@@ -459,6 +458,7 @@ Example Initial Continuity Proposal before Base64url encoding:
 
 ```json
 {
+  "type": "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
   "executionContract": {
     "corporation": "acme",
     "departments": [

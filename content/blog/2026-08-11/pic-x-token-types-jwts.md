@@ -74,18 +74,17 @@ realm-signed PIC Token JWT N+1
 
 The accepted transition is materialized into the new PCA checkpoint. The settled Continuity does not carry accepted transitions forward.
 
-## Artifact Registry
+## Protocol Definitions
 
 Definition URIs are stable semantic protocol identifiers. They identify protocol concepts and are not required to resolve to a retrievable web resource.
 
-| Artifact | Definition URI | Format | Type | Purpose |
+| Protocol Object | Definition URI | Format | Type | Purpose |
 | --- | --- | --- | --- | --- |
 | PIC Token JWT | `https://pic-protocol.org/definitions/token-types/pic` | `pic+jwt` | JOSE `pic+jwt` | External OAuth-compatible envelope carrying `pic.root` and optional future `pic.compositions[]`. |
 | PIC PCA COSE | None | `pic-pca+cose` | COSE_Sign1; `typ` deferred | Signed trusted authority checkpoint representation. |
 | PIC Continuity COSE | None | `pic-continuity+cose` | COSE_Sign1; `typ` deferred | Signed continuity container carrying a trusted PCA checkpoint and either no proposed transitions (`null`) or a proposed transition chain. |
 | PIC Continuity Transition COSE | None | `pic-continuity-transition+cose` | COSE_Sign1; `typ` deferred | Workload-signed causal authority transition. |
-| Initial Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity-initial` | `application/json` | `N_A` | Supplies initialization material, including `executionContract` in the flow described here. |
-| Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity` | `application/json` | `N_A` | Optional profile-defined support material for centralized advancement. |
+| Initial Continuity Proposal | `https://pic-protocol.org/definitions/proposal-types/continuity-initial` | `application/json` | `N_A` | Self-describing JSON proposal whose `type` is `https://pic-protocol.org/definitions/proposal-types/continuity-initial`; supplies initialization material, including `executionContract` in the flow described here. |
 
 The COSE format values are PIC discovery format identifiers. Exact RFC 9596 COSE `typ` values, CBOR integer labels, byte-level canonical encodings, and exact serialized sizes are deferred.
 
@@ -392,7 +391,7 @@ transitions = null
 → settled continuity / no pending advancement
 
 transitions = [ ... ]
-→ candidate continuity with proposed transition chain
+→ candidate continuity with an ordered proposed transition chain
 ```
 
 Profile 0.2 centralized rules:
@@ -405,7 +404,7 @@ candidate Continuity
 → transitions MUST be an array of exactly one PIC Continuity Transition COSE
 ```
 
-Future decentralized profiles may allow more than one transition. Profile 0.2 does not.
+Future decentralized profiles may allow more than one ordered transition in the array. Profile 0.2 does not. Transitions are not an Indexed Authority Map section: no Profile 0.2 bitmap or protocol operation addresses transitions by section-local map index, and each Transition already carries its own `position` and predecessor relationship.
 
 Settled Continuity 0:
 
@@ -470,6 +469,11 @@ execution-contract-addition = [
   canonical-value
 ]
 
+proof-of-relationship = {
+  type: tstr,
+  evidence: bstr
+}
+
 pic-continuity-transition-payload = {
   profile: tstr,
   position: uint,
@@ -498,7 +502,7 @@ pic-continuity-transition-payload = {
     }
   },
 
-  proof_of_relationship: bstr,
+  proof_of_relationship: proof-of-relationship,
   ? request_digest: bstr,
   ? executor_evidence: any
 }
@@ -551,11 +555,14 @@ Transition 1:
     }
   },
 
-  "proof_of_relationship": h'73642d6a77742d70726573656e746174696f6e'
+  "proof_of_relationship": {
+    "type": "sd-jwt",
+    "evidence": h'73642d6a77742d70726573656e746174696f6e'
+  }
 }
 ```
 
-The `proof_of_relationship` byte string shown above is an illustrative placeholder for the exact UTF-8 bytes of a real issuer-signed Profile 0.2 SD-JWT presentation. It is not a complete valid SD-JWT example.
+The `proof_of_relationship.evidence` byte string shown above is an illustrative placeholder for the exact UTF-8 bytes of a real issuer-signed Profile 0.2 SD-JWT presentation. The `proof_of_relationship.type` value `"sd-jwt"` identifies how those bytes are parsed and validated. It is not a complete valid SD-JWT example.
 
 ## Challenge And Position
 
@@ -649,13 +656,22 @@ When PIC-X creates PCA N+1, the new PCA contains the materialized resulting auth
 
 ## Proof Of Relationship
 
-Profile 0.2 uses an issuer-signed SD-JWT presentation as the Proof of Relationship credential carried by `proof_of_relationship`.
+Profile 0.2 uses an issuer-signed SD-JWT presentation as the Proof of Relationship evidence carried inside `proof_of_relationship`.
 
 ```text
 proof_of_relationship
+→ typed container
+
+proof_of_relationship.type
+→ "sd-jwt"
+→ identifies how proof_of_relationship.evidence is parsed and validated
+
+proof_of_relationship.evidence
 → bstr
 → exact UTF-8 bytes of issuer-signed Profile 0.2 SD-JWT presentation
 ```
+
+Future profiles may define additional Proof of Relationship types, but this article defines only `"sd-jwt"`.
 
 No separate SD-JWT Key Binding JWT (KB-JWT) is required for continuity advancement.
 
@@ -682,7 +698,7 @@ The signed Transition payload binds the workload key to predecessor, challenge v
 
 The Transition signature is proof of key control, not continuity by itself. Continuity validation is the complete causal validation relationship: trusted predecessor, predecessor hash, per-lineage position progression, challenge continuity, validated SD-JWT PoR, workload signature, attenuation/non-expansion, request/evidence checks when required, revocation, and local policy.
 
-`executor_evidence` remains separate from PoR. PoR alone does not prove runtime behavior or execution-contract conformance.
+`proof_of_relationship.evidence` is evidence for the relationship and workload-key binding selected by `proof_of_relationship.type`. `executor_evidence` remains separate runtime, execution, or conformance evidence when required. PoR alone does not prove runtime behavior or execution-contract conformance.
 
 The configured PoR issuer/schema and concrete relationship checks are assumed to soundly witness the abstract single-hop PoR relation. The PIC model and Lean refinement prove safety under that bridge assumption; they do not prove the cryptographic soundness of a deployment-specific SD-JWT, issuer, runtime, or attestation construction.
 
@@ -700,8 +716,8 @@ Validation and checkpointing:
 5. check untrusted Continuity shape: `root.pca`, `root.pca_hash`, and `transitions`
 6. require `transitions` to contain exactly one transition
 7. decode that PIC Continuity Transition COSE as untrusted input
-8. extract `proof_of_relationship`
-9. parse `proof_of_relationship` as issuer-signed Profile 0.2 SD-JWT presentation bytes
+8. extract `proof_of_relationship`, validate `proof_of_relationship.type`, and require `"sd-jwt"` for current Profile 0.2
+9. parse `proof_of_relationship.evidence` as issuer-signed Profile 0.2 SD-JWT presentation bytes
 10. validate the SD-JWT issuer signature and issuer trust
 11. validate required PoR disclosures and claims
 12. obtain or resolve the workload verification key or key identity accepted from PoR
@@ -752,7 +768,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &requested_token_type=https://pic-protocol.org/definitions/token-types/pic
 ```
 
-Current Profile 0.2 omits `continuity_proposal` and `continuity_proposal_type` for PIC-to-PIC advancement. Future profiles may define optional Continuation Proposal support material without making it the Transition or the candidate token.
+Current Profile 0.2 omits `continuity_proposal` for PIC-to-PIC advancement. Future profiles may define additional self-describing Continuity Proposal types with their own definition URIs and schemas without making them the Transition or the candidate token.
 
 ## Future Decentralized Chains
 
@@ -785,7 +801,7 @@ checkpoint / compaction
 new PCA checkpoint M
 ```
 
-In that model, `transitions` may contain multiple transitions, and `predecessor.type = "transition"` may point to the exact signed predecessor Transition COSE bytes. Periodic trusted checkpointing can compact a validated subchain into a new PCA whose `position` is the highest accepted transition position. This article does not define decentralized Profile 0.2 behavior.
+In that model, `transitions` may contain multiple transitions as an ordered array, and `predecessor.type = "transition"` may point to the exact signed predecessor Transition COSE bytes. Periodic trusted checkpointing can compact a validated subchain into a new PCA whose `position` is the highest accepted transition position. This article does not define decentralized Profile 0.2 behavior.
 
 Future decentralized profiles are expected to require explicit producer identification for independently attributable chained artifacts. The exact identifier claim or schema remains future-profile-defined.
 

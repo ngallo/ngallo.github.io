@@ -124,8 +124,7 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
   ],
 
   "token_exchange_parameters_supported": [
-    "continuity_proposal",
-    "continuity_proposal_type"
+    "continuity_proposal"
   ],
 
   "pic_context_of_authority": {
@@ -142,10 +141,8 @@ The realm document contains issuer-scoped endpoints, keys, token-exchange metada
 
   "pic_continuity_proposals": {
     "parameter": "continuity_proposal",
-    "type_parameter": "continuity_proposal_type",
     "types_supported": [
-      "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
-      "https://pic-protocol.org/definitions/proposal-types/continuity"
+      "https://pic-protocol.org/definitions/proposal-types/continuity-initial"
     ]
   },
 
@@ -224,7 +221,7 @@ urn:ietf:params:oauth:grant-type:token-exchange
 
 The current profile advertises `token_endpoint_auth_methods_supported` as `none`. The caller is not separately authenticated as an OAuth client. PIC-X still validates the supplied subject token and all PIC artifacts before issuing a result.
 
-The PIC-X Token Exchange Profile uses stable definition URIs for token and proposal types. The selected PIC profile determines the applicable schemas, validation rules, and protocol behavior. The `continuity_proposal` and `continuity_proposal_type` parameters, together with the related discovery members, are defined by the PIC Token Exchange Profile.
+The PIC-X Token Exchange Profile uses stable definition URIs for token and proposal types. The selected PIC profile determines the applicable schemas, validation rules, and protocol behavior. The `continuity_proposal` parameter and related discovery members are defined by the PIC Token Exchange Profile; the proposal object carries its own `type` value.
 
 PIC uses the following concepts:
 
@@ -245,13 +242,13 @@ PIC Token JWT
 → may be workload-signed candidate or realm-signed settled result
 → may carry future `pic.compositions[]` values as additional PIC Continuity COSE artifacts
 
-Initial Continuity Proposal
-→ input used before continuity exists
-→ supplies initialization material such as executionContract
+Continuity Proposal
+→ self-describing structured proposal object carried in `continuity_proposal`
+→ contains a `type` member identifying the applicable proposal schema
 
-Continuation Proposal
-→ optional/profile-defined support material for later centralized advancement
-→ is not the transition and is not the settled result
+Initial Continuity Proposal
+→ current Profile 0.2 proposal type used before continuity exists
+→ supplies initialization material such as executionContract
 
 PIC Continuity COSE
 → signed continuity container
@@ -271,14 +268,13 @@ The profile and definition identifiers used in this article are:
 https://pic-protocol.org/profiles/0.2
 https://pic-protocol.org/definitions/token-types/pic
 https://pic-protocol.org/definitions/proposal-types/continuity-initial
-https://pic-protocol.org/definitions/proposal-types/continuity
 ```
 
-The initial and continuation proposal types may use different schemas. Their exact fields, supporting evidence, cryptographic binding, and validation rules are intentionally deferred to a dedicated protocol article. Proof of Relationship is carried by PIC Continuity Transition COSE artifacts according to the selected profile.
+The proposal object's `type` member selects the proposal definition/schema, required and optional members, validation rules, and how accepted proposal material is used by the selected exchange profile. Proof of Relationship is carried by PIC Continuity Transition COSE artifacts according to the selected profile.
 
-The Initial Continuity Proposal is used by the OAuth-based initialization flow before PIC continuity exists. A Continuation Proposal is optional support material used only when required by a selected advancement profile/schema; it is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE. Current Profile 0.2 PIC-to-PIC advancement omits both `continuity_proposal` and `continuity_proposal_type`.
+The Initial Continuity Proposal is used by the OAuth-based initialization flow before PIC continuity exists. Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal`. Future profiles may define additional self-describing Continuity Proposal types with their own definition URIs and schemas when concrete support material is needed.
 
-When present, the value of `continuity_proposal` is the unpadded Base64url encoding of the compact UTF-8 JSON serialization of the proposal object. This transport encoding does not by itself make the proposal a JWT, COSE artifact, or signed object.
+When present, the value of `continuity_proposal` is the unpadded Base64url encoding of the compact UTF-8 JSON serialization of the proposal object, including its `type` member. This transport encoding does not by itself make the proposal a JWT, COSE artifact, or signed object.
 
 The PIC-X exchange response returns a PIC Token JWT:
 
@@ -295,8 +291,7 @@ The PIC-X exchange response returns a PIC Token JWT:
     "https://pic-protocol.org/definitions/token-types/pic"
   ],
   "token_exchange_parameters_supported": [
-    "continuity_proposal",
-    "continuity_proposal_type"
+    "continuity_proposal"
   ]
 }
 ```
@@ -312,7 +307,7 @@ https://pic-protocol.org/definitions/token-types/pic
   using a workload-signed candidate PIC Token JWT
 ```
 
-`token_exchange_parameters_supported` advertises extension parameters supported by this profile. The initial exchange uses `continuity_proposal` and `continuity_proposal_type`; current Profile 0.2 PIC-to-PIC advancement omits them unless a future profile defines Continuation Proposal support material.
+`token_exchange_parameters_supported` advertises extension parameters supported by this profile. The initial exchange uses `continuity_proposal`; current Profile 0.2 PIC-to-PIC advancement omits it. Proposal type values are carried inside the proposal JSON as `type`.
 
 PIC-X exposes one exchange interface with two continuity flows:
 
@@ -321,6 +316,7 @@ INITIAL EXCHANGE
 
 subject_token = OAuth access token
 continuity_proposal = Initial Continuity Proposal
+                      proposal.type = https://pic-protocol.org/definitions/proposal-types/continuity-initial
 → PIC-X
 → settled PIC Token JWT 0
 
@@ -357,14 +353,14 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token=<oauth-access-token>
 &subject_token_type=urn:ietf:params:oauth:token-type:access_token
 &requested_token_type=https://pic-protocol.org/definitions/token-types/pic
-&continuity_proposal=<initial-proposal>
-&continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity-initial
+&continuity_proposal=<base64url-self-describing-initial-proposal>
 ```
 
-Conceptual Initial Continuity Proposal before Base64url encoding:
+Conceptual self-describing Initial Continuity Proposal before Base64url encoding:
 
 ```json
 {
+  "type": "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
   "executionContract": {
     "corporation": "acme",
     "departments": [
@@ -403,13 +399,7 @@ Example response:
 
 In PIC Profile 0.2, continuity advancement is PIC-X-mediated. The workload assembles a workload-signed candidate PIC Token JWT. That candidate carries a workload-signed candidate PIC Continuity COSE whose `root.pca` contains the exact signed PIC PCA COSE bytes for the current trusted checkpoint and whose `transitions` array contains exactly one workload-signed PIC Continuity Transition COSE.
 
-Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal` and `continuity_proposal_type`. A future profile may define optional Continuation Proposal support material; it is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE.
-
-When Continuation Proposal support material is used, its type is:
-
-```text
-https://pic-protocol.org/definitions/proposal-types/continuity
-```
+Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal`. Future profiles may define additional self-describing Continuity Proposal types with their own definition URIs and schemas if later support material is needed. Such support material is not the PIC Token JWT, the PIC Continuity Transition COSE, or the settled PIC Continuity COSE.
 
 The workload-signed candidate PIC Token JWT is carried as the standard RFC 8693 `subject_token`.
 
@@ -439,7 +429,7 @@ requested_token_type
 → PIC Token JWT N+1
 ```
 
-PIC-X parses the candidate PIC Token JWT, candidate PIC Continuity COSE, and embedded Transition as untrusted input. It validates the issuer-signed SD-JWT Proof of Relationship first to obtain the accepted workload verification key, then verifies the workload signatures over the Transition, candidate Continuity, and candidate JWT before applying predecessor, position, challenge, execution-contract constraints, attenuation, non-expansion, revocation, local policy, and evidence/conformance checks when required.
+PIC-X parses the candidate PIC Token JWT, candidate PIC Continuity COSE, and embedded Transition as untrusted input. It validates `proof_of_relationship.type`, requires `"sd-jwt"` for current Profile 0.2, and parses `proof_of_relationship.evidence` as the issuer-signed SD-JWT Proof of Relationship to obtain the accepted workload verification key. It then verifies the workload signatures over the Transition, candidate Continuity, and candidate JWT before applying predecessor, position, challenge, execution-contract constraints, attenuation, non-expansion, revocation, local policy, and evidence/conformance checks when required.
 
 ```text
 candidate PIC Token JWT
@@ -455,7 +445,7 @@ with the private key accepted from the SD-JWT PoR
 PIC-X token exchange
         |
   +-- parses candidate token, Continuity, and Transition as untrusted
-  +-- validates SD-JWT PoR/key binding and obtains workload key
+  +-- validates PoR type and SD-JWT evidence/key binding, then obtains workload key
   +-- verifies transition, candidate Continuity, and candidate token signatures
   +-- validates the trusted current PIC PCA COSE checkpoint artifact
   +-- validates predecessor, position, challenge, PoR, attenuation, non-expansion, and policy
@@ -551,7 +541,7 @@ Example response from the attestations endpoint:
 
 Trusted Anchor capabilities belong to each anchor.
 
-Profile 0.2 uses issuer-signed SD-JWT presentation bytes for `proof_of_relationship` in PIC Continuity Transition COSE. SD-JWT support does not make every issuer automatically trusted for PoR; trust depends on the selected Profile 0.2 trust configuration and issuer/key validation rules. The `proof_of_possession_methods_supported` values shown for attestation issuers describe generic attestation issuance capabilities; they do not mean Profile 0.2 continuity advancement requires a separate JWS nonce proof or KB-JWT.
+Profile 0.2 uses `proof_of_relationship.type = "sd-jwt"` and issuer-signed SD-JWT presentation bytes in `proof_of_relationship.evidence` for PIC Continuity Transition COSE. SD-JWT support does not make every issuer automatically trusted for PoR; trust depends on the selected Profile 0.2 trust configuration and issuer/key validation rules. The `proof_of_possession_methods_supported` values shown for attestation issuers describe generic attestation issuance capabilities; they do not mean Profile 0.2 continuity advancement requires a separate JWS nonce proof or KB-JWT.
 
 Example response from the Trusted Anchors endpoint:
 
@@ -614,10 +604,8 @@ The `formats_supported` values are PIC format identifiers. For COSE artifacts, t
 
   "pic_continuity_proposals": {
     "parameter": "continuity_proposal",
-    "type_parameter": "continuity_proposal_type",
     "types_supported": [
-      "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
-      "https://pic-protocol.org/definitions/proposal-types/continuity"
+      "https://pic-protocol.org/definitions/proposal-types/continuity-initial"
     ]
   },
 
@@ -687,9 +675,10 @@ pic_context_of_authority.execution_contract_binding_methods_supported
 → methods used to place or bind the validated execution contract in the PCA
 
 pic_continuity_proposals.types_supported
-→ proposal types accepted when proposal support material is present
+→ proposal `type` values accepted by the realm
+→ each value identifies the applicable proposal schema and semantics
 → current initialization uses `continuity-initial`
-→ current PIC-to-PIC advancement omits Continuation Proposal parameters
+→ current PIC-to-PIC advancement omits `continuity_proposal`
 
 ```
 

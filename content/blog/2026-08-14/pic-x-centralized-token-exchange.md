@@ -68,10 +68,11 @@ documents:read:document-42
 storage:save
 ```
 
-The Initial Continuity Proposal supplies execution constraints:
+The self-describing Initial Continuity Proposal supplies execution constraints:
 
 ```json
 {
+  "type": "https://pic-protocol.org/definitions/proposal-types/continuity-initial",
   "executionContract": {
     "corporation": "ACME",
     "department": "sensitive-documents"
@@ -79,7 +80,7 @@ The Initial Continuity Proposal supplies execution constraints:
 }
 ```
 
-The execution contract constrains execution. It does not grant authority.
+The execution contract constrains execution. It does not grant authority. The `type` member identifies the proposal definition/schema before the remaining proposal payload is interpreted.
 
 Initialization uses RFC 8693 Token Exchange:
 
@@ -92,8 +93,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token=<oauth-access-token>
 &subject_token_type=urn:ietf:params:oauth:token-type:access_token
 &requested_token_type=https://pic-protocol.org/definitions/token-types/pic
-&continuity_proposal_type=https://pic-protocol.org/definitions/proposal-types/continuity-initial
-&continuity_proposal=eyJleGVjdXRpb25Db250cmFjdCI6eyJjb3Jwb3JhdGlvbiI6IkFDTUUiLCJkZXBhcnRtZW50Ijoic2Vuc2l0aXZlLWRvY3VtZW50cyJ9fQ
+&continuity_proposal=<base64url-self-describing-initial-proposal>
 ```
 
 ## 2. OAuth -> PCA 0
@@ -296,7 +296,7 @@ PIC Continuity Transition COSE
 = CBOR/COSE
 ```
 
-The Transition is CBOR/COSE. Its `proof_of_relationship` field is a CBOR `bstr` containing the exact UTF-8 bytes of the textual SD-JWT presentation string.
+The Transition is CBOR/COSE. Its `proof_of_relationship` field is a typed container. In this Profile 0.2 walkthrough, `proof_of_relationship.type = "sd-jwt"` and `proof_of_relationship.evidence` is a CBOR `bstr` containing the exact UTF-8 bytes of the textual SD-JWT presentation string.
 
 Signer roles stay separate:
 
@@ -532,7 +532,8 @@ Issuer-signed SD-JWT/JWS
         v
 RFC 9901 SD-JWT presentation
         |
-        | exact UTF-8 bytes become Transition.proof_of_relationship
+        | exact UTF-8 bytes become Transition.proof_of_relationship.evidence
+        | Transition.proof_of_relationship.type = "sd-jwt"
         v
 Worker 1 runtime
         (private key matching cnf.jwk)
@@ -750,11 +751,14 @@ Transition 1 payload:
     }
   },
 
-  "proof_of_relationship": <exact UTF-8 bytes of Worker 1 SD-JWT presentation string>
+  "proof_of_relationship": {
+    "type": "sd-jwt",
+    "evidence": <exact UTF-8 bytes of Worker 1 SD-JWT presentation string>
+  }
 }
 ```
 
-The value inside `proof_of_relationship` is not a COSE-encoded SD-JWT. It is the byte-string representation of the exact textual RFC 9901 SD-JWT presentation.
+The value inside `proof_of_relationship.evidence` is not a COSE-encoded SD-JWT. It is the byte-string representation of the exact textual RFC 9901 SD-JWT presentation. The `proof_of_relationship.type` value `"sd-jwt"` tells PIC-X how to parse and validate that evidence.
 
 Transition 1 COSE:
 
@@ -820,14 +824,15 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &requested_token_type=https://pic-protocol.org/definitions/token-types/pic
 ```
 
-Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal` and `continuity_proposal_type`.
+Current Profile 0.2 PIC-to-PIC advancement omits `continuity_proposal`.
 
 PIC-X receives the candidate as untrusted input:
 
 ```text
 parse PIC JWT / Continuity / Transition
         |
-        +-- parse Issuer-signed SD-JWT + selected Disclosures
+        +-- validate proof_of_relationship.type = "sd-jwt"
+        +-- parse proof_of_relationship.evidence as Issuer-signed SD-JWT + selected Disclosures
         +-- verify issuer JWS signature and issuer trust
         +-- validate _sd_alg
         +-- Base64url decode each selected Disclosure
@@ -1009,7 +1014,10 @@ Transition 2 payload:
     }
   },
 
-  "proof_of_relationship": <exact UTF-8 bytes of Worker 2 SD-JWT presentation string>
+  "proof_of_relationship": {
+    "type": "sd-jwt",
+    "evidence": <exact UTF-8 bytes of Worker 2 SD-JWT presentation string>
+  }
 }
 ```
 
@@ -1023,7 +1031,7 @@ Worker 2 private key
    `--> candidate PIC Token JWT JWS signature
 ```
 
-PIC-X applies the same Profile 0.2 validation pattern: RFC 9901 SD-JWT verification, accepted Worker 2 public key, three workload signatures, trusted PCA 1, predecessor hash, position, challenge continuity, attenuation, execution-contract constraints, executor evidence/conformance when required, revocation, policy, and non-expansion.
+PIC-X applies the same Profile 0.2 validation pattern: `proof_of_relationship.type = "sd-jwt"`, RFC 9901 SD-JWT verification from `proof_of_relationship.evidence`, accepted Worker 2 public key, three workload signatures, trusted PCA 1, predecessor hash, position, challenge continuity, attenuation, execution-contract constraints, executor evidence/conformance when required, revocation, policy, and non-expansion.
 
 ### PCA 2 Materialized
 
@@ -1115,7 +1123,8 @@ Issuer-signed SD-JWT/JWS
         v
 privacy-minimized RFC 9901 SD-JWT presentation
         |
-        | exact UTF-8 bytes become Transition.proof_of_relationship
+        | exact UTF-8 bytes become Transition.proof_of_relationship.evidence
+        | Transition.proof_of_relationship.type = "sd-jwt"
         v
 Worker runtime
 (private key matching cnf.jwk)
@@ -1152,6 +1161,7 @@ OAuth Access Token
 └── storage:save
         +
 Initial Continuity Proposal
+├── type = https://pic-protocol.org/definitions/proposal-types/continuity-initial
 ├── corporation = ACME
 └── department = sensitive-documents
         |
