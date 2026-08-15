@@ -62,6 +62,7 @@ Client
               +--> pic_continuity_proposals
               +--> pic_continuity_transition
               +--> pic_continuity
+              +--> pic_token
 ```
 
 ## Server-Level Discovery

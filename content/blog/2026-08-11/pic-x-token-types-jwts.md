@@ -404,7 +404,7 @@ candidate Continuity
 → transitions MUST be an array of exactly one PIC Continuity Transition COSE
 ```
 
-Future decentralized profiles may allow more than one ordered transition in the array. Profile 0.2 does not. Transitions are not an Indexed Authority Map section: no Profile 0.2 bitmap or protocol operation addresses transitions by section-local map index, and each Transition already carries its own `position` and predecessor relationship.
+Future profiles may define support for more than one ordered transition in the array. Profile 0.2 does not. Transitions are not an Indexed Authority Map section: no Profile 0.2 bitmap or protocol operation addresses transitions by section-local map index, and each Transition already carries its own `position` and predecessor relationship.
 
 Settled Continuity 0:
 
