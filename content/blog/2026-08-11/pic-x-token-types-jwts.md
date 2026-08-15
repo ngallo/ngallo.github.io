@@ -122,7 +122,7 @@ settled
 | PIC Continuity COSE | workload-signed candidate | realm-signed settled |
 | PIC Continuity Transition COSE | workload-signed | not carried as a settled transition after checkpointing |
 
-The workload uses the private key corresponding to the verification key or key identity accepted from its issuer-signed SD-JWT Proof of Relationship. The same workload key intentionally signs the candidate PIC Token JWT, the candidate PIC Continuity COSE, and the PIC Continuity Transition COSE. These are distinct protocol objects with distinct verification boundaries, not duplicate signatures over the same object.
+The workload uses the private key corresponding to the verification key or key identity accepted from its issuer-signed SD-JWT Proof of Relationship evidence. The same workload key intentionally signs the candidate PIC Token JWT, the candidate PIC Continuity COSE, and the PIC Continuity Transition COSE. These are distinct protocol objects with distinct verification boundaries, not duplicate signatures over the same object.
 
 PIC-X, acting for the selected realm, uses the realm signing authority for the new PIC PCA COSE checkpoint, settled PIC Continuity COSE, and settled PIC Token JWT after successful centralized validation.
 
@@ -194,7 +194,7 @@ settled PIC Token JWT
 
 The same `pic+jwt` format can carry either role. The role is determined by the exchange context, signer, and validation rules; no additional token type is introduced here.
 
-For a workload-signed candidate PIC Token JWT, `iss` is identity metadata, not the source of cryptographic trust. If the accepted SD-JWT PoR provides a suitable producer identifier, that identifier may be used as `iss`; otherwise the claim is omitted. Do not encode an empty string. The workload verification key accepted from PoR is what verifies the candidate signatures.
+For a workload-signed candidate PIC Token JWT, `iss` is identity metadata, not the source of cryptographic trust. If the accepted SD-JWT PoR evidence provides a suitable producer identifier, that identifier may be used as `iss`; otherwise the claim is omitted. Do not encode an empty string. The workload verification key accepted through PoR validation is what verifies the candidate signatures.
 
 ## Logical and Canonical Authority
 

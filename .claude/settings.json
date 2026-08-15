@@ -10,10 +10,14 @@
       "Bash(brew tap *)",
       "Bash(brew install *)",
       "Bash(set -e)",
-      "Bash(./proverif -help)"
+      "Bash(./proverif -help)",
+      "Bash(tamarin-prover --prove PICContinuity.spthy)",
+      "Bash(proverif pic_continuity.pv)"
     ],
     "additionalDirectories": [
-      "/opt/homebrew/bin"
+      "/opt/homebrew/bin",
+      "/Users/nicolagallo/source/nitro/wg-workspaces/repos/pic-model/draft/0.1/pic-model-math/pic-tamarin",
+      "/Users/nicolagallo/source/nitro/wg-workspaces/repos/pic-model/draft/0.1/pic-model-math/pic-proverif"
     ]
   }
 }
