@@ -494,6 +494,8 @@ SD-JWT presentation sent to PIC-X:
 
 The bare SD-JWT presentation ends with `~`. No KB-JWT is appended in this Profile 0.2 walkthrough.
 
+> **Note:** Profile 0.2 does not append a separate SD-JWT KB-JWT for continuity advancement. The workload instead proves control of the private key corresponding to the verification key accepted from the PoR by signing the PIC Continuity Transition COSE, the candidate PIC Continuity COSE, and the candidate PIC Token JWT. These workload signatures belong to the PIC candidate-validation flow and are not RFC 9901 KB-JWTs.
+
 Processed SD-JWT Payload after RFC 9901 verification and Disclosure processing:
 
 ```json
@@ -533,8 +535,11 @@ RFC 9901 SD-JWT presentation
         | exact UTF-8 bytes become Transition.proof_of_relationship
         v
 Worker 1 runtime
+        (private key matching cnf.jwk)
         |
-        └── holds the private key matching cnf.jwk
+        ├── signs PIC Continuity Transition COSE
+        ├── signs candidate PIC Continuity COSE
+        └── signs candidate PIC Token JWT
 ```
 
 ### Worker 2
@@ -1063,6 +1068,8 @@ The existing Profile 0.2 source article does not define a separate empty-section
 ```
 
 An empty invariant map means no remaining executable authority. The PCA checkpoint still exists, and the execution contract remains.
+
+> **Note:** This attenuation removes executable authority from this selected lineage branch only. It does not revoke the predecessor PCA or retroactively invalidate another otherwise-valid continuation derived from that predecessor. If the predecessor must no longer be accepted as the basis for further continuations, that is a revocation decision and must be enforced through the applicable PIC revocation mechanism. This example demonstrates attenuation to zero executable authority, not revocation.
 
 Realm-signed PIC PCA COSE 2 payload, shown with the same readable empty-map convention:
 
