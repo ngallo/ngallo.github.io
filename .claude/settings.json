@@ -13,12 +13,18 @@
       "Bash(./proverif -help)",
       "Bash(tamarin-prover --prove PICContinuity.spthy)",
       "Bash(proverif pic_continuity.pv)",
-      "Bash(_ZO_DOCTOR=0 proverif pic_continuity.pv)"
+      "Bash(_ZO_DOCTOR=0 proverif pic_continuity.pv)",
+      "Bash(awk '{print $3, $4, $11}')",
+      "Bash(_ZO_DOCTOR=0 tamarin-prover PICContinuity.spthy)",
+      "Bash(cp pic_continuity.pv /tmp/pv_backup.pv)",
+      "Bash(_ZO_DOCTOR=0 task pic-verify)",
+      "Bash(grep -vE \"zoxide|shell configuration|filing an issue|_ZO_DOCTOR=0|github.com/ajeetdsouza|^$\")"
     ],
     "additionalDirectories": [
       "/opt/homebrew/bin",
       "/Users/nicolagallo/source/nitro/wg-workspaces/repos/pic-model/draft/0.1/pic-model-math/pic-tamarin",
-      "/Users/nicolagallo/source/nitro/wg-workspaces/repos/pic-model/draft/0.1/pic-model-math/pic-proverif"
+      "/Users/nicolagallo/source/nitro/wg-workspaces/repos/pic-model/draft/0.1/pic-model-math/pic-proverif",
+      "/Users/nicolagallo/source/nitro/wg-workspaces"
     ]
   }
 }
