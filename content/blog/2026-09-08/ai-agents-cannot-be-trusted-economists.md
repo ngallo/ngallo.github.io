@@ -1,7 +1,7 @@
 +++
 author = "Nicola Gallo"
 title = "The AI Agent Economy Cannot Be Trusted: What Agency Theory Teaches, and Where Runtime Authority Needs a Different Instrument"
-date = "2026-09-08T09:00:00+02:00"
+date = "2026-09-08T09:00:00+00:00"
 description = "Economics has spent more than fifty years studying agency, incentives, delegation and control. AI systems reproduce some of those structures, but buggy, confused or compromised executors create a different runtime security problem. This post maps the structural analogies carefully and isolates the narrower gap that Provenance Identity Continuity (PIC) addresses: receiver-verifiable, non-expansive authority continuity across execution."
 tags = ["pic", "ai agents", "principal-agent", "agency theory", "authority continuity", "confused deputy", "delegation", "residual risk", "security", "governance"]
 +++
