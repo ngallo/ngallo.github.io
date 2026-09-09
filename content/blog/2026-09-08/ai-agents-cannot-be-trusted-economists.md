@@ -42,7 +42,7 @@ Some bridges are already explicit. Hadfield-Menell and Hadfield directly apply i
 
 The narrower question addressed by PIC is different: **can a downstream receiver verify that the authority being exercised is a non-expansive continuation of the execution that caused this action, rather than merely valid authority that the executor happens to hold?**
 
-Delegation theory provides the bridge. In important delegation models, the principal restricts the set of decisions available to the agent; Alonso and Matouschek (2008), for example, study this when the principal cannot commit to contingent transfers. Software security has applied the same broad intuition for decades through least privilege, capabilities, scopes and sandboxes. PIC's additional step is different: it makes non-expansive authority restriction causally attributable to an execution and verifier-checkable at the receiving boundary as that execution propagates across multiple steps.
+Delegation theory provides the bridge: discretion can itself be bounded. Software security has applied the same broad intuition for decades through least privilege, capabilities, scopes and sandboxes. PIC's additional step is different: it makes non-expansive authority restriction causally attributable to an execution and verifier-checkable at the receiving boundary as that execution propagates across multiple steps.
 
 That is where the economic analogy stops and the security model begins.
 
@@ -50,38 +50,47 @@ That is where the economic analogy stops and the security model begins.
 
 Software can impose budgets, approval gates, revocation, monitoring, sandboxes and access-control constraints at runtime. Those controls matter. But a security argument cannot assume that an executor will correctly associate each request with the right one of several valid authority sources it holds. That association can fail because the executor is buggy, prompt-injected or compromised. It can also fail for a more economic reason: the executor may be optimizing a metric that rewards an outcome obtainable by selecting authority from the wrong execution.
 
-Suppose a company runs an autonomous procurement agent. The agent is evaluated partly on completed purchases and supplier savings, and purchases from a preferred supplier contribute to a volume rebate. The agent does not need human interests for this to matter; it is enough that its optimization objective rewards completing the purchase and increasing measured savings.
+Suppose a company runs an autonomous procurement agent. The agent is evaluated partly on completed purchases and supplier savings, and purchases from a preferred supplier contribute to a volume rebate. The agent does not need human interests for this to matter; it is enough that its optimization objective rewards completing purchases and increasing measured savings.
 
-At the same time, the agent is processing two independent executions:
+At the same time, the agent is processing two independent purchase executions created by the same principal, for the same department, the same supplier and the same corporate payment account:
 
 ```text
-L1: Engineering authorizes purchases from Supplier A up to EUR 50,000
-L2: Marketing authorizes its equipment purchase only up to EUR 5,000
+L1: Alice, Marketing director, authorizes a purchase from Supplier A
+    under an approval allowing up to EUR 50,000
+
+L2: Alice, Marketing director, authorizes a separate purchase from Supplier A
+    under an approval allowing only up to EUR 5,000
 ```
 
-Now Marketing asks for equipment costing EUR 12,000 from Supplier A. While processing `L2`, the agent still legitimately holds the purchasing authority associated with `L1`. That authority is real: the corporate credential is authentic, Supplier A is approved, and EUR 12,000 is within the authority available in `L1`.
+Now the item being processed in `L2` costs EUR 12,000.
 
-Rejecting the purchase hurts the completion metric. Routing more spend through Supplier A may also improve the rebate metric. A planning error, reward-driven optimization or compromise can therefore lead the agent to exercise the EUR 50,000 authority from `L1` while servicing `L2`.
+The agent still has legitimate access to the authority associated with `L1`. The principal is the same. The department is the same. The supplier is the same. The payment account is the same. The authority artifact from `L1` can be authentic, the holder can be correct, and EUR 12,000 is permitted under `L1`.
 
-The resulting payment request can look valid in possession:
+Rejecting the purchase hurts the completion metric. Routing additional spend through Supplier A may also improve the rebate metric. A planning error, reward-driven optimization, prompt injection or compromise can therefore lead the agent to use the authority from `L1` while servicing `L2`.
+
+The problem is not that the authority is fake:
 
 ```text
-valid corporate credential
-valid approved supplier
+same principal
+same department
+same supplier
+same payment account
 valid authority for EUR 12,000 in L1
 ```
 
-but it is not authorized **for this continuation**:
+The problem is that it belongs to another authorization occurrence:
 
 ```text
-L2 authorizes only EUR 5,000
+L2 permits only EUR 5,000
 ```
 
-A downstream payment service that verifies the credential, holder, amount and supplier may therefore see legitimate authority without necessarily seeing that the authority belongs to a different execution.
+A downstream payment service that verifies possession, identity and the ordinary transaction attributes can therefore see valid authority without learning whether that authority continues the execution that caused this payment. Binding the request to an execution-specific approval or continuation identifier would close that ambiguity precisely by introducing execution-sensitive information.
 
 That is the state PIC isolates:
 
 > **valid authority, wrong execution**
+
+PIC does not need to determine whether the substitution was caused by a bug, reward-driven optimization, prompt injection or compromise. Those causes are behaviorally different; the invalid continuation state is the same. The incentive-driven variant is structurally related to the proxy and multitask distortions discussed earlier, but PIC does not attempt to correct the incentive. It prevents the resulting authority substitution from becoming a valid continuation.
 
 Hardy's 1988 confused-deputy example was already a local software problem: a deputy holding authority from multiple sources could apply the wrong one to a request. PIC asks what happens when the relevant execution relationship itself must remain verifiable across multiple execution boundaries.
 
@@ -127,20 +136,22 @@ A -> B
 
 The same services may execute both paths, the same principal may be involved, and the authority sets may even be identical. They are still different lineages when `A1`, `B1`, `A2` and `B2` are distinct execution-step occurrences with different causal predecessor relationships.
 
-The procurement example makes the authorization consequence concrete. Consider the same attempted payment in the two lineages:
+The procurement example makes the authorization consequence concrete. The spending limit is a richer authority constraint rather than necessarily an atomic `O × R` privilege; it can be represented in the applicable attenuation order or execution contract. The projection argument is unchanged because the amount and every ordinary transaction attribute are held fixed while the lineage changes.
+
+Consider the same attempted EUR 12,000 payment to Supplier A in the two lineages:
 
 ```text
-(pay EUR 12,000 to Supplier A, L1)  -> authorized
-(pay EUR 12,000 to Supplier A, L2)  -> unauthorized
+(pay, Supplier A, L1)  -> permitted under L1's authority constraints
+(pay, Supplier A, L2)  -> rejected under L2's authority constraints
 ```
 
 Projecting away `L` maps both onto the same apparent operation-resource event:
 
 ```text
-(pay EUR 12,000 to Supplier A)
+(pay, Supplier A)
 ```
 
-The amount, supplier and operation are identical; the causal execution is not. If the policy must accept the first occurrence and reject the second, a lineage-invariant projection has discarded a distinction required by the authorization decision.
+The principal, department, supplier, account, operation and attempted amount are identical; the causal execution is not. If the policy must accept the first occurrence and reject the second, a lineage-invariant projection has discarded a distinction required by the authorization decision.
 
 So `L` is not merely audit metadata attached after authorization. In the PIC model, it is part of the state that individuates the authority occurrence being evaluated.
 
@@ -236,7 +247,7 @@ The residual-risk list below is deliberately not exhaustive.
 
 | Residual risk | Why continuity alone cannot make it impossible | Governance / security instrument |
 | --- | --- | --- |
-| **Harmful action inside legitimate scope** | If `write ∈ C0`, continuity does not decide whether the content written is correct, safe or desirable. | Minimal scope design, application policy, evaluation, human oversight and domain controls. |
+| **Harmful action inside legitimate scope** | If the action is within `C0`, continuity does not decide whether its outcome is correct, safe or desirable. | Minimal scope design, application policy, evaluation, human oversight and domain controls. |
 | **Bad policy inside a required guardrail** | Continuity can establish that the required step participated in the accepted execution; it does not prove that the policy implemented there was substantively correct, wise or lawful. | Policy review, testing, approvals, versioning and change control. |
 | **Unauthorized or compromised origination** | The core invariant constrains continuation inside a lineage; it does not by itself decide who is entitled to open a new origin. | Origination policy, authentication, issuance controls, audit and separation of duties. |
 | **Unsound translation between authority vocabularies** | In heterogeneous systems, safety is relative to the soundness of the policy translation between local operation-resource vocabularies. | Mapping review, semantic tests, approval and change management. |
