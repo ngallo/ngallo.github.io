@@ -20,6 +20,8 @@ tags = ["pic", "proof of possession", "proof of relationship", "proof of continu
 
 PIC here means **Provenance Identity Continuity**.
 
+> **Scope note.** This article isolates one part of PIC: its temporal / execution-lineage dimension. PIC is broader than `L` and includes additional rules and mechanisms around authority, continuity and verification. The goal here is only to make the temporal axis explicit.
+
 A simple way to understand the temporal dimension of PIC is to start with how authority is created.
 
 A permissioned entity `p` expresses an intent by selecting a subset of the permissions it already holds:
@@ -94,6 +96,8 @@ not_before <= now < expires_at
 ```
 
 The token carries the claim; the clock supplies the external fact against which the claim is checked.
+
+There is also a security-model boundary here. If a protocol relies on an executor to write truthful temporal or lineage metadata about itself, then correctness of that metadata is an assumption, not a security guarantee. An untrusted executor that is trying to attack the system can omit, rewrite or fabricate metadata just as easily as an honest executor can add it. Metadata becomes security-relevant only when the receiver can verify it against evidence the executor cannot unilaterally forge.
 
 Execution lineage answers a different question. A clock tells us when a request is being evaluated. Lineage tells us what execution the request continues. Two independent executions can happen at the same wall-clock time, and one lineage can continue across minutes, days or months.
 
@@ -218,6 +222,9 @@ preserve              (o, r, ℓ2)
 The two points have the same projection but different coordinates in execution space.
 
 The core continuity theorem alone does not solve revocation. Execution-scoped revocation still requires trusted revocation state and a profile that defines how receivers enforce it. The narrower point is that once `L` has been projected away, selective revocation by execution can no longer be derived from `O × R` alone. The system can only add new distinguishing evidence or fall back to approximation.
+
+
+> **Note.** How execution-scoped revocation is expressed and enforced in practice — revocation state, coordinates and receiver rules — is outside the scope of this article.
 
 ## The point
 
