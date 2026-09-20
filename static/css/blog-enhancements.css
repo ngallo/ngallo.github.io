@@ -2751,3 +2751,142 @@ a:focus-visible {
     background: transparent !important;
   }
 }
+
+/* ==========================================================================
+   Language switcher (header) + translation notices
+   Renders as "en | it". The header forces every link white with !important
+   (see "Header links stay white"), so colours here must be !important too.
+   Active language = accent colour, bold, underlined like the active menu
+   item. Inactive = muted grey.
+   ========================================================================== */
+.headerLinks .lang-switch {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 1.1em;
+  padding-left: 1.1em;
+  border-left: 1px solid var(--border-subtle);
+  vertical-align: middle;
+  font-family: 'Fira Mono', 'SF Mono', 'Fira Code', monospace;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.lang-switch__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link,
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link:link,
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link:visited {
+  display: inline-block;
+  padding: 0.2em 0.1em;
+  color: var(--text-secondary) !important;
+  opacity: 0.85;
+  text-decoration: none !important;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link:hover {
+  color: var(--text-primary) !important;
+  opacity: 1;
+}
+
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link--active,
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link--active:link,
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link--active:visited,
+.headerWrapper .headerLinks .lang-switch a.lang-switch__link--active:hover {
+  color: var(--accent) !important;
+  opacity: 1;
+  font-weight: 700;
+  text-decoration: underline !important;
+  text-underline-offset: 0.35em;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--purple);
+  cursor: default;
+}
+
+.headerLinks .lang-switch__sep {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  user-select: none;
+}
+
+@media screen and (max-width: 768px) {
+  .headerLinks ul li.lang-switch {
+    display: flex !important;
+    justify-content: center;
+    padding: 0.9rem 1.75rem;
+    margin: 0 !important;
+    border-left: none;
+    font-size: 1.05rem;
+  }
+
+  .lang-switch__group {
+    gap: 0.9em;
+  }
+
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link,
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link:link,
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link:visited {
+    display: inline-block !important;
+    padding: 0.3rem 0.4rem !important;
+    font-size: 1.05rem !important;
+    border-left: none !important;
+    color: var(--text-secondary) !important;
+    background: transparent !important;
+  }
+
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link:hover {
+    color: var(--text-primary) !important;
+    background: transparent !important;
+  }
+
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link--active,
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link--active:link,
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link--active:visited,
+  .headerWrapper .headerLinks .lang-switch a.lang-switch__link--active:hover {
+    color: var(--accent) !important;
+    background: transparent !important;
+    text-decoration: underline !important;
+  }
+}
+
+/* Link to the same article in the other language (single post) */
+.postTranslations {
+  margin: 0.25rem 0 1rem 0;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.85em;
+}
+
+.postTranslations__link {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--accent);
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.postTranslations__link:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  text-decoration: none;
+}
+
+/* "Only some posts are translated" notice on non-default language lists */
+.lang-notice {
+  margin: 0.75rem 0 1.25rem 0;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--purple);
+  background: var(--bg-surface);
+  border-radius: 0 8px 8px 0;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.lang-notice a {
+  color: var(--accent);
+}

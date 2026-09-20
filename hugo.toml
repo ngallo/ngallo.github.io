@@ -1,6 +1,62 @@
 baseURL = 'https://www.ngallo.it/'
-languageCode = 'en-uk'
 enableRobotsTXT = true
+
+# ── Languages ─────────────────────────────────────────────────────────────
+# English is the default and keeps its URLs unchanged (no /en/ prefix).
+# Italian lives under /it/. A post is available in Italian only when a
+# sibling file with the .it.md suffix exists next to the English one, e.g.
+#   content/blog/2026-09-15/three-pillars-outcome-oriented-programming.md
+#   content/blog/2026-09-15/three-pillars-outcome-oriented-programming.it.md
+defaultContentLanguage = 'en'
+defaultContentLanguageInSubdir = false
+
+[languages]
+  [languages.en]
+    languageCode = 'en-GB'
+    languageName = 'English'
+    weight = 1
+    [languages.en.params]
+      ogLocale = 'en_GB'
+      # Shown on the Italian version of a post, linking back to this one.
+      translationNotice = 'Read this article in English →'
+
+  [languages.it]
+    languageCode = 'it-IT'
+    languageName = 'Italiano'
+    weight = 2
+    [languages.it.params]
+      ogLocale = 'it_IT'
+      description = "Nicola Gallo — Cloud Native Security, Identity & Access Management, Zero Trust. Blog tecnico su ZTAuth*, PIC, Ambient Mesh e sistemi decentralizzati. Solo alcuni articoli sono tradotti in italiano."
+      # Shown on the English version of a post, linking to the Italian one.
+      translationNotice = 'Leggi questo articolo in italiano →'
+    # llms.txt is generated for the English site only.
+    [languages.it.outputs]
+      home = ["HTML", "RSS"]
+    # Italian menu: only the blog is translated, the other pages point to
+    # their English version (noLang = true skips the /it/ prefix).
+    [languages.it.menus]
+      [[languages.it.menus.header]]
+        name = "about"
+        weight = 1
+        url = "about"
+        [languages.it.menus.header.params]
+          noLang = true
+      [[languages.it.menus.header]]
+        name = "disclaimer"
+        weight = 2
+        url = "disclaimer"
+        [languages.it.menus.header.params]
+          noLang = true
+      [[languages.it.menus.header]]
+        name = "share"
+        weight = 3
+        url = "share"
+        [languages.it.menus.header.params]
+          noLang = true
+      [[languages.it.menus.header]]
+        name = "blog"
+        weight = 4
+        url = "blog"
 
 [[module.imports]]
   path = 'github.com/lordmathis/hugo-theme-nightfall'

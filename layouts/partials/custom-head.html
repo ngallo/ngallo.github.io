@@ -6,7 +6,16 @@
 
 <!-- ── SEO: Open Graph ────────────────────────────────────────────────────── -->
 <meta property="og:site_name" content="{{ .Site.Params.author.name }}">
-<meta property="og:locale" content="en_GB">
+<meta property="og:locale" content="{{ .Site.Params.ogLocale | default "en_GB" }}">
+{{- if .IsTranslated }}
+<!-- ── SEO: language alternates ──────────────────────────────────────────── -->
+{{- range .AllTranslations }}
+<link rel="alternate" hreflang="{{ .Language.Lang }}" href="{{ .Permalink }}">
+{{- end }}
+{{- range .AllTranslations }}{{ if eq .Language.Lang "en" }}
+<link rel="alternate" hreflang="x-default" href="{{ .Permalink }}">
+{{- end }}{{ end }}
+{{- end }}
 {{- if .IsPage }}
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{ .Title }}">
@@ -33,7 +42,7 @@
 {{- if .IsPage }}
 {{- $desc := .Description | default (.Summary | plainify | truncate 300 "") }}
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","headline":"{{ .Title | safeJS }}","description":"{{ $desc | safeJS }}","url":"{{ .Permalink }}","datePublished":"{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}","dateModified":"{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}","author":{"@type":"Person","name":"{{ .Site.Params.author.name }}","url":"https://www.ngallo.it/about/"},"publisher":{"@type":"Person","name":"{{ .Site.Params.author.name }}"},"mainEntityOfPage":{"@type":"WebPage","@id":"{{ .Permalink }}"},"wordCount":{{ .WordCount }},"keywords":[{{ range $i, $t := .Params.tags }}{{ if $i }},{{ end }}"{{ $t }}"{{ end }}],"inLanguage":"en"}
+{"@context":"https://schema.org","@type":"BlogPosting","headline":"{{ .Title | safeJS }}","description":"{{ $desc | safeJS }}","url":"{{ .Permalink }}","datePublished":"{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}","dateModified":"{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}","author":{"@type":"Person","name":"{{ .Site.Params.author.name }}","url":"https://www.ngallo.it/about/"},"publisher":{"@type":"Person","name":"{{ .Site.Params.author.name }}"},"mainEntityOfPage":{"@type":"WebPage","@id":"{{ .Permalink }}"},"wordCount":{{ .WordCount }},"keywords":[{{ range $i, $t := .Params.tags }}{{ if $i }},{{ end }}"{{ $t }}"{{ end }}],"inLanguage":"{{ .Site.Language.Lang }}"}
 </script>
 {{- else if .IsHome }}
 <script type="application/ld+json">
@@ -42,13 +51,13 @@
 {{- end }}
 
 <!-- Blog enhancements & VS Code-like code blocks -->
-<link rel="stylesheet" href="/css/blog-enhancements.css">
-<link rel="stylesheet" href="/css/syntax.css">
-<script defer src="/js/code-copy.js"></script>
-<script type="module" src="/js/hljs-languages.js"></script>
-<script defer src="/js/image-zoom.js"></script>
+<link rel="stylesheet" href="{{ partial "asset-url.html" "/css/blog-enhancements.css" }}">
+<link rel="stylesheet" href="{{ partial "asset-url.html" "/css/syntax.css" }}">
+<script defer src="{{ partial "asset-url.html" "/js/code-copy.js" }}"></script>
+<script type="module" src="{{ partial "asset-url.html" "/js/hljs-languages.js" }}"></script>
+<script defer src="{{ partial "asset-url.html" "/js/image-zoom.js" }}"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
-<script defer src="/js/blog-features.js"></script>
+<script defer src="{{ partial "asset-url.html" "/js/blog-features.js" }}"></script>
 
 <style>
   .post-hero{border:1px solid currentColor;border-radius:14px;padding:1rem 1.1rem;margin:.2rem 0 1rem 0}

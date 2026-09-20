@@ -1,0 +1,45 @@
+# Site-level UI strings (English). The Nightfall theme ships its own en.toml
+# for the keys it uses (published, reading_time, ...); these are the extra
+# keys used by the custom layouts in layouts/.
+
+[all_posts]
+  other = "All Posts"
+
+[search_posts]
+  other = "Search posts…"
+
+[post_count]
+  one = "{{ .Count }} post"
+  other = "{{ .Count }} posts"
+
+[min_read]
+  other = "{{ .Count }} min read"
+
+[result_singular]
+  other = "result found"
+
+[result_plural]
+  other = "results found"
+
+[posts_found]
+  one = "{{ .Count }} post found → open ~/blog/"
+  other = "{{ .Count }} posts found → open ~/blog/"
+
+[posts_found_en]
+  one = "{{ .Count }} post in English → open ~/blog/ (en)"
+  other = "{{ .Count }} posts in English → open ~/blog/ (en)"
+
+[partial_translation_notice]
+  other = "Only some articles are translated into this language."
+
+[all_posts_in_english]
+  other = "All posts in English"
+
+[related_posts]
+  other = "Related Posts"
+
+[view_all_posts]
+  other = "View all posts"
+
+[language]
+  other = "Language"

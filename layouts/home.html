@@ -35,9 +35,19 @@
       </div>
       <div class="terminal-line" data-cmd="find ~/blog/ -name '*.md' | wc -l" data-delay="2400">
         <span class="terminal-output terminal-output--allposts">
-          <a href="{{ "blog/" | relURL }}" class="terminal-allposts-link">{{ $postCount }} posts found → open ~/blog/</a>
+          <a href="{{ "blog/" | relLangURL }}" class="terminal-allposts-link">{{ i18n "posts_found" $postCount }}</a>
         </span>
       </div>
+      {{- if ne site.Language.Lang "en" }}
+      {{- range site.Sites }}{{ if eq .Language.Lang "en" }}
+      {{- $enPosts := where .RegularPages "Section" "blog" }}
+      <div class="terminal-line" data-cmd="ls ~/blog/ --lang=en | wc -l" data-delay="2800">
+        <span class="terminal-output terminal-output--allposts">
+          <a href="{{ (.GetPage "/blog").RelPermalink }}" class="terminal-allposts-link" hreflang="en" lang="en">{{ i18n "posts_found_en" (len $enPosts) }}</a>
+        </span>
+      </div>
+      {{- end }}{{ end }}
+      {{- end }}
       <div class="terminal-line" data-cmd="cat links.txt" data-delay="3200">
         <span class="terminal-output terminal-output--links">
           {{- range .Site.Params.social -}}

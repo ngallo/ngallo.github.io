@@ -1,0 +1,104 @@
+# Stringhe UI in italiano. Include sia le chiavi usate dal tema Nightfall
+# (che ha solo en e de) sia quelle dei layout custom in layouts/.
+
+# ── Chiavi del tema ──────────────────────────────────────────────────────
+[not_found]
+  other = "NON TROVATO"
+
+[not_found_desc]
+  other = "Hai raggiunto una pagina che non esiste..."
+
+[home]
+  other = "Home"
+
+[published]
+  other = "pubblicato"
+
+[reading_time]
+  other = "tempo di lettura"
+
+[reading_time_desc]
+  one = "1 minuto"
+  other = "{{ .Count }} minuti"
+
+[authors]
+  other = "autori"
+
+[tags]
+  other = "tag"
+
+[categories]
+  other = "categorie"
+
+[and]
+  other = "e"
+
+[powered_by]
+  other = "Realizzato con"
+
+[theme]
+  other = "tema"
+
+[last_updated]
+  other = "ultimo aggiornamento"
+
+[back_to_home]
+  other = "torna alla home"
+
+[page]
+  other = "pagina"
+
+[no_terms]
+  other = "nessun termine trovato"
+
+[posts_with_term]
+  other = "articoli con il termine"
+
+[newer_posts]
+  other = "articoli più recenti"
+
+[older_posts]
+  other = "articoli meno recenti"
+
+# ── Chiavi dei layout custom ─────────────────────────────────────────────
+[all_posts]
+  other = "Tutti gli articoli"
+
+[search_posts]
+  other = "Cerca articoli…"
+
+[post_count]
+  one = "{{ .Count }} articolo"
+  other = "{{ .Count }} articoli"
+
+[min_read]
+  other = "{{ .Count }} min di lettura"
+
+[result_singular]
+  other = "risultato trovato"
+
+[result_plural]
+  other = "risultati trovati"
+
+[posts_found]
+  one = "{{ .Count }} articolo in italiano → apri ~/blog/"
+  other = "{{ .Count }} articoli in italiano → apri ~/blog/"
+
+[posts_found_en]
+  one = "{{ .Count }} articolo in inglese → apri ~/blog/ (en)"
+  other = "{{ .Count }} articoli in inglese → apri ~/blog/ (en)"
+
+[partial_translation_notice]
+  other = "Solo alcuni articoli sono tradotti in italiano."
+
+[all_posts_in_english]
+  other = "Tutti gli articoli in inglese"
+
+[related_posts]
+  other = "Articoli correlati"
+
+[view_all_posts]
+  other = "Vedi tutti gli articoli"
+
+[language]
+  other = "Lingua"

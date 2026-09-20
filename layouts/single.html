@@ -73,6 +73,14 @@
         </dl>
     </section>
     {{ end }}
+    {{/* Link to the same article in the other language, worded in that language */}}
+    {{ if .IsTranslated }}
+    <div class="postTranslations">
+        {{ range .Translations }}
+        <a class="postTranslations__link" href="{{ .RelPermalink }}" hreflang="{{ .Language.Lang }}" lang="{{ .Language.Lang }}">{{ .Site.Params.translationNotice | default (printf "%s →" .Language.LanguageName) }}</a>
+        {{ end }}
+    </div>
+    {{ end }}
     {{ if eq .Section "blog" }}
     <div class="postActions" aria-label="Article actions">
         <button class="postPrintButton" type="button" onclick="window.print()" aria-label="Print or save this post as PDF">

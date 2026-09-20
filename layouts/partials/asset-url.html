@@ -1,0 +1,9 @@
+{{- /*
+  Returns a site-relative asset URL with a content hash as query string,
+  e.g. /css/blog-enhancements.css?v=3fa9c1d2, so browsers pick up changes
+  instead of serving a cached copy. Usage:
+    {{ partial "asset-url.html" "/css/blog-enhancements.css" }}
+*/ -}}
+{{- $p := . -}}
+{{- $v := os.ReadFile (printf "static%s" $p) | md5 | truncate 8 "" -}}
+{{- $p -}}?v={{- $v -}}

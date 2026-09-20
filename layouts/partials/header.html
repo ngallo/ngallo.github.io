@@ -11,16 +11,46 @@
             <ul>
                 {{ $page := . }}
                 {{ range .Site.Menus.header }}
-                {{ $menuPath := urls.Parse (.URL | absLangURL) }}
+                {{/* Menu entries with params.noLang = true point to the default-language page (no /it/ prefix). */}}
+                {{ $noLang := false }}
+                {{ with .Params }}{{ if .noLang }}{{ $noLang = true }}{{ end }}{{ end }}
+                {{ $href := "" }}
+                {{ if $noLang }}{{ $href = .URL | absURL }}{{ else }}{{ $href = .URL | absLangURL }}{{ end }}
+                {{ $menuPath := urls.Parse $href }}
                 {{ $menuRel := $menuPath.Path }}
                 {{ if not (hasSuffix $menuRel "/") }}{{ $menuRel = printf "%s/" $menuRel }}{{ end }}
                 {{ $current := $page.RelPermalink }}
                 {{ if not (hasSuffix $current "/") }}{{ $current = printf "%s/" $current }}{{ end }}
                 {{ $isActive := or (eq $current $menuRel) (and (ne $menuRel "/") (hasPrefix $current $menuRel)) }}
                 <li>
-                    <a href="{{ .URL | absLangURL }}" title="{{ .Title }}"{{ if $isActive }} class="active" aria-current="page"{{ end }}>
+                    <a href="{{ $href }}" title="{{ .Title }}"{{ if $isActive }} class="active" aria-current="page"{{ end }}>
                         ~/{{- .Name -}}
                     </a>
+                </li>
+                {{ end }}
+                {{/*
+                  Language switcher (en | it). Shown only where a language choice makes sense:
+                  - the blog list (/blog/ and /it/blog/);
+                  - a blog post that exists in both languages.
+                  Everywhere else (home, share, tags, untranslated posts) it is hidden.
+                */}}
+                {{ $showSwitcher := and hugo.IsMultilingual (eq $page.Section "blog") $page.IsTranslated (in (slice "page" "section") $page.Kind) }}
+                {{ if $showSwitcher }}
+                <li class="lang-switch" aria-label="{{ i18n "language" }}">
+                    <span class="lang-switch__group">
+                    {{- $currentLang := site.Language.Lang -}}
+                    {{- range $i, $lang := site.Languages -}}
+                    {{- if gt $i 0 }}<span class="lang-switch__sep" aria-hidden="true">|</span>{{ end -}}
+                    {{- $target := "" -}}
+                    {{- if eq $lang.Lang $currentLang -}}
+                        {{- $target = $page.RelPermalink -}}
+                    {{- else -}}
+                        {{- range $page.Translations }}{{ if eq .Language.Lang $lang.Lang }}{{ $target = .RelPermalink }}{{ end }}{{ end -}}
+                        {{- if not $target }}{{ range site.Sites }}{{ if eq .Language.Lang $lang.Lang }}{{ with .GetPage "/blog" }}{{ $target = .RelPermalink }}{{ end }}{{ end }}{{ end }}{{ end -}}
+                    {{- end -}}
+                    <a href="{{ $target }}" hreflang="{{ $lang.Lang }}" lang="{{ $lang.Lang }}" title="{{ $lang.LanguageName }}" class="lang-switch__link{{ if eq $lang.Lang $currentLang }} lang-switch__link--active{{ end }}"{{ if eq $lang.Lang $currentLang }} aria-current="true"{{ end }}>{{ $lang.Lang }}</a>
+                    {{- end -}}
+                    </span>
                 </li>
                 {{ end }}
             </ul>
