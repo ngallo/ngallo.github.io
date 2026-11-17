@@ -12,6 +12,12 @@ tags:
   - provenance
 ---
 
+<figure class="post-banner">
+  <img src="/images/2026-11-17/execution-plane-integrity.png"
+       alt="A valid permission check does not prove a valid data path: verifiable execution for AI agents and distributed systems."
+       loading="lazy">
+</figure>
+
 **Authorization answers what an executor may do. Execution integrity asks whether the result really came from the permitted execution.**
 
 Imagine an AI agent that must call Tool A and pass the result to Tool B. If access to A is denied, the security layer has done its job. Yet the agent can still produce a plausible answer and send it to B *as though A had executed*. Even when A is available, the agent may change an inconvenient result before forwarding it.
