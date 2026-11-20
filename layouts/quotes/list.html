@@ -4,9 +4,8 @@
 
 {{ define "main" }}
 
-{{ $pages := .RegularPages }}
-{{ $byTitle := sort $pages "Title" "asc" }}
-{{ $byDate := $pages.ByDate.Reverse }}
+{{/* Manual order: front matter `weight`, lower first (entries without weight go last) */}}
+{{ $pages := .RegularPages.ByWeight }}
 
 <div>
   <div class="listHeader">
@@ -30,12 +29,8 @@
     <div id="search-results-count" class="search-results-count"></div>
   </div>
 
-  {{/* View + kind switches */}}
+  {{/* Kind switch */}}
   <div class="quoteControls">
-    <div class="quoteSwitch" role="group" aria-label="Order">
-      <button type="button" class="tag-pill tag-pill--active" data-view="az">a–z</button>
-      <button type="button" class="tag-pill" data-view="recent">recent</button>
-    </div>
     <div class="quoteSwitch" role="group" aria-label="Kind">
       <button type="button" class="tag-pill tag-pill--active" data-kind="all">all kinds</button>
       <button type="button" class="tag-pill" data-kind="definition">definitions</button>
@@ -65,30 +60,11 @@
   </div>
   {{ end }}
 
-  {{/* A–Z view: grouped by first letter of the term */}}
-  <div class="quoteView" data-view="az">
-    {{ $letters := slice }}
-    {{ range $byTitle }}{{ $letters = $letters | append (upper (substr .Title 0 1)) }}{{ end }}
-    {{ range $letter := $letters | uniq }}
-    {{ $group := slice }}
-    {{ range $byTitle }}{{ if eq (upper (substr .Title 0 1)) $letter }}{{ $group = $group | append . }}{{ end }}{{ end }}
-    <section class="year-group quote-group">
-      <h2 class="year-heading">{{ $letter }}<span class="year-count">{{ len $group }}</span></h2>
-      <div role="list">
-        {{ range $group }}{{ partial "quote-card.html" . }}{{ end }}
-      </div>
-    </section>
-    {{ end }}
-  </div>
-
-  {{/* Recent view: most recently added first */}}
-  <div class="quoteView" data-view="recent" hidden>
-    <section class="year-group quote-group">
-      <div role="list">
-        {{ range $byDate }}{{ partial "quote-card.html" . }}{{ end }}
-      </div>
-    </section>
-  </div>
+  <section class="year-group quote-group">
+    <div role="list">
+      {{ range $pages }}{{ partial "quote-card.html" . }}{{ end }}
+    </div>
+  </section>
 
 </div>
 
@@ -96,13 +72,11 @@
 (function() {
   var tagPills = document.querySelectorAll('.tag-filter-bar .tag-pill');
   var kindPills = document.querySelectorAll('[data-kind].tag-pill');
-  var viewPills = document.querySelectorAll('[data-view].tag-pill');
-  var views = document.querySelectorAll('.quoteView');
   var groups = document.querySelectorAll('.quote-group');
   var searchInput = document.getElementById('blog-search');
   var resultsCount = document.getElementById('search-results-count');
 
-  var state = { tag: 'all', kind: 'all', view: 'az', query: '' };
+  var state = { tag: 'all', kind: 'all', query: '' };
 
   var entries = [];
   document.querySelectorAll('.quoteItem').forEach(function(el) {
@@ -124,13 +98,12 @@
                (state.kind === 'all' || e.el.getAttribute('data-kind') === state.kind) &&
                (!q || e.text.indexOf(q) !== -1);
       e.el.style.display = ok ? '' : 'none';
-      if (ok && e.el.closest('.quoteView').getAttribute('data-view') === state.view) count++;
+      if (ok) count++;
     });
     groups.forEach(function(g) {
       var vis = g.querySelectorAll('.quoteItem:not([style*="display: none"])');
       g.style.display = vis.length ? '' : 'none';
     });
-    views.forEach(function(v) { v.hidden = v.getAttribute('data-view') !== state.view; });
     var filtered = q || state.tag !== 'all' || state.kind !== 'all';
     resultsCount.textContent = count + ' ' + (count === 1 ? 'entry' : 'entries');
     resultsCount.style.display = filtered ? '' : 'none';
@@ -149,9 +122,6 @@
   });
   kindPills.forEach(function(p) {
     p.addEventListener('click', function() { state.kind = p.getAttribute('data-kind'); setActive(kindPills, 'data-kind', state.kind); apply(); });
-  });
-  viewPills.forEach(function(p) {
-    p.addEventListener('click', function() { state.view = p.getAttribute('data-view'); setActive(viewPills, 'data-view', state.view); apply(); });
   });
 
   if (searchInput) {

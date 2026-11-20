@@ -21,7 +21,7 @@
 ## Definitions and Quotes
 
 Each entry credits its original author.
-{{ range (where site.RegularPages "Section" "quotes").ByTitle }}
+{{ range (where site.RegularPages "Section" "quotes").ByWeight }}
 - [{{ .Title }}]({{ .Permalink }}) ({{ .Params.entryType | default "definition" }}{{ with .Params.author }}, {{ . }}{{ end }}{{ with .Params.originalDate }}, {{ . }}{{ end }}): {{ partial "quote-text.html" . | plainify | htmlUnescape | strings.TrimSpace }}
 {{- end }}
 

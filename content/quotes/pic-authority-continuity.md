@@ -2,6 +2,7 @@
 title: "Authority Continuity"
 entryType: "definition"
 date: "2026-11-20"
+weight: 10
 author: "Nicola Gallo"
 authorUrl: "https://www.ngallo.it/"
 source: "PIC (Provenance Identity Continuity)"

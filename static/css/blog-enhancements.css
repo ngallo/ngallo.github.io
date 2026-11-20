@@ -2921,10 +2921,6 @@ a:focus-visible {
   gap: 6px;
 }
 
-/* Letter headings left-aligned, in line with the cards */
-.quote-group .year-heading {
-  text-align: left !important;
-}
 
 /* Full text, never clamped (blog excerpts are clamped to 2 lines) */
 .quoteItem .quoteText {

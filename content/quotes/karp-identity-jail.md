@@ -2,6 +2,7 @@
 title: "Identity"
 entryType: "quote"
 date: "2026-11-20"
+weight: 30
 author: "Alan H. Karp"
 authorUrl: "https://alanhkarp.com/"
 source: ""

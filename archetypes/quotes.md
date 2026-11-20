@@ -3,8 +3,10 @@
 title: "{{ replace .File.ContentBaseName "-" " " | title }}"
 # definition | quote
 entryType: "definition"
-# The day you saved it (shown as "added").
+# The day you saved it (not shown on the site).
 date: "{{ .Date | time.Format "2006-01-02" }}"
+# Position in the list: lower comes first. Leave gaps (10, 20, 30...) so you can insert later.
+weight: 
 # Original author(s).
 author: ""
 # Link to the author (personal site, profile...). Optional.
