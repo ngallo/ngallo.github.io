@@ -15,8 +15,10 @@ tags:
   - PIC
 ---
 
-> A capability establishes authority over a designated resource. **Its validity alone does not establish which causal continuation justifies exercising that authority.**
+> A capability establishes authority to act on a designated resource. **Its validity alone does not prove which causal continuation justifies its use.**
 >
-> Two executions can present **the same valid capability** while requiring **different security decisions** because their causal histories differ.
+> Two executions can present the same valid capability and still require different security decisions, because their causal histories differ.
 >
-> **A verifier observing only capability validity cannot distinguish them. No cryptographic strength can recover a distinction absent from the verifier's evidence.**
+> A verifier that observes only capability validity cannot tell them apart, and no cryptographic strength can recover a distinction absent from its evidence.
+>
+> A system that binds authority to a specific execution and verifies that binding is enforcing causal continuity, not inferring it from capability validity.

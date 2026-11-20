@@ -20,8 +20,6 @@ tags:
 > Temporal confused deputy does not either. Its root cause is using the deputy’s authority on a resource designated in another continuation, even by the deputy itself, even if both continuations forked from the same origin.
 >
 > Same origin is not the same continuation.
->
-> A capability lets the holder act. On its own, it does not let the receiver verify which continuation the holder is acting for.
 
 <!--more-->
 
