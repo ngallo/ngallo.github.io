@@ -2,7 +2,7 @@
 title: "Temporal Confused Deputy"
 entryType: "quote"
 date: "2026-11-20"
-weight: 40
+weight: 5
 author: "Nicola Gallo"
 authorUrl: "https://www.ngallo.it/"
 source: "PIC (Provenance Identity Continuity)"
