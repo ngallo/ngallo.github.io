@@ -15,12 +15,12 @@ tags:
   - PIC
 ---
 
-> A confused deputy does not need new authority. It uses its own genuine authority on a target designated by someone who was never entitled to cause that action.
+> Confused deputy does not come from expanding authority. Its root cause is using your authority on a resource designated by someone else.
 >
-> A temporal confused deputy does not need new authority either. It uses genuine authority in a different execution from the one it belongs to. Same identity. Same privilege. Same target. Every check passes. The execution is wrong.
+> Temporal confused deputy does not come from expanding authority either. Its root cause is using your authority on a resource designated by yourself in a different continuation: one with a different origin, or one with the same origin that forked along the way.
 
 <!--more-->
 
-"Who are you?" and "What are you allowed to do?" cannot catch it. The question is: which execution is this authority continuing?
+Same identity, same privilege, same target. Every check passes. The execution is wrong.
 
-A different execution includes a fork of the same one. Sibling branches share the same predecessor, but each continues its own lineage: authority that belongs to one branch is not a valid continuation in another.
+"Who are you?" and "What are you allowed to do?" cannot catch it. The question is: which continuation does this authority belong to?
