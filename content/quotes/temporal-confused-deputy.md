@@ -21,7 +21,7 @@ tags:
 >
 > Same origin is not the same continuation.
 >
-> A capability lets the holder act. It does not let the receiver verify which continuation the holder is acting for.
+> A capability lets the holder act. On its own, it does not let the receiver verify which continuation the holder is acting for.
 
 <!--more-->
 
