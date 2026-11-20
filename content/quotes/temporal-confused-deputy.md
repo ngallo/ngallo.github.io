@@ -17,15 +17,17 @@ tags:
 
 > Confused deputy does not come from expanding authority. Its root cause is using your authority on a resource designated by someone else.
 >
-> Temporal confused deputy does not come from expanding authority either. Its root cause is using your authority from one continuation on a resource designated by another.
+> Temporal confused deputy does not come from expanding authority either. Its root cause is using your authority on a resource designated in a different authority continuity.
 >
-> Even when both continuations come from the same person.\
+> The authority is genuine, and you hold it legitimately. It just belongs to a different authority continuity.
+>
+> Even when the designator is the same in both continuities.\
 > Even when they share the same origin and only forked along the way.
 >
-> Same origin is not the same continuation.
+> Same origin is not the same continuity.
 
 <!--more-->
 
 Same identity, same privilege, same target. Every check passes. The execution is wrong.
 
-"Who are you?" and "What are you allowed to do?" cannot catch it. The question is: which continuation does this authority belong to?
+"Who are you?" and "What are you allowed to do?" cannot catch it. The question is: which continuity does this authority belong to?
