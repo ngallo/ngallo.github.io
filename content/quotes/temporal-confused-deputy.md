@@ -5,9 +5,9 @@ date: "2026-11-20"
 weight: 5
 author: "Nicola Gallo"
 authorUrl: "https://www.ngallo.it/"
-source: "PIC (Provenance Identity Continuity)"
-sourceUrl: "https://pic-protocol.org"
-originalDate: ""
+source: "PIC paper, IEEE NCA 2026 (Theorems 3 and 4)"
+sourceUrl: "https://doi.org/10.1109/NCA71379.2026.00052"
+originalDate: "2026"
 tags:
   - confused deputy
   - authorization
@@ -17,17 +17,16 @@ tags:
 
 > Confused deputy does not come from expanding authority. Its root cause is using your authority on a resource designated by someone else.
 >
-> Temporal confused deputy does not come from expanding authority either. Its root cause is using your authority on a resource designated in a different authority continuity.
+> Temporal confused deputy does not either. Its root cause is using your authority on a resource designated in another continuation, even by the same designator, even if both continuations forked from the same origin.
 >
-> The authority is genuine, and you hold it legitimately. It just belongs to a different authority continuity.
->
-> Even when the designator is the same in both continuities.\
-> Even when they share the same origin and only forked along the way.
->
-> Same origin is not the same continuity.
+> Same origin is not the same continuation.
 
 <!--more-->
 
-Same identity, same privilege, same target. Every check passes. The execution is wrong.
+The authority is genuine, and you hold it legitimately. It just belongs to a different continuation.
 
-"Who are you?" and "What are you allowed to do?" cannot catch it. The question is: which continuity does this authority belong to?
+Formally: take two events e = (o, r, ℓ) and e′ = (o, r, ℓ′) with ℓ ≠ ℓ′. Same operation, same resource, different lineage. Any policy that does not read the lineage gives both the same verdict, so it cannot accept one and reject the other.
+
+Telling them apart requires evidence of the lineage. [Authority Continuity](/quotes/pic-authority-continuity/) is the property that demands it.
+
+Proved in the PIC paper (IEEE NCA 2026, Theorems 3 and 4): <https://doi.org/10.1109/NCA71379.2026.00052>
