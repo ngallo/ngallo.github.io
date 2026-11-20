@@ -10,6 +10,7 @@ sourceUrl: ""
 originalDate: ""
 tags:
   - capabilities
+  - temporal confused deputy
   - authorization
   - authority continuity
   - PIC

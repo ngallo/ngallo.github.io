@@ -10,6 +10,7 @@ sourceUrl: "https://doi.org/10.1109/NCA71379.2026.00052"
 originalDate: "2026"
 tags:
   - confused deputy
+  - temporal confused deputy
   - authorization
   - authority continuity
   - PIC
