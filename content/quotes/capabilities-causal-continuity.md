@@ -20,5 +20,3 @@ tags:
 > Two executions can present **the same valid capability** while requiring **different security decisions** because their causal histories differ.
 >
 > **A verifier observing only capability validity cannot distinguish them. No cryptographic strength can recover a distinction absent from the verifier's evidence.**
->
-> Capabilities can carry verifiable execution-specific bindings—but then **causal continuity must be established and checked, not inferred from capability possession.**
