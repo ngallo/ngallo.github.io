@@ -1,0 +1,36 @@
+{{ define "title"}}
+{{ .Title }} | {{ .Site.Params.author.name }}
+{{ end }}
+
+{{ define "main" }}
+{{ $section := .CurrentSection }}
+<div class="postWrapper quoteSingle">
+    <a class="quoteBack" href="{{ $section.RelPermalink }}">← ~/{{ $section.Section }}</a>
+    <h1>{{ .Title }}</h1>
+
+    {{ partial "quote-meta.html" . }}
+
+    <div class="quoteText">
+        {{ partial "quote-text.html" . }}
+    </div>
+
+    {{ $tagList := slice }}
+    {{ range .Params.tags }}{{ if ne . "index" }}{{ $tagList = $tagList | append . }}{{ end }}{{ end }}
+    {{ if gt (len $tagList) 0 }}
+    <div class="postTags">
+        {{ range $tagList }}
+        <a href="{{ $section.RelPermalink }}#tag={{ . }}" class="post-tag">#{{ . }}</a>
+        {{ end }}
+    </div>
+    {{ end }}
+
+    {{ if strings.Contains .RawContent "<!--more-->" }}
+    {{/* Everything after <!--more--> : personal notes */}}
+    {{ $notes := index (split .RawContent "<!--more-->") 1 }}
+    <section class="quoteNotes">
+        <h2>Notes</h2>
+        {{ .RenderString (dict "display" "block") $notes }}
+    </section>
+    {{ end }}
+</div>
+{{ end }}

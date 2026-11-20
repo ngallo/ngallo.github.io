@@ -27,6 +27,10 @@ tasks:
     cmds:
       - hugo mod tidy 
       - hugo server --logLevel debug --disableFastRender -p 1315
+  quote:
+    desc: "new definition/quote, e.g. task quote -- zero-trust"
+    cmds:
+      - hugo new content quotes/{{.CLI_ARGS}}.md
   update:
     cmds:
       - hugo mod get -u

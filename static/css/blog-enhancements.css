@@ -2890,3 +2890,122 @@ a:focus-visible {
 .lang-notice a {
   color: var(--accent);
 }
+
+/* ==========================================================================
+   Wider central column (theme default: 760px) so the header menu fits on
+   one line and content has more room. Mobile (< 992px) is unchanged.
+   ========================================================================== */
+@media only screen and (min-width: 992px) {
+  .main,
+  .header {
+    width: 920px;
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* ==========================================================================
+   Quotes section (~/quotes): same card style as the blog list.
+   Card: title → meta row (added, author, source, kind) → full text → tags.
+   ========================================================================== */
+.quoteControls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  margin: 0 0 0.75em;
+}
+
+.quoteSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Letter headings left-aligned, in line with the cards */
+.quote-group .year-heading {
+  text-align: left !important;
+}
+
+/* Full text, never clamped (blog excerpts are clamped to 2 lines) */
+.quoteItem .quoteText {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  text-align: left !important;
+}
+
+/* Text is written as a Markdown blockquote: render it as plain excerpt text */
+.quoteText blockquote,
+.quoteText blockquote p {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-style: normal !important;
+  text-align: left !important;
+}
+
+.quoteText p + p {
+  margin-top: 0.5em;
+}
+
+.quoteMeta a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-subtle);
+  text-underline-offset: 3px;
+}
+
+.quoteMeta a:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+
+.quoteMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+.quoteMore {
+  align-self: center;
+  font-size: 0.8em;
+  color: var(--accent);
+}
+
+/* Single entry page */
+.quoteBack {
+  display: inline-block;
+  margin-bottom: 0.75em;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.quoteBack:hover {
+  color: var(--accent);
+}
+
+.quoteSingle .quoteText {
+  font-size: 1.15em;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin: 0.75em 0 1em;
+}
+
+.quoteSingle .quoteMeta {
+  margin-bottom: 0.75em;
+}
+
+.quoteNotes {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.quoteNotes h2 {
+  font-size: 1.1em;
+  color: var(--text-secondary);
+}

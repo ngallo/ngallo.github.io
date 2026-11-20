@@ -1,0 +1,25 @@
+{{/* One entry (definition or quote) in the quotes list, in the blog card style. */}}
+{{ $kind := .Params.kind | default "definition" }}
+{{ $tagList := slice }}
+{{ range .Params.tags }}{{ if ne . "index" }}{{ $tagList = $tagList | append . }}{{ end }}{{ end }}
+{{ $hasNotes := strings.Contains .RawContent "<!--more-->" }}
+<div class="postListItem quoteItem" role="listitem"
+  data-tags="{{ delimit $tagList "," }}" data-kind="{{ $kind }}">
+  <a class="postListLink" href="{{ .RelPermalink }}">
+    <div class="postHeader">
+      <span class="postTitle">{{ .Title }}</span>
+    </div>
+  </a>
+  {{ partial "quote-meta.html" . }}
+  <div class="postExcerpt quoteText">
+    {{- partial "quote-text.html" . -}}
+  </div>
+  {{ if or (gt (len $tagList) 0) $hasNotes }}
+  <div class="postTags">
+    {{ range $tagList }}
+    <a href="#tag={{ . | urlquery }}" class="post-tag quote-tag" data-tag="{{ . }}">#{{ . }}</a>
+    {{ end }}
+    {{ if $hasNotes }}<a class="quoteMore" href="{{ .RelPermalink }}">notes →</a>{{ end }}
+  </div>
+  {{ end }}
+</div>

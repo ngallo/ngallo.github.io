@@ -1,0 +1,8 @@
+{{/*
+  Main text of a quotes entry (HTML): everything before <!--more--> if present,
+  otherwise the whole content. Never Hugo's 70-word automatic summary, which
+  would cut long quotes. Usage: {{ partial "quote-text.html" . }}
+*/}}
+{{- $text := .Content -}}
+{{- if strings.Contains .RawContent "<!--more-->" -}}{{- $text = .Summary -}}{{- end -}}
+{{- return $text -}}

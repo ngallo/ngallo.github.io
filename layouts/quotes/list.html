@@ -1,0 +1,194 @@
+{{ define "title"}}
+{{ .Title }} | {{ .Site.Params.author.name }}
+{{ end }}
+
+{{ define "main" }}
+
+{{ $pages := .RegularPages }}
+{{ $byTitle := sort $pages "Title" "asc" }}
+{{ $byDate := $pages.ByDate.Reverse }}
+
+<div>
+  <div class="listHeader">
+    <h1>{{ .Title }}</h1>
+    <div class="tagline"><span class="tagline-branch">└─</span> <span class="tagline-word">definitions</span><span class="tagline-sep">·</span><span class="tagline-word">quotes</span><span class="tagline-sep">·</span><span class="tagline-word">sources</span></div>
+  </div>
+
+  {{ with .Content }}
+  <div class="listContent">
+    {{- . -}}
+  </div>
+  {{ end }}
+
+  {{/* Search bar */}}
+  <div class="search-wrapper">
+    <div class="search-input-container">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><path d="M10.68 11.74a6 6 0 01-7.922-8.982 6 6 0 018.982 7.922l3.04 3.04a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215l-3.04-3.04zM11.5 7a4.499 4.499 0 10-8.997 0A4.499 4.499 0 0011.5 7z"/></svg>
+      <input type="text" id="blog-search" class="search-input" placeholder="Search terms, text, authors, sources…" autocomplete="off" />
+      <kbd class="search-kbd">⌘K</kbd>
+    </div>
+    <div id="search-results-count" class="search-results-count"></div>
+  </div>
+
+  {{/* View + kind switches */}}
+  <div class="quoteControls">
+    <div class="quoteSwitch" role="group" aria-label="Order">
+      <button type="button" class="tag-pill tag-pill--active" data-view="az">a–z</button>
+      <button type="button" class="tag-pill" data-view="recent">recent</button>
+    </div>
+    <div class="quoteSwitch" role="group" aria-label="Kind">
+      <button type="button" class="tag-pill tag-pill--active" data-kind="all">all kinds</button>
+      <button type="button" class="tag-pill" data-kind="definition">definitions</button>
+      <button type="button" class="tag-pill" data-kind="quote">quotes</button>
+    </div>
+  </div>
+
+  {{/* Tag filter bar */}}
+  {{ $allTags := slice }}
+  {{ range $pages }}{{ range .Params.tags }}{{ if ne . "index" }}{{ $allTags = $allTags | append . }}{{ end }}{{ end }}{{ end }}
+  {{ $uniqueTags := $allTags | uniq | sort }}
+  {{ if gt (len $uniqueTags) 0 }}
+  {{ $manyTags := gt (len $uniqueTags) 50 }}
+  <div class="tag-filter-wrapper">
+    <div class="tag-filter-bar{{ if $manyTags }} is-collapsed{{ end }}" role="navigation" aria-label="Filter by tag">
+      <button class="tag-pill tag-pill--active" data-tag="all">all</button>
+      {{ range $uniqueTags }}
+      <button class="tag-pill" data-tag="{{ . }}">{{ . }}</button>
+      {{ end }}
+    </div>
+    {{ if $manyTags }}
+    <button class="tag-toggle" aria-expanded="false">
+      <span class="tag-toggle-text">show all</span>
+      <svg class="tag-toggle-icon" viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/></svg>
+    </button>
+    {{ end }}
+  </div>
+  {{ end }}
+
+  {{/* A–Z view: grouped by first letter of the term */}}
+  <div class="quoteView" data-view="az">
+    {{ $letters := slice }}
+    {{ range $byTitle }}{{ $letters = $letters | append (upper (substr .Title 0 1)) }}{{ end }}
+    {{ range $letter := $letters | uniq }}
+    {{ $group := slice }}
+    {{ range $byTitle }}{{ if eq (upper (substr .Title 0 1)) $letter }}{{ $group = $group | append . }}{{ end }}{{ end }}
+    <section class="year-group quote-group">
+      <h2 class="year-heading">{{ $letter }}<span class="year-count">{{ len $group }}</span></h2>
+      <div role="list">
+        {{ range $group }}{{ partial "quote-card.html" . }}{{ end }}
+      </div>
+    </section>
+    {{ end }}
+  </div>
+
+  {{/* Recent view: most recently added first */}}
+  <div class="quoteView" data-view="recent" hidden>
+    <section class="year-group quote-group">
+      <div role="list">
+        {{ range $byDate }}{{ partial "quote-card.html" . }}{{ end }}
+      </div>
+    </section>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var tagPills = document.querySelectorAll('.tag-filter-bar .tag-pill');
+  var kindPills = document.querySelectorAll('[data-kind].tag-pill');
+  var viewPills = document.querySelectorAll('[data-view].tag-pill');
+  var views = document.querySelectorAll('.quoteView');
+  var groups = document.querySelectorAll('.quote-group');
+  var searchInput = document.getElementById('blog-search');
+  var resultsCount = document.getElementById('search-results-count');
+
+  var state = { tag: 'all', kind: 'all', view: 'az', query: '' };
+
+  var entries = [];
+  document.querySelectorAll('.quoteItem').forEach(function(el) {
+    entries.push({ el: el, text: el.textContent.replace(/\s+/g, ' ').toLowerCase() });
+  });
+
+  function setActive(pills, attr, value) {
+    pills.forEach(function(p) {
+      p.classList.toggle('tag-pill--active', p.getAttribute(attr) === value);
+    });
+  }
+
+  function apply() {
+    var q = state.query.toLowerCase().trim();
+    var count = 0;
+    entries.forEach(function(e) {
+      var tags = (e.el.getAttribute('data-tags') || '').split(',');
+      var ok = (state.tag === 'all' || tags.indexOf(state.tag) !== -1) &&
+               (state.kind === 'all' || e.el.getAttribute('data-kind') === state.kind) &&
+               (!q || e.text.indexOf(q) !== -1);
+      e.el.style.display = ok ? '' : 'none';
+      if (ok && e.el.closest('.quoteView').getAttribute('data-view') === state.view) count++;
+    });
+    groups.forEach(function(g) {
+      var vis = g.querySelectorAll('.quoteItem:not([style*="display: none"])');
+      g.style.display = vis.length ? '' : 'none';
+    });
+    views.forEach(function(v) { v.hidden = v.getAttribute('data-view') !== state.view; });
+    var filtered = q || state.tag !== 'all' || state.kind !== 'all';
+    resultsCount.textContent = count + ' ' + (count === 1 ? 'entry' : 'entries');
+    resultsCount.style.display = filtered ? '' : 'none';
+  }
+
+  function setTag(tag) {
+    state.tag = tag;
+    setActive(tagPills, 'data-tag', tag);
+    try { history.replaceState(null, '', tag === 'all' ? location.pathname : '#tag=' + encodeURIComponent(tag)); } catch (e) {}
+    apply();
+  }
+
+  tagPills.forEach(function(p) { p.addEventListener('click', function() { setTag(p.getAttribute('data-tag')); }); });
+  document.querySelectorAll('.quote-tag').forEach(function(b) {
+    b.addEventListener('click', function(e) { e.preventDefault(); setTag(b.getAttribute('data-tag')); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  });
+  kindPills.forEach(function(p) {
+    p.addEventListener('click', function() { state.kind = p.getAttribute('data-kind'); setActive(kindPills, 'data-kind', state.kind); apply(); });
+  });
+  viewPills.forEach(function(p) {
+    p.addEventListener('click', function() { state.view = p.getAttribute('data-view'); setActive(viewPills, 'data-view', state.view); apply(); });
+  });
+
+  if (searchInput) {
+    var t;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(t);
+      t = setTimeout(function() { state.query = searchInput.value; apply(); }, 150);
+    });
+    document.addEventListener('keydown', function(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); searchInput.focus(); searchInput.select(); }
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.value = ''; state.query = ''; apply(); searchInput.blur();
+      }
+    });
+  }
+
+  // Tag bar expand/collapse (only rendered with > 50 tags)
+  var filterBar = document.querySelector('.tag-filter-bar');
+  var toggleBtn = document.querySelector('.tag-toggle');
+  if (filterBar && toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      var collapsed = filterBar.classList.toggle('is-collapsed');
+      toggleBtn.querySelector('.tag-toggle-text').textContent = collapsed ? 'show all' : 'show less';
+      toggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      toggleBtn.classList.toggle('is-expanded', !collapsed);
+    });
+  }
+
+  // Deep link: /quotes/#tag=security
+  var m = location.hash.match(/^#tag=(.+)$/);
+  if (m) {
+    var tag = decodeURIComponent(m[1]);
+    var exists = Array.prototype.some.call(tagPills, function(p) { return p.getAttribute('data-tag') === tag; });
+    if (exists) { setTag(tag); return; }
+  }
+  apply();
+})();
+</script>
+
+{{ end }}

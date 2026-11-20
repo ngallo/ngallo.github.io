@@ -1,6 +1,6 @@
 {{/* Related Posts – horizontal carousel with left/right scroll arrows */}}
 {{ $currentPage := . }}
-{{ $related := site.RegularPages.Related . | first 10 }}
+{{ $related := where (site.RegularPages.Related .) "Section" .Section | first 10 }}
 
 {{ if gt (len $related) 0 }}
 <nav class="related-posts" aria-label="Related posts">

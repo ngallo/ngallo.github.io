@@ -18,6 +18,13 @@
 - [{{ .Title }}]({{ .Permalink }}): {{ with .Description }}{{ . }}{{ else }}{{ .Summary | plainify | truncate 200 "" }}{{ end }}
 {{- end }}
 
+## Definitions and Quotes
+
+Each entry credits its original author.
+{{ range (where site.RegularPages "Section" "quotes").ByTitle }}
+- [{{ .Title }}]({{ .Permalink }}) ({{ .Params.kind | default "definition" }}{{ with .Params.author }}, {{ . }}{{ end }}{{ with .Params.originalDate }}, {{ . }}{{ end }}): {{ partial "quote-text.html" . | plainify | htmlUnescape | strings.TrimSpace }}
+{{- end }}
+
 ## Key Topics
 {{ $allTags := slice }}{{ range (where site.RegularPages "Section" "blog") }}{{ range .Params.tags }}{{ $allTags = $allTags | append . }}{{ end }}{{ end }}{{ $uniqueTags := $allTags | uniq | sort }}{{ range $uniqueTags }}
 - {{ . }}
