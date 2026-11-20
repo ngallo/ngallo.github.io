@@ -26,9 +26,3 @@ tags:
 <!--more-->
 
 The authority is genuine, and you hold it legitimately. It just belongs to a different continuation.
-
-Formally: take two events e = (o, r, ℓ) and e′ = (o, r, ℓ′) with ℓ ≠ ℓ′. Same operation, same resource, different lineage. Any policy that does not read the lineage gives both the same verdict, so it cannot accept one and reject the other.
-
-Telling them apart requires evidence of the lineage. [Authority Continuity](/quotes/pic-authority-continuity/) is the property that demands it.
-
-Proved in the PIC paper (IEEE NCA 2026, Theorems 3 and 4): <https://doi.org/10.1109/NCA71379.2026.00052>
