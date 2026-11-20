@@ -15,7 +15,7 @@ tags:
   - PIC
 ---
 
-> A capability establishes authority to act on a designated resource. **Its validity alone does not prove which causal continuation justifies its use.**
+> A capability establishes authority to act on a designated resource. Its validity alone does not prove which causal continuation justifies its use.
 >
 > Two executions can present the same valid capability and still require different security decisions, because their causal histories differ.
 >

@@ -4,7 +4,7 @@
 
 {{ define "main" }}
 {{ $section := .CurrentSection }}
-<div class="postWrapper quoteSingle">
+<div class="postWrapper quoteSingle" data-kind="{{ .Params.entryType | default "definition" }}">
     <a class="quoteBack" href="{{ $section.RelPermalink }}">← ~/{{ $section.Section }}</a>
     <h1>{{ .Title }}</h1>
 

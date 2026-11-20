@@ -3005,3 +3005,33 @@ a:focus-visible {
   font-size: 1.1em;
   color: var(--text-secondary);
 }
+
+/* Quotes: large opening quotation mark for entryType "quote" (card + single page) */
+[data-kind="quote"] > .quoteText {
+  position: relative;
+  padding-left: 2.6rem;
+}
+
+[data-kind="quote"] > .quoteText::before {
+  content: "\201C";
+  position: absolute;
+  left: 0;
+  top: -0.6rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+@media screen and (max-width: 768px) {
+  [data-kind="quote"] > .quoteText {
+    padding-left: 2rem;
+  }
+
+  [data-kind="quote"] > .quoteText::before {
+    font-size: 3rem;
+    top: -0.4rem;
+  }
+}
