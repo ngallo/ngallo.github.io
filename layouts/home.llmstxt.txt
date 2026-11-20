@@ -22,7 +22,7 @@
 
 Each entry credits its original author.
 {{ range (where site.RegularPages "Section" "quotes").ByTitle }}
-- [{{ .Title }}]({{ .Permalink }}) ({{ .Params.kind | default "definition" }}{{ with .Params.author }}, {{ . }}{{ end }}{{ with .Params.originalDate }}, {{ . }}{{ end }}): {{ partial "quote-text.html" . | plainify | htmlUnescape | strings.TrimSpace }}
+- [{{ .Title }}]({{ .Permalink }}) ({{ .Params.entryType | default "definition" }}{{ with .Params.author }}, {{ . }}{{ end }}{{ with .Params.originalDate }}, {{ . }}{{ end }}): {{ partial "quote-text.html" . | plainify | htmlUnescape | strings.TrimSpace }}
 {{- end }}
 
 ## Key Topics

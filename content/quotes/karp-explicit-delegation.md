@@ -1,6 +1,6 @@
 ---
 title: "Explicit Delegation"
-kind: "quote"
+entryType: "quote"
 date: "2026-11-20"
 author: "Alan H. Karp"
 authorUrl: "https://alanhkarp.com/"

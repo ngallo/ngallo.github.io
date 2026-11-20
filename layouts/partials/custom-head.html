@@ -43,7 +43,7 @@
 {{- /* Quotes section: credit the original author, not the site author */}}
 {{- $text := partial "quote-text.html" . | plainify | htmlUnescape | strings.TrimSpace }}
 {{- $ld := dict "@context" "https://schema.org" "url" .Permalink "inLanguage" .Site.Language.Lang "keywords" (.Params.tags | default slice) }}
-{{- if eq (.Params.kind | default "definition") "quote" }}
+{{- if eq (.Params.entryType | default "definition") "quote" }}
   {{- $ld = merge $ld (dict "@type" "Quotation" "name" .Title "text" $text) }}
   {{- with .Params.author }}{{ $p := dict "@type" "Person" "name" . }}{{ with $.Params.authorUrl }}{{ $p = merge $p (dict "url" .) }}{{ end }}{{ $ld = merge $ld (dict "creator" $p) }}{{ end }}
 {{- else }}

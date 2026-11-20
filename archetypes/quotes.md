@@ -1,8 +1,8 @@
 ---
-# The term being defined (kind: definition) or a short label for the quote (kind: quote).
+# The term being defined (entryType: definition) or a short label for the quote (entryType: quote).
 title: "{{ replace .File.ContentBaseName "-" " " | title }}"
 # definition | quote
-kind: "definition"
+entryType: "definition"
 # The day you saved it (shown as "added").
 date: "{{ .Date | time.Format "2006-01-02" }}"
 # Original author(s).

@@ -1,5 +1,5 @@
 {{/* One entry (definition or quote) in the quotes list, in the blog card style. */}}
-{{ $kind := .Params.kind | default "definition" }}
+{{ $kind := .Params.entryType | default "definition" }}
 {{ $tagList := slice }}
 {{ range .Params.tags }}{{ if ne . "index" }}{{ $tagList = $tagList | append . }}{{ end }}{{ end }}
 {{ $hasNotes := strings.Contains .RawContent "<!--more-->" }}

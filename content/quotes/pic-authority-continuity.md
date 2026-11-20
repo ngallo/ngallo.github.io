@@ -1,6 +1,6 @@
 ---
 title: "Authority Continuity"
-kind: "definition"
+entryType: "definition"
 date: "2026-11-20"
 author: "Nicola Gallo"
 authorUrl: "https://www.ngallo.it/"
