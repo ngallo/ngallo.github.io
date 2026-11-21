@@ -3006,13 +3006,13 @@ a:focus-visible {
   color: var(--text-secondary);
 }
 
-/* Quotes: large opening quotation mark for entryType "quote" (card + single page) */
-[data-kind="quote"] > .quoteText {
+/* Quotes: large opening quotation mark on every entry (card + single page) */
+[data-kind] > .quoteText {
   position: relative;
   padding-left: 2.6rem;
 }
 
-[data-kind="quote"] > .quoteText::before {
+[data-kind] > .quoteText::before {
   content: "\201C";
   position: absolute;
   left: 0;
@@ -3026,11 +3026,11 @@ a:focus-visible {
 }
 
 @media screen and (max-width: 768px) {
-  [data-kind="quote"] > .quoteText {
+  [data-kind] > .quoteText {
     padding-left: 2rem;
   }
 
-  [data-kind="quote"] > .quoteText::before {
+  [data-kind] > .quoteText::before {
     font-size: 3rem;
     top: -0.4rem;
   }
